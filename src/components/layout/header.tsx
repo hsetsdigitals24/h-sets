@@ -43,7 +43,7 @@ export function Header() {
         "fixed inset-x-0 top-0 z-50 transition-all duration-300",
         scrolled || mobileOpen
           ? "border-b border-border/80 bg-background/85 backdrop-blur-xl"
-          : "border-b border-transparent bg-transparent"
+          : "border-b bg-white"
       )}
       onMouseLeave={() => setOpenMenu(null)}
     >

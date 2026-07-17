@@ -27,16 +27,16 @@ const floatingCards = [
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[100svh] items-center overflow-hidden bg-ink-gradient pt-24 text-white">
+    <section className="relative flex min-h-[100svh] items-center overflow-hidden bg-ink-gradient pt-24 text-white" style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 5rem))" }}>
       {/* aurora blobs */}
-      <div className="pointer-events-none absolute -left-32 top-10 size-[28rem] rounded-full bg-primary/30 blur-[120px] animate-float-slow" />
+      {/* <div className="pointer-events-none absolute -left-32 top-10 size-[28rem] rounded-full bg-primary/30 blur-[120px] animate-float-slow" />
       <div className="pointer-events-none absolute -right-32 top-1/3 size-[26rem] rounded-full bg-accent/20 blur-[120px] animate-float-slow [animation-delay:-7s]" />
-      <div className="pointer-events-none absolute bottom-0 left-1/2 size-[24rem] -translate-x-1/2 rounded-full bg-fuchsia-500/15 blur-[120px] animate-float-slow [animation-delay:-3s]" />
+      <div className="pointer-events-none absolute bottom-0 left-1/2 size-[24rem] -translate-x-1/2 rounded-full bg-fuchsia-500/15 blur-[120px] animate-float-slow [animation-delay:-3s]" /> */}
       {/* grid texture */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)] [background-size:36px_36px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
 
       {/* floating service chips (desktop) */}
-      {floatingCards.map((c) => {
+      {/* {floatingCards.map((c) => {
         const Icon = c.icon;
         return (
           <motion.div
@@ -47,16 +47,16 @@ export function Hero() {
             className={`absolute hidden lg:block ${c.className}`}
           >
             <div className="animate-float-slow" style={{ animationDelay: `${c.delay}s` }}>
-              <div className="flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 shadow-soft backdrop-blur-md">
+              <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 shadow-soft backdrop-blur-md">
                 <span className="grid size-8 place-items-center rounded-lg bg-brand-gradient">
-                  <Icon className="size-4 text-white" />
+                  <Icon className="size-3 text-white" />
                 </span>
                 <span className="text-sm font-medium">{c.label}</span>
               </div>
             </div>
           </motion.div>
-        );
-      })}
+        ); 
+      })}*/}
 
       <div className="relative mx-auto w-full max-w-4xl px-5 py-16 text-center sm:px-8">
         <motion.div
@@ -65,7 +65,7 @@ export function Hero() {
           transition={{ duration: 0.6 }}
           className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm text-white/80 backdrop-blur"
         >
-          <Sparkles className="size-4 text-accent" />
+          {/* <Sparkles className="size-4 text-accent" /> */}
           Nigeria&apos;s end-to-end technology growth partner
         </motion.div>
 
@@ -133,7 +133,7 @@ export function Hero() {
       </div>
 
       {/* bottom fade */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background" />
+      {/* <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background" /> */}
     </section>
   );
 }
