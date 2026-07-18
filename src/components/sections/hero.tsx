@@ -1,13 +1,20 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion, type Variants } from "motion/react";
-import { ArrowRight, Sparkles, Code2, Bot, GraduationCap, BarChart3 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedCounter } from "@/components/common/animated-counter";
 import { stats } from "@/data/company";
 
-const headline = ["Technology", "that grows", "your business", "and your career."];
+const headline = ["Technology", "that grows", "your business"];
+
+const slides = [
+  { src: "/hero/slide-1.png", alt: "H-SETS team building software" },
+  { src: "/hero/slide-2.png", alt: "H-SETS Academy learners at work" },
+];
 
 const container: Variants = {
   hidden: {},
@@ -18,57 +25,45 @@ const word: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
 };
 
-const floatingCards = [
-  { icon: Code2, label: "Software", className: "left-[2%] top-[18%]", delay: 0 },
-  { icon: Bot, label: "AI Agents", className: "right-[4%] top-[12%]", delay: -3 },
-  { icon: GraduationCap, label: "Academy", className: "left-[8%] bottom-[16%]", delay: -6 },
-  { icon: BarChart3, label: "Growth", className: "right-[6%] bottom-[20%]", delay: -2 },
-];
-
 export function Hero() {
-  return (
-    <section className="relative flex min-h-[100svh] items-center overflow-hidden bg-ink-gradient pt-24 text-white" style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 5rem))" }}>
-      {/* aurora blobs */}
-      {/* <div className="pointer-events-none absolute -left-32 top-10 size-[28rem] rounded-full bg-primary/30 blur-[120px] animate-float-slow" />
-      <div className="pointer-events-none absolute -right-32 top-1/3 size-[26rem] rounded-full bg-accent/20 blur-[120px] animate-float-slow [animation-delay:-7s]" />
-      <div className="pointer-events-none absolute bottom-0 left-1/2 size-[24rem] -translate-x-1/2 rounded-full bg-fuchsia-500/15 blur-[120px] animate-float-slow [animation-delay:-3s]" /> */}
-      {/* grid texture */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)] [background-size:36px_36px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
+  const [active, setActive] = useState(0);
 
-      {/* floating service chips (desktop) */}
-      {/* {floatingCards.map((c) => {
-        const Icon = c.icon;
-        return (
-          <motion.div
-            key={c.label}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.8 + Math.abs(c.delay) * 0.03, duration: 0.6 }}
-            className={`absolute hidden lg:block ${c.className}`}
-          >
-            <div className="animate-float-slow" style={{ animationDelay: `${c.delay}s` }}>
-              <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 shadow-soft backdrop-blur-md">
-                <span className="grid size-8 place-items-center rounded-lg bg-brand-gradient">
-                  <Icon className="size-3 text-white" />
-                </span>
-                <span className="text-sm font-medium">{c.label}</span>
-              </div>
-            </div>
-          </motion.div>
-        ); 
-      })}*/}
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || slides.length < 2) return;
+
+    const id = setInterval(() => {
+      setActive((i) => (i + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <section
+      className="relative flex min-h-[100svh] items-center overflow-hidden bg-ink pt-24 text-white"
+      style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 5rem))" }}
+    >
+      {/* background image slider */}
+      <div className="pointer-events-none absolute inset-0">
+        {slides.map((slide, i) => (
+          <Image
+            key={slide.src}
+            src={slide.src}
+            alt={slide.alt}
+            fill
+            sizes="100vw"
+            preload={i === 0}
+            className={`object-cover transition-opacity duration-1000 ease-in-out ${
+              i === active ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* dark overlay for legibility */}
+      <div className="pointer-events-none absolute inset-0 bg-ink/70" />
 
       <div className="relative mx-auto w-full max-w-4xl px-5 py-16 text-center sm:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm text-white/80 backdrop-blur"
-        >
-          {/* <Sparkles className="size-4 text-accent" /> */}
-          Nigeria&apos;s end-to-end technology growth partner
-        </motion.div>
-
         <motion.h1
           variants={container}
           initial="hidden"
@@ -131,9 +126,6 @@ export function Hero() {
           ))}
         </motion.div>
       </div>
-
-      {/* bottom fade */}
-      {/* <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background" /> */}
     </section>
   );
 }
