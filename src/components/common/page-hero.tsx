@@ -30,7 +30,6 @@ export function PageHero({
       {/* aurora blobs */}
       <div className="pointer-events-none absolute -left-24 top-0 size-80 rounded-full bg-primary/25 blur-3xl animate-float-slow" />
       <div className="pointer-events-none absolute right-0 top-20 size-72 rounded-full bg-accent/15 blur-3xl animate-float-slow [animation-delay:-5s]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.06)_1px,transparent_0)] [background-size:32px_32px]" />
 
       <Container
         className={cn(

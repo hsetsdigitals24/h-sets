@@ -9,14 +9,27 @@ export function Logo({
   className?: string;
   light?: boolean;
 }) {
-  return (
+
+  if (light) {
+    return (
+      <Link 
+      href="/"
+      className={cn("group inline-flex items-center gap-2.5", className)}
+      aria-label="H-SETS home"
+    >
+      
+    <Image src="/logo-light.png" width="200" height="200" alt="H-SETS logo" />
+    </Link> )
+  } else {
+    return (
     <Link
       href="/"
       className={cn("group inline-flex items-center gap-2.5", className)}
       aria-label="H-SETS home"
     >
       
-    <Image src="/logo.png" width="150" height="150" alt="H-SETS logo" />
+    <Image src="/logo.png" width="200" height="200" alt="H-SETS logo" />
     </Link> 
-  );
+    )
+}
 }

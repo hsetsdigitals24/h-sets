@@ -28,8 +28,7 @@ export function ResourcesGrid() {
                 onClick={() => openGate(r)}
                 className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
               >
-                <div className={cn("relative h-28 bg-gradient-to-br", r.accent)}>
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.25),transparent_60%)]" />
+                <div className={cn("relative h-28", r.accent)}>
                   <Icon className="absolute bottom-4 left-5 size-9 text-white" />
                   <span className="absolute right-4 top-4">
                     <Badge variant="glass">{r.type}</Badge>

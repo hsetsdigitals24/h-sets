@@ -44,8 +44,7 @@ export default function InsightsPage() {
             href={`/insights/${featured.slug}`}
             className="group grid overflow-hidden rounded-3xl border border-border bg-card shadow-soft transition-all hover:border-primary/40 lg:grid-cols-2"
           >
-            <div className={cn("relative min-h-[240px] bg-gradient-to-br", featured.accent)}>
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.25),transparent_60%)]" />
+            <div className={cn("relative min-h-[240px]", featured.accent)}>
               <span className="absolute left-6 top-6">
                 <Badge variant="glass">Featured · {featured.category}</Badge>
               </span>

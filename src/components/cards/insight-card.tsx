@@ -10,8 +10,7 @@ export function InsightCard({ insight }: { insight: Insight }) {
       href={`/insights/${insight.slug}`}
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
     >
-      <div className={cn("relative h-40 overflow-hidden bg-gradient-to-br", insight.accent)}>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.25),transparent_60%)]" />
+      <div className={cn("relative h-40 overflow-hidden", insight.accent)}>
         <span className="absolute left-4 top-4">
           <Badge variant="glass">{insight.category}</Badge>
         </span>

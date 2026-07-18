@@ -16,7 +16,6 @@ export default function NotFound() {
     <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-ink-gradient px-5 py-24 text-center text-white">
       <div className="pointer-events-none absolute -left-24 top-10 size-96 rounded-full bg-primary/25 blur-[120px] animate-float-slow" />
       <div className="pointer-events-none absolute -right-24 bottom-10 size-96 rounded-full bg-accent/15 blur-[120px] animate-float-slow [animation-delay:-6s]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)] [background-size:36px_36px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
 
       <div className="relative mx-auto max-w-xl">
         <p className="font-display text-[6rem] font-bold leading-none text-gradient sm:text-[9rem]">

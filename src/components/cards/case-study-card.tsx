@@ -10,8 +10,7 @@ export function CaseStudyCard({ study }: { study: CaseStudy }) {
       href={`/case-studies/${study.slug}`}
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
     >
-      <div className={cn("relative h-44 overflow-hidden bg-gradient-to-br", study.accent)}>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.25),transparent_60%)]" />
+      <div className={cn("relative h-44 overflow-hidden", study.accent)}>
         <div className="absolute inset-0 flex flex-col justify-between p-5">
           <div className="flex gap-2">
             <Badge variant="glass">{study.industry}</Badge>

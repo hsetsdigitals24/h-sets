@@ -41,10 +41,8 @@
   --ink-2: #101935;
   --ink-3: #18204a;
 
-  /* Gradient stops */
-  --grad-from: #22d3ee;
-  --grad-via: #6366f1;
-  --grad-to: #a855f7;
+  /* Brand solid */
+  --brand: #7c3aed;
 
   --star: #f5b301;
 }
@@ -83,7 +81,7 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 12px);
 
-  --shadow-glow: 0 0 60px -15px var(--grad-via);
+  --shadow-glow: 0 0 60px -15px var(--brand);
   --shadow-soft: 0 10px 40px -12px rgba(11, 16, 32, 0.18);
 }
 
@@ -103,41 +101,25 @@
     letter-spacing: -0.02em;
   }
   ::selection {
-    background-color: color-mix(in oklab, var(--grad-via) 30%, transparent);
+    background-color: color-mix(in oklab, var(--brand) 30%, transparent);
   }
   html {
     scroll-behavior: smooth;
   }
 }
 
-/* Brand gradient text */
+/* Brand solid text */
 .text-gradient {
-  background-image: linear-gradient(
-    100deg,
-    var(--grad-from),
-    var(--grad-via),
-    var(--grad-to)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--brand);
 }
 
-/* Gradient surface */
+/* Brand solid surface */
 .bg-brand-gradient {
-  background-image: linear-gradient(
-    120deg,
-    var(--grad-from),
-    var(--grad-via) 55%,
-    var(--grad-to)
-  );
+  background-color: var(--brand);
 }
 
 .bg-ink-gradient {
-  background-image:
-    radial-gradient(60% 80% at 20% 10%, rgba(99, 102, 241, 0.25), transparent 60%),
-    radial-gradient(50% 70% at 90% 20%, rgba(34, 211, 238, 0.18), transparent 55%),
-    linear-gradient(180deg, var(--ink), var(--ink-2));
+  background-color: var(--ink-2);
 }
 
 /* Animated aurora blobs */

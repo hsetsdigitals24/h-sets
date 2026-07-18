@@ -40,7 +40,7 @@ export const caseStudies: CaseStudy[] = [
       role: "CEO, MediLogix Health",
     },
     related: ["bloom-ai-automation", "kudi-mobile-app"],
-    accent: "from-cyan-400 to-blue-600",
+    accent: "bg-blue-500",
   },
   {
     slug: "bloom-ai-automation",
@@ -67,7 +67,7 @@ export const caseStudies: CaseStudy[] = [
       role: "Founder, Bloom Retail",
     },
     related: ["medilogix-patient-platform", "firstbridge-corporate-training"],
-    accent: "from-violet-400 to-fuchsia-600",
+    accent: "bg-fuchsia-500",
   },
   {
     slug: "kudi-mobile-app",
@@ -93,7 +93,7 @@ export const caseStudies: CaseStudy[] = [
       role: "Product Lead, Kudi Africa",
     },
     related: ["medilogix-patient-platform", "bloom-ai-automation"],
-    accent: "from-emerald-400 to-teal-600",
+    accent: "bg-teal-500",
   },
   {
     slug: "firstbridge-corporate-training",
@@ -119,7 +119,7 @@ export const caseStudies: CaseStudy[] = [
       role: "L&D Director, FirstBridge Financial",
     },
     related: ["medilogix-patient-platform", "bloom-ai-automation"],
-    accent: "from-amber-400 to-orange-600",
+    accent: "bg-orange-500",
   },
 ];
 

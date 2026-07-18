@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, type Variants } from "motion/react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  type Variants,
+} from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedCounter } from "@/components/common/animated-counter";
@@ -27,6 +33,14 @@ const word: Variants = {
 
 export function Hero() {
   const [active, setActive] = useState(0);
+  const sectionRef = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -40,11 +54,15 @@ export function Hero() {
 
   return (
     <section
+      ref={sectionRef}
       className="relative flex min-h-[100svh] items-center overflow-hidden bg-ink pt-24 text-white"
       style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 5rem))" }}
     >
-      {/* background image slider */}
-      <div className="pointer-events-none absolute inset-0">
+      {/* background image slider (parallax) */}
+      <motion.div
+        className="pointer-events-none absolute inset-x-0 top-[-20%] h-[140%]"
+        style={reduce ? undefined : { y }}
+      >
         {slides.map((slide, i) => (
           <Image
             key={slide.src}
@@ -58,7 +76,7 @@ export function Hero() {
             }`}
           />
         ))}
-      </div>
+      </motion.div>
 
       {/* dark overlay for legibility */}
       <div className="pointer-events-none absolute inset-0 bg-ink/70" />

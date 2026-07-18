@@ -22,7 +22,7 @@ export const insights: Insight[] = [
     authorRole: "AI Engineer",
     date: "2026-06-10",
     readMins: 7,
-    accent: "from-violet-400 to-fuchsia-600",
+    accent: "bg-fuchsia-500",
     body: [
       "For years, automation felt like something reserved for companies with deep pockets and dedicated engineering teams. That has changed. The combination of accessible AI models and no-code integration tools means a five-person business can now automate work that used to require a full department.",
       "The biggest wins are rarely glamorous. They're the repetitive tasks that quietly drain margin: copying data between systems, answering the same customer questions, reconciling spreadsheets. When you add up the hours, the cost is significant.",
@@ -40,7 +40,7 @@ export const insights: Insight[] = [
     authorRole: "Frontend Engineer",
     date: "2026-06-04",
     readMins: 9,
-    accent: "from-cyan-400 to-blue-600",
+    accent: "bg-blue-500",
     body: [
       "Every week we meet people who want to switch into tech but feel overwhelmed by conflicting advice. The truth is that a career switch is absolutely achievable in six months — but only with structure, consistency and realistic expectations.",
       "The first mistake people make is trying to learn everything at once. You don't need to know five languages and three frameworks. You need to go deep on one path, build real projects, and develop the problem-solving muscle that employers actually hire for.",
@@ -58,7 +58,7 @@ export const insights: Insight[] = [
     authorRole: "Lead Engineer",
     date: "2026-05-28",
     readMins: 6,
-    accent: "from-emerald-400 to-teal-600",
+    accent: "bg-teal-500",
     body: [
       "We've rebuilt dozens of websites, and the pattern is consistent: the businesses that struggle usually have beautiful sites that don't convert. The problem is almost never the visual design. It's clarity, speed and a clear path to action.",
       "Clarity comes first. A visitor should understand what you do, who it's for, and what to do next within a few seconds. If they have to think, you've lost most of them. Strip away jargon and lead with the outcome you deliver.",
@@ -76,7 +76,7 @@ export const insights: Insight[] = [
     authorRole: "AI Engineer",
     date: "2026-05-20",
     readMins: 5,
-    accent: "from-amber-400 to-orange-600",
+    accent: "bg-orange-500",
     body: [
       "AI is the headline everyone wants, but rushing in without the right foundations is how businesses waste money. Readiness comes down to three things: data, process and people.",
       "Data: AI is only as good as the information it can access. If your data is scattered, inconsistent or locked in silos, the first investment should be organising it, not bolting on AI.",
@@ -94,7 +94,7 @@ export const insights: Insight[] = [
     authorRole: "Product Designer",
     date: "2026-05-12",
     readMins: 6,
-    accent: "from-pink-400 to-rose-600",
+    accent: "bg-rose-500",
     body: [
       "When you're handling someone's money, every design decision either builds or erodes trust. We've learned that trust is rarely created by a single flourish — it's the accumulation of small, consistent signals.",
       "Clarity beats cleverness. Users want to understand exactly what's happening with their money at every step. Plain language, clear confirmations and transparent fees do more for trust than any visual trend.",
@@ -112,7 +112,7 @@ export const insights: Insight[] = [
     authorRole: "Growth Marketer",
     date: "2026-05-05",
     readMins: 8,
-    accent: "from-indigo-400 to-purple-600",
+    accent: "bg-purple-500",
     body: [
       "Search behaviour is shifting. More people are asking AI assistants direct questions instead of scanning a page of blue links. This doesn't make SEO obsolete — it changes what good SEO looks like.",
       "The fundamentals still hold: genuinely useful content, fast accessible pages, and clear structure. AI engines are trained on the same web and reward the same quality signals.",

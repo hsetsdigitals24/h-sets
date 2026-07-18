@@ -31,7 +31,7 @@ export const resources: Resource[] = [
       "A practical, jargon-free playbook for modernising your business operations — with a phased roadmap you can actually follow.",
     gate: "emailCompany",
     tag: "For business leaders",
-    accent: "from-cyan-400 to-blue-600",
+    accent: "bg-blue-500",
   },
   {
     id: "social-media-calendar",
@@ -42,7 +42,7 @@ export const resources: Resource[] = [
       "A ready-to-use content calendar template with post ideas, formats and a planning system for three months of consistent posting.",
     gate: "email",
     tag: "For marketers",
-    accent: "from-pink-400 to-rose-600",
+    accent: "bg-rose-500",
   },
   {
     id: "seo-audit-checklist",
@@ -53,7 +53,7 @@ export const resources: Resource[] = [
       "Run a professional-grade SEO audit on your own site with this step-by-step checklist covering technical, content and off-page factors.",
     gate: "email",
     tag: "For everyone",
-    accent: "from-emerald-400 to-teal-600",
+    accent: "bg-teal-500",
   },
   {
     id: "b2b-gtm-playbook",
@@ -64,7 +64,7 @@ export const resources: Resource[] = [
       "How to take a B2B product or service to market in Nigeria — positioning, channels, pricing and a 90-day launch plan.",
     gate: "emailRole",
     tag: "For founders",
-    accent: "from-violet-400 to-fuchsia-600",
+    accent: "bg-fuchsia-500",
   },
   {
     id: "nigerian-digital-report-2026",
@@ -75,7 +75,7 @@ export const resources: Resource[] = [
       "Original research on how Nigerian businesses are adopting digital tools and AI — benchmarks, trends and what's coming next.",
     gate: "full",
     tag: "Original research",
-    accent: "from-amber-400 to-orange-600",
+    accent: "bg-orange-500",
   },
   {
     id: "ai-readiness-assessment",
@@ -86,7 +86,7 @@ export const resources: Resource[] = [
       "A guided assessment that scores your organisation's readiness for AI across data, process and people — with tailored next steps.",
     gate: "full",
     tag: "Interactive tool",
-    accent: "from-indigo-400 to-purple-600",
+    accent: "bg-purple-500",
   },
 ];
 

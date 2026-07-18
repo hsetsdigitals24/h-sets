@@ -62,7 +62,7 @@ export function WhyHsets() {
         <p className="text-center text-sm text-white/50">
           Trusted by teams across Nigeria and beyond
         </p>
-        <div className="relative mt-6 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+        <div className="relative mt-6 overflow-hidden">
           <div className="flex w-max animate-marquee gap-12">
             {[...clientLogos, ...clientLogos].map((logo, i) => (
               <span
