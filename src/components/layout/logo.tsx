@@ -16,7 +16,7 @@ export function Logo({
       aria-label="H-SETS home"
     >
       
-    <Image src="/logo.png" width="100" height="100" alt="H-SETS logo" />
-    </Link>
+    <Image src="/logo.png" width="150" height="150" alt="H-SETS logo" />
+    </Link> 
   );
 }
