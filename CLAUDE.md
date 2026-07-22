@@ -110,7 +110,7 @@ This platform will be considered successful when it demonstrably:
 
 ### **Persona C — The Corporate L\&D Manager**
 
-| Name | Babatunde, 47 |
+| Name | Babatunde, 47 | 
 | :---- | :---- |
 | **Background** | HR & Learning Director at a financial services company. Responsible for upskilling 200+ staff. |
 | **Goals** | Source accredited tech training for employees. Track staff progress. Obtain a measurable ROI on training spend. |
