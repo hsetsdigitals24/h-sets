@@ -1,7 +1,13 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
-import { LEAD_STATUSES, LEAD_TYPES, type LeadStatus } from "@/lib/leads";
+import {
+  LEAD_STATUSES,
+  LEAD_TYPES,
+  TIERS,
+  type LeadStatus,
+  type LeadTier,
+} from "@/lib/leads";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +30,8 @@ export async function GET(req: Request) {
   const q = url.searchParams.get("q") ?? undefined;
   const type = url.searchParams.get("type") ?? undefined;
   const status = url.searchParams.get("status") ?? undefined;
+  const tier = url.searchParams.get("tier") ?? undefined;
+  const owner = url.searchParams.get("owner") ?? undefined;
 
   const where: Prisma.LeadWhereInput = {};
   if (type && LEAD_TYPES.includes(type as (typeof LEAD_TYPES)[number])) {
@@ -31,6 +39,12 @@ export async function GET(req: Request) {
   }
   if (status && LEAD_STATUSES.includes(status as LeadStatus)) {
     where.status = status;
+  }
+  if (tier && TIERS.includes(tier as LeadTier)) {
+    where.tier = tier;
+  }
+  if (owner) {
+    where.ownerId = owner === "unassigned" ? null : owner;
   }
   if (q) {
     where.OR = [
@@ -42,6 +56,7 @@ export async function GET(req: Request) {
 
   const leads = await prisma.lead.findMany({
     where,
+    include: { owner: { select: { name: true } } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -55,6 +70,9 @@ export async function GET(req: Request) {
     "source",
     "status",
     "score",
+    "tier",
+    "owner",
+    "assigned_at",
     "notes",
     "data",
     "created_at",
@@ -70,6 +88,9 @@ export async function GET(req: Request) {
       l.source,
       l.status,
       l.score,
+      l.tier,
+      l.owner?.name ?? "",
+      l.assignedAt ? l.assignedAt.toISOString() : "",
       l.notes,
       l.data,
       l.createdAt.toISOString(),

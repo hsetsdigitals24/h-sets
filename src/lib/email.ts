@@ -78,6 +78,24 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   });
 }
 
+/** Send one nurture-sequence step to a lead. Wraps the step HTML in the layout. */
+export async function sendNurtureStep(opts: {
+  to: string;
+  name?: string | null;
+  subject: string;
+  body: string;
+}) {
+  await send({
+    to: opts.to,
+    subject: opts.subject,
+    html: `<div style="font-family:sans-serif;font-size:15px;line-height:1.6;color:#0b1020">
+      <p>Hi ${opts.name || "there"},</p>
+      ${opts.body}
+      <p style="margin-top:24px">— The H-SETS Team</p>
+    </div>`,
+  });
+}
+
 /** Notify the team about a new lead, and confirm to the user where we have their email. */
 export async function notifyNewLead(opts: {
   type: string;

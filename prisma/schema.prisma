@@ -52,6 +52,9 @@ model User {
 
   // Instructor content profile (1:1) when this account is an instructor.
   instructor Instructor?
+
+  // CRM leads assigned to this admin (role SALES_ADMIN / SUPER_ADMIN).
+  ownedLeads Lead[] @relation("LeadOwner")
 }
 
 // In-app notifications shown in the bell dropdown and notifications pages.
@@ -124,14 +127,60 @@ model Lead {
   // CRM pipeline fields (additive columns on the existing table).
   status    String   @default("new") // new | contacted | qualified | won | lost
   score     Int      @default(0)
+  // Temperature tier derived from score (see src/lib/lead-scoring.ts). Stored so
+  // it can be filtered/indexed without recomputing. cold | warm | hot | urgent.
+  tier      String   @default("cold")
   notes     String?
+  // Sales ownership (assignment).
+  owner      User?     @relation("LeadOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  ownerId    String?
+  assignedAt DateTime?
   createdAt DateTime @default(now()) @map("created_at")
+
+  events   LeadEvent[]
+  nurture  NurtureEnrollment[]
 
   @@index([type])
   @@index([email])
   @@index([status])
+  @@index([tier])
+  @@index([ownerId])
   @@index([createdAt(sort: Desc)])
   @@map("leads")
+}
+
+// Append-only activity timeline for a lead: capture, status/score changes,
+// assignment, and automated nurture sends. Best-effort writes (see
+// src/lib/lead-events.ts) — a logging failure never breaks the primary action.
+model LeadEvent {
+  id        String   @id @default(cuid())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId    BigInt
+  type      String   // created | status_changed | assigned | score_changed | note_added | nurture_sent
+  message   String
+  meta      Json     @default("{}")
+  actorId   String?  // User.id who acted; null = system/automation
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
+}
+
+// A lead's position in an automated email nurture sequence (see src/lib/nurture.ts).
+// The external cron endpoint (/api/cron/nurture) sends the due step and advances
+// the cursor. One active enrollment per (lead, sequence).
+model NurtureEnrollment {
+  id         String    @id @default(cuid())
+  lead       Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId     BigInt
+  sequence   String    // academy | business | post-consultation
+  step       Int       @default(0) // next step index to send
+  status     String    @default("active") // active | completed | stopped
+  startedAt  DateTime  @default(now())
+  lastSentAt DateTime?
+  nextSendAt DateTime?
+
+  @@unique([leadId, sequence])
+  @@index([status, nextSendAt])
 }
 
 // ---------------------------------------------------------------------------

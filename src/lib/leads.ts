@@ -1,3 +1,12 @@
+// Temperature tiers live in lead-scoring.ts (pure logic). Re-exported here so
+// the admin UI can import tier + status constants from one place.
+export {
+  TIERS,
+  TIER_LABELS,
+  TIER_VARIANT,
+  type LeadTier,
+} from "./lead-scoring";
+
 export const LEAD_STATUSES = [
   "new",
   "contacted",
