@@ -4,7 +4,7 @@ import { Section, SectionHeading } from "@/components/common/section";
 import { Reveal, RevealGroup, RevealItem } from "@/components/common/reveal";
 import { CohortCard } from "@/components/cards/cohort-card";
 import { Button } from "@/components/ui/button";
-import { upcomingCohorts } from "@/data/programmes";
+import { upcomingCohorts } from "@/lib/content";
 
 const successStories = [
   { name: "Fatima B.", role: "AI Engineer at Andela", quote: "The AI track landed me my role — we shipped real projects, not toys." },
@@ -12,8 +12,8 @@ const successStories = [
   { name: "Grace A.", role: "Data Analyst", quote: "I switched careers and doubled my income within a year." },
 ];
 
-export function AcademyShowcase() {
-  const cohorts = upcomingCohorts().slice(0, 3);
+export async function AcademyShowcase() {
+  const cohorts = (await upcomingCohorts()).slice(0, 3);
   return (
     <Section>
       <SectionHeading

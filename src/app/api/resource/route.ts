@@ -2,10 +2,21 @@ import { createPostHandler } from "@/lib/api-handler";
 import { resourceSchema } from "@/lib/schemas";
 import { insertLead } from "@/lib/db";
 import { notifyNewLead } from "@/lib/email";
+import { notifyRole } from "@/lib/notifications";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
 export const POST = createPostHandler(resourceSchema, async (data) => {
+  const resource = await prisma.resource.findUnique({
+    where: { slug: data.resourceId },
+    select: { fileUrl: true },
+  });
+
+  const confirmationBody = resource?.fileUrl
+    ? `<p>Thanks for your interest! Here's your copy of <strong>${data.resourceTitle}</strong>.</p><p><a href="${resource.fileUrl}">Download ${data.resourceTitle}</a></p>`
+    : `<p>Thanks for your interest! Here's your copy of <strong>${data.resourceTitle}</strong>. We'll be in touch with your download link shortly.</p>`;
+
   const { id } = await insertLead({
     type: "resource",
     name: data.name,
@@ -35,8 +46,15 @@ export const POST = createPostHandler(resourceSchema, async (data) => {
     userName: data.name,
     confirmation: {
       subject: `Your download: ${data.resourceTitle}`,
-      body: `<p>Thanks for your interest! Here's your copy of <strong>${data.resourceTitle}</strong>. In a production setup this email would include your secure download link.</p>`,
+      body: confirmationBody,
     },
+  });
+
+  await notifyRole("SALES_ADMIN", {
+    type: "lead",
+    title: `Resource download: ${data.resourceTitle}`,
+    body: `${data.name} downloaded a gated resource.`,
+    link: "/admin/leads",
   });
 
   return { message: "Sent", data: { id } };

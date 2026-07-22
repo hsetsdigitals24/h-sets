@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { industries } from "@/data/industries";
+import { getIndustries } from "@/lib/content";
 import { Section, SectionHeading } from "@/components/common/section";
 import { RevealGroup, RevealItem } from "@/components/common/reveal";
 import { IndustryTile } from "@/components/cards/industry-tile";
 import { Button } from "@/components/ui/button";
 
-export function IndustriesServed() {
+export async function IndustriesServed() {
+  const industries = await getIndustries();
   return (
     <Section className="bg-secondary/40">
       <SectionHeading

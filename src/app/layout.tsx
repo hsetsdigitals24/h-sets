@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
 import { Toaster } from "sonner";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { OrganizationSchema } from "@/lib/seo";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -60,17 +59,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-background antialiased">
         <OrganizationSchema />
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
-        >
-          Skip to content
-        </a>
-        <Header />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        <AuthSessionProvider>{children}</AuthSessionProvider>
         <Toaster position="top-center" richColors closeButton />
       </body>
     </html>

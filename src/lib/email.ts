@@ -61,6 +61,41 @@ function table(rows: Record<string, unknown>): string {
     .join("")}</table>`;
 }
 
+/** Emails a password-reset link to a user. Logs the link to the console when SMTP is unset. */
+export async function sendPasswordResetEmail(to: string, resetUrl: string) {
+  await send({
+    to,
+    subject: "Reset your H-SETS password",
+    html: `<div style="font-family:sans-serif;font-size:15px;line-height:1.6;color:#0b1020">
+      <p>Hi there,</p>
+      <p>We received a request to reset your H-SETS password. Click the button below to choose a new one. This link expires in 1 hour.</p>
+      <p style="margin:24px 0">
+        <a href="${resetUrl}" style="background:#0b1020;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">Reset password</a>
+      </p>
+      <p style="color:#666;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
+      <p style="margin-top:24px">— The H-SETS Team</p>
+    </div>`,
+  });
+}
+
+/** Send one nurture-sequence step to a lead. Wraps the step HTML in the layout. */
+export async function sendNurtureStep(opts: {
+  to: string;
+  name?: string | null;
+  subject: string;
+  body: string;
+}) {
+  await send({
+    to: opts.to,
+    subject: opts.subject,
+    html: `<div style="font-family:sans-serif;font-size:15px;line-height:1.6;color:#0b1020">
+      <p>Hi ${opts.name || "there"},</p>
+      ${opts.body}
+      <p style="margin-top:24px">— The H-SETS Team</p>
+    </div>`,
+  });
+}
+
 /** Notify the team about a new lead, and confirm to the user where we have their email. */
 export async function notifyNewLead(opts: {
   type: string;

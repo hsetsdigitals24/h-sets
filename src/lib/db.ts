@@ -1,68 +1,22 @@
 import "server-only";
-import { Pool } from "pg";
+import { prisma } from "./prisma";
+import { scoreLead, tierForScore, type LeadTier } from "./lead-scoring";
+import { logLeadEvent } from "./lead-events";
+import { enrollInNurture, sequenceForLead } from "./nurture";
+import { notifyRole } from "./notifications";
 
 /**
- * Single shared Postgres connection pool.
+ * Lead persistence.
  *
- * Cached on globalThis so Next.js hot-reload in development doesn't open a new
- * pool on every change. Configure the connection with the DATABASE_URL env var,
- * e.g. postgresql://user:password@localhost:5432/hsets
+ * The public marketing forms (contact, consultation, newsletter, resource)
+ * funnel here. Storage is Postgres via Prisma (see prisma/schema.prisma — the
+ * `Lead` model maps onto the `leads` table). The admin CRM reads/updates the
+ * same table.
+ *
+ * This is the single capture chokepoint, so it also owns the automatic
+ * lead-scoring, temperature tiering, activity-log seeding, nurture enrollment,
+ * and urgent-lead alerting — all best-effort so they never block the caller.
  */
-const globalForDb = globalThis as unknown as {
-  _hsetsPool?: Pool;
-  _hsetsSchemaReady?: Promise<void>;
-};
-
-export function getPool(): Pool {
-  if (!process.env.DATABASE_URL) {
-    throw new Error(
-      "DATABASE_URL is not set. Copy .env.example to .env.local and set your Postgres connection string."
-    );
-  }
-  if (!globalForDb._hsetsPool) {
-    globalForDb._hsetsPool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 10,
-      idleTimeoutMillis: 30_000,
-      // Enable SSL for hosted databases (Supabase, Neon, etc.)
-      ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : undefined,
-    });
-  }
-  return globalForDb._hsetsPool;
-}
-
-/**
- * Create the leads table if it doesn't exist. Runs at most once per process
- * (the promise is cached), so every API route can safely await it cheaply.
- */
-export function ensureSchema(): Promise<void> {
-  if (!globalForDb._hsetsSchemaReady) {
-    globalForDb._hsetsSchemaReady = (async () => {
-      const pool = getPool();
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS leads (
-          id          BIGSERIAL PRIMARY KEY,
-          type        TEXT        NOT NULL,
-          name        TEXT,
-          email       TEXT,
-          phone       TEXT,
-          company     TEXT,
-          source      TEXT,
-          data        JSONB       NOT NULL DEFAULT '{}'::jsonb,
-          created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-        );
-        CREATE INDEX IF NOT EXISTS leads_type_idx       ON leads (type);
-        CREATE INDEX IF NOT EXISTS leads_email_idx      ON leads (email);
-        CREATE INDEX IF NOT EXISTS leads_created_at_idx ON leads (created_at DESC);
-      `);
-    })().catch((err) => {
-      // Reset so a later request can retry after a transient failure.
-      globalForDb._hsetsSchemaReady = undefined;
-      throw err;
-    });
-  }
-  return globalForDb._hsetsSchemaReady;
-}
 
 export type LeadType = "contact" | "consultation" | "newsletter" | "resource";
 
@@ -76,25 +30,48 @@ export type LeadRecord = {
   data?: Record<string, unknown>;
 };
 
-/** Insert a lead/submission and return its new id + timestamp. */
+/** Insert a lead/submission and return its new id, timestamp and tier. */
 export async function insertLead(
   lead: LeadRecord
-): Promise<{ id: number; created_at: string }> {
-  await ensureSchema();
-  const pool = getPool();
-  const { rows } = await pool.query<{ id: number; created_at: string }>(
-    `INSERT INTO leads (type, name, email, phone, company, source, data)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING id, created_at`,
-    [
-      lead.type,
-      lead.name ?? null,
-      lead.email ?? null,
-      lead.phone ?? null,
-      lead.company ?? null,
-      lead.source ?? null,
-      JSON.stringify(lead.data ?? {}),
-    ]
-  );
-  return rows[0];
+): Promise<{ id: number; created_at: string; score: number; tier: LeadTier }> {
+  const score = scoreLead(lead);
+  const tier = tierForScore(score);
+
+  const row = await prisma.lead.create({
+    data: {
+      type: lead.type,
+      name: lead.name ?? null,
+      email: lead.email ?? null,
+      phone: lead.phone ?? null,
+      company: lead.company ?? null,
+      source: lead.source ?? null,
+      data: (lead.data ?? {}) as object,
+      score,
+      tier,
+    },
+    select: { id: true, createdAt: true },
+  });
+  // Callers serialize `id` into JSON responses; keep it a plain number.
+  const id = Number(row.id);
+
+  // Post-capture side effects — best-effort, never block the response.
+  await logLeadEvent(row.id, {
+    type: "created",
+    message: `Lead captured via ${lead.source ?? lead.type} (score ${score}, ${tier}).`,
+    meta: { score, tier, source: lead.source ?? null },
+  });
+
+  const sequence = sequenceForLead(lead);
+  if (sequence) await enrollInNurture(row.id, sequence);
+
+  if (tier === "urgent") {
+    await notifyRole("SALES_ADMIN", {
+      type: "lead",
+      title: `Urgent lead — contact today`,
+      body: `${lead.name ?? "A new lead"} scored ${score} (${tier}). Reach out same-day.`,
+      link: `/admin/leads/${id}`,
+    });
+  }
+
+  return { id, created_at: row.createdAt.toISOString(), score, tier };
 }

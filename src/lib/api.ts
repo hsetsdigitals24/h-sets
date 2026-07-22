@@ -2,7 +2,13 @@
  * Client-side helper to submit a form to its API route.
  * Throws on non-2xx so callers can show an error toast.
  */
-export type ApiEndpoint = "contact" | "consultation" | "newsletter" | "resource";
+export type ApiEndpoint =
+  | "contact"
+  | "consultation"
+  | "newsletter"
+  | "resource"
+  | "application"
+  | "job-application";
 
 export async function submitForm<T extends Record<string, unknown>>(
   endpoint: ApiEndpoint,

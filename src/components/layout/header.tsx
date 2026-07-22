@@ -4,14 +4,25 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown, Menu, X, ArrowRight } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+import { ChevronDown, Menu, X, ArrowRight, LogOut, User } from "lucide-react";
 import { mainNav, type NavItem } from "@/lib/site";
 import { Logo } from "./logo";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { cn } from "@/lib/utils";
+
+/** First name (or a sensible fallback) for a friendlier signed-in label. */
+function firstName(name?: string | null, email?: string | null) {
+  if (name?.trim()) return name.trim().split(/\s+/)[0];
+  if (email) return email.split("@")[0];
+  return "Account";
+}
 
 export function Header() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const user = session?.user;
   const [scrolled, setScrolled] = React.useState(false);
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -64,9 +75,42 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm" className="hidden lg:inline-flex">
-            <Link href="/contact">Sign in</Link>
-          </Button>
+          {user ? (
+            <div className="hidden items-center gap-1 lg:flex">
+              <NotificationBell
+                viewAllHref={
+                  (user as { role?: string }).role && (user as { role?: string }).role !== "STUDENT"
+                    ? "/admin/notifications"
+                    : "/account/notifications"
+                }
+              />
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/account" className="inline-flex items-center gap-1.5">
+                  <User className="size-4" />
+                  {firstName(user.name, user.email)}
+                </Link>
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="inline-flex items-center gap-1.5 text-muted-foreground"
+              >
+                <LogOut className="size-4" />
+                Sign out
+              </Button>
+            </div>
+          ) : (
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className={cn("hidden lg:inline-flex", status === "loading" && "invisible")}
+            >
+              <Link href="/login">Sign in</Link>
+            </Button>
+          )}
           <Button asChild variant="gradient" size="sm" className="hidden sm:inline-flex">
             <Link href="/contact#consultation">Get Free Consultation</Link>
           </Button>
@@ -94,7 +138,12 @@ export function Header() {
 
       {/* Mobile menu */}
       <AnimatePresence>
-        {mobileOpen && <MobileMenu pathname={pathname} />}
+        {mobileOpen && (
+          <MobileMenu
+            pathname={pathname}
+            user={user ? { name: user.name, email: user.email } : null}
+          />
+        )}
       </AnimatePresence>
     </header>
   );
@@ -193,7 +242,13 @@ function MegaMenu({ item, onClose }: { item: NavItem; onClose: () => void }) {
   );
 }
 
-function MobileMenu({ pathname }: { pathname: string }) {
+function MobileMenu({
+  pathname,
+  user,
+}: {
+  pathname: string;
+  user: { name?: string | null; email?: string | null } | null;
+}) {
   const [expanded, setExpanded] = React.useState<string | null>(null);
   return (
     <motion.div
@@ -266,6 +321,35 @@ function MobileMenu({ pathname }: { pathname: string }) {
           <Button asChild variant="outline" size="lg">
             <Link href="/academy">Explore the Academy</Link>
           </Button>
+          {user ? (
+            <div className="flex flex-col gap-3 pt-1">
+              <Link
+                href="/account"
+                className="inline-flex items-center justify-center gap-2 text-sm font-medium text-foreground hover:text-primary"
+              >
+                <User className="size-4" />
+                {firstName(user.name, user.email)}&apos;s account
+              </Link>
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="inline-flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="size-4" />
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-1 pt-1 text-sm text-muted-foreground">
+              <Link href="/login" className="font-medium text-foreground hover:text-primary">
+                Sign in
+              </Link>
+              <span aria-hidden>·</span>
+              <Link href="/register" className="font-medium text-foreground hover:text-primary">
+                Create account
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
     </motion.div>

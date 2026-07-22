@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { services } from "@/data/services";
+import { getServices } from "@/lib/content";
 import { Section, SectionHeading } from "@/components/common/section";
 import { RevealGroup, RevealItem } from "@/components/common/reveal";
 import { ServiceCard } from "@/components/cards/service-card";
 import { Button } from "@/components/ui/button";
 
-export function ServicesOverview() {
+export async function ServicesOverview() {
+  const services = await getServices();
   return (
     <Section>
       <SectionHeading

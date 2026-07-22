@@ -3,7 +3,7 @@ import { site } from "@/lib/site";
 import { services } from "@/data/services";
 import { industries } from "@/data/industries";
 import { programmes } from "@/data/programmes";
-import { caseStudies } from "@/data/case-studies";
+import { portfolioItems } from "@/data/portfolio";
 import { insights } from "@/data/insights";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -26,7 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...services.map((s) => `/services/${s.slug}`),
     ...industries.map((i) => `/industries/${i.slug}`),
     ...programmes.map((p) => `/academy/${p.slug}`),
-    ...caseStudies.map((c) => `/case-studies/${c.slug}`),
+    ...portfolioItems.map((c) => `/portfolio/${c.slug}`),
     ...insights.map((i) => `/insights/${i.slug}`),
   ];
 

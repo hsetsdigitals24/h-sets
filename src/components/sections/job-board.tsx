@@ -1,16 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { MapPin, Briefcase, Clock, ArrowUpRight } from "lucide-react";
-import { jobs, type Job } from "@/data/jobs";
+import { MapPin, Briefcase, Clock } from "lucide-react";
+import type { Job } from "@/data/jobs";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { formatDate, cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { JobApplyDialog } from "@/components/sections/job-apply-dialog";
 
 const types: (Job["type"] | "All")[] = ["All", "Internship", "Graduate", "Full-time"];
 
-export function JobBoard() {
+export function JobBoard({ jobs }: { jobs: Job[] }) {
   const [filter, setFilter] = React.useState<(typeof types)[number]>("All");
   const filtered = filter === "All" ? jobs : jobs.filter((j) => j.type === filter);
 
@@ -60,18 +59,7 @@ export function JobBoard() {
                 </span>
               </div>
             </div>
-            <Button
-              variant="gradient"
-              className="shrink-0"
-              onClick={() =>
-                toast.info("Sign in to apply", {
-                  description: "Applying requires a free student or alumni account.",
-                })
-              }
-            >
-              Apply
-              <ArrowUpRight className="size-4" />
-            </Button>
+            <JobApplyDialog job={job} />
           </div>
         ))}
       </div>
