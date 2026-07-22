@@ -1,3 +1,8 @@
+/**
+ * Public/read shape consumed by marketing pages. `body` is rendered HTML
+ * (produced by `bodyToHtml` in the content read layer). The seed data below
+ * stores the legacy `string[]` form, which the read layer normalizes to HTML.
+ */
 export type Insight = {
   slug: string;
   title: string;
@@ -8,10 +13,13 @@ export type Insight = {
   date: string;
   readMins: number;
   accent: string;
-  body: string[];
+  body: string;
 };
 
-export const insights: Insight[] = [
+/** Raw seed shape: body is an array of plain paragraphs. */
+type SeedInsight = Omit<Insight, "body"> & { body: string[] };
+
+export const insights: SeedInsight[] = [
   {
     slug: "ai-automation-nigerian-smes",
     title: "How Nigerian SMEs are using AI automation to cut costs in 2026",

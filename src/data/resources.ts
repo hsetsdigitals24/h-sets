@@ -21,6 +21,13 @@ export type Resource = {
   accent: string;
 };
 
+/** Runtime shape returned by the content layer: icon is a name string, resolved client-side via getIcon. */
+export type ResourceView = Omit<Resource, "icon"> & {
+  icon: string;
+  fileUrl?: string;
+  fileName?: string;
+};
+
 export const resources: Resource[] = [
   {
     id: "digital-transformation-guide",

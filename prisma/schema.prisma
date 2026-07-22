@@ -1,0 +1,682 @@
+// H-SETS data model.
+// The public marketing site historically read content from static files in
+// src/data/*. Those shapes are mirrored here so the admin CMS can own them in
+// Postgres. Nested/variable structures are stored as JSON; Lucide icons are
+// stored as string names and mapped to components at render (see src/lib/icon-map.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth & access control
+// ---------------------------------------------------------------------------
+
+enum Role {
+  SUPER_ADMIN
+  ACADEMY_ADMIN
+  MARKETING_ADMIN
+  SALES_ADMIN
+  FINANCE_ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String
+  role          Role      @default(STUDENT)
+  createdAt     DateTime  @default(now())
+  accounts      Account[]
+  sessions      Session[]
+
+  // Student portal (LMS)
+  enrollments    Enrollment[]
+  lessonProgress LessonProgress[]
+  submissions    Submission[]
+  attendance     Attendance[]
+  certificates   Certificate[]
+  applications   Application[]
+  examAttempts   ExamAttempt[]
+  examRetakeGrants ExamRetakeGrant[]
+  notifications  Notification[]
+
+  // Instructor content profile (1:1) when this account is an instructor.
+  instructor Instructor?
+}
+
+// In-app notifications shown in the bell dropdown and notifications pages.
+// One row per recipient; broadcasts fan out to many rows.
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // e.g. "application", "grade", "certificate", "announcement"
+  title     String
+  body      String?
+  link      String?  // in-app href, e.g. "/account/assignments"
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}
+
+// Standard Auth.js adapter tables. We use the JWT session strategy with the
+// Credentials provider, so Session is not used for auth today, but the adapter
+// contract expects these tables to exist.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Leads / CRM  (maps onto the existing `leads` table)
+// ---------------------------------------------------------------------------
+
+model Lead {
+  id        BigInt   @id @default(autoincrement())
+  type      String
+  name      String?
+  email     String?
+  phone     String?
+  company   String?
+  source    String?
+  data      Json     @default("{}")
+  // CRM pipeline fields (additive columns on the existing table).
+  status    String   @default("new") // new | contacted | qualified | won | lost
+  score     Int      @default(0)
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([type])
+  @@index([email])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("leads")
+}
+
+// ---------------------------------------------------------------------------
+// Academy content
+// ---------------------------------------------------------------------------
+
+model Programme {
+  id             String      @id @default(cuid())
+  slug           String      @unique
+  name           String
+  icon           String // Lucide icon name
+  level          String
+  category       String
+  durationWeeks  Int
+  feeFull        Int
+  feeInstallment Int
+  short          String
+  overview       String
+  outcomes       Json // string[]
+  curriculum     Json // { week, title, topics[] }[]
+  tools          Json // string[]
+  instructor     Instructor? @relation(fields: [instructorId], references: [id], onDelete: SetNull)
+  instructorId   String?
+  faqs           Json // { q, a }[]
+  published      Boolean     @default(true)
+  sortOrder      Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  cohorts        Cohort[]
+
+  @@index([instructorId])
+}
+
+model Instructor {
+  id         String      @id @default(cuid())
+  name       String
+  title      String
+  bio        String
+  sortOrder  Int         @default(0)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  // Linked login account (role INSTRUCTOR). Nullable for a safe additive
+  // migration; the admin create flow always provisions one. Deleting the User
+  // cascades to this content profile (they are one entity).
+  user       User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String?     @unique
+  programmes Programme[]
+  cohorts    Cohort[]
+}
+
+model Cohort {
+  id          String    @id @default(cuid())
+  programme   Programme @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  programmeId String
+  startDate   String
+  endDate     String
+  format      String // Full-time | Part-time | Weekend
+  seatsTotal  Int
+  seatsLeft   Int
+  status      String // Open | Filling Fast | Full | Waitlist
+  published   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  instructors Instructor[]
+
+  // Student portal (LMS)
+  enrollments   Enrollment[]
+  modules       Module[]
+  assignments   Assignment[]
+  classSessions ClassSession[]
+  certificates  Certificate[]
+  applications  Application[]
+  exams         Exam[]
+
+  @@index([programmeId])
+}
+
+// ---------------------------------------------------------------------------
+// Student portal / LMS
+// ---------------------------------------------------------------------------
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId  String
+  cohort     Cohort   @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  cohortId   String
+  status     String   @default("active") // active | completed | withdrawn
+  enrolledAt DateTime @default(now())
+
+  @@unique([studentId, cohortId])
+  @@index([cohortId])
+}
+
+// A prospective student's registration form for a cohort. Admin reviews these
+// and, on approval, an account + Enrollment are created (see admin/applications).
+model Application {
+  id         String    @id @default(cuid())
+  cohort     Cohort    @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  cohortId   String
+  name       String
+  email      String
+  phone      String?
+  background String // current role / experience
+  motivation String // why they want to join
+  status     String    @default("pending") // pending | approved | rejected
+  reviewNote String?
+  reviewedAt DateTime?
+  student    User?     @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  studentId  String? // set when approved & account created/linked
+  createdAt  DateTime  @default(now())
+
+  @@index([cohortId])
+  @@index([status])
+  @@index([email])
+}
+
+model Module {
+  id       String   @id @default(cuid())
+  cohort   Cohort   @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  cohortId String
+  title    String
+  order    Int      @default(0)
+  lessons  Lesson[]
+
+  @@index([cohortId])
+}
+
+model Lesson {
+  id        String           @id @default(cuid())
+  module    Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId  String
+  title     String
+  order     Int              @default(0)
+  body      Json             @default("[]") // string[] rich notes
+  liveUrl   String? // Zoom/Meet link
+  materials Material[]
+  progress  LessonProgress[]
+
+  @@index([moduleId])
+}
+
+model Material {
+  id        String   @id @default(cuid())
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId  String
+  title     String
+  kind      String // pdf | doc | video | slide | link | other
+  r2Key     String? // present for uploads
+  url       String? // present for external links
+  sizeBytes Int?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([lessonId])
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId   String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId    String
+  completedAt DateTime @default(now())
+
+  @@unique([studentId, lessonId])
+}
+
+model Assignment {
+  id           String       @id @default(cuid())
+  cohort       Cohort       @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  cohortId     String
+  title        String
+  description  String
+  dueDate      DateTime
+  maxScore     Int          @default(100)
+  allowedKinds Json         @default("[]") // ["pdf","zip"] etc.
+  submissions  Submission[]
+  createdAt    DateTime     @default(now())
+
+  @@index([cohortId])
+}
+
+model Submission {
+  id           String     @id @default(cuid())
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  assignmentId String
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId    String
+  text         String? // written submission or URL
+  r2Key        String? // uploaded file
+  fileName     String?
+  status       String     @default("submitted") // submitted | graded
+  score        Int?
+  feedback     String?
+  submittedAt  DateTime   @default(now())
+  gradedAt     DateTime?
+
+  @@unique([assignmentId, studentId])
+  @@index([studentId])
+}
+
+model ClassSession {
+  id          String       @id @default(cuid())
+  cohort      Cohort       @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  cohortId    String
+  title       String
+  scheduledAt DateTime
+  attendance  Attendance[]
+
+  @@index([cohortId])
+}
+
+model Attendance {
+  id        String       @id @default(cuid())
+  session   ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId String
+  student   User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String
+  present   Boolean      @default(true)
+  markedAt  DateTime     @default(now())
+
+  @@unique([sessionId, studentId])
+}
+
+model Certificate {
+  id        String   @id @default(cuid())
+  certId    String   @unique // 8-char public code
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String
+  cohort    Cohort   @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  cohortId  String
+  issuedAt  DateTime @default(now())
+  revoked   Boolean  @default(false)
+
+  @@unique([studentId, cohortId])
+  @@index([studentId])
+}
+
+// ---------------------------------------------------------------------------
+// Computer-Based Tests (CBT / exams)
+//
+// Instructors author an exam of auto-gradable questions (MCQ + True/False) for
+// a cohort and submit it for review. An Academy/Super admin validates it and
+// sets an availability window (startAt/endAt); status then becomes "scheduled".
+// Enrolled students take it within the window under a countdown timer; attempts
+// are auto-graded on submit and the best score is kept.
+// ---------------------------------------------------------------------------
+
+model Exam {
+  id           String         @id @default(cuid())
+  cohort       Cohort         @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  cohortId     String
+  title        String
+  instructions String         @default("")
+  durationMins Int            @default(60)
+  passMark     Int            @default(50) // percentage 0..100
+  maxAttempts  Int            @default(1)
+  cooldownMins Int            @default(0) // minimum minutes between attempts (0 = none)
+  retakeOnFail Boolean        @default(false) // no further attempts once best score >= passMark
+  shuffle      Boolean        @default(false) // randomise question order per attempt
+  // --- Integrity controls (all default to prior behaviour) ---
+  questionsToServe   Int?     // if set and < question count, serve a random subset per attempt
+  shuffleOptions     Boolean  @default(false) // randomise MCQ option order per attempt
+  requireAttestation Boolean  @default(false) // student must accept an honour pledge to start
+  attestationText    String?  // pledge text shown before the paper (falls back to a default)
+  requireFullscreen  Boolean  @default(false) // request fullscreen; flag exits
+  trackFocus         Boolean  @default(false) // flag tab-switches / window blur
+  restrictCopyPaste  Boolean  @default(false) // block + flag copy/paste/context-menu
+  maxViolations      Int      @default(0) // 0 = disabled; N = auto-submit after N flagged events
+  status       String         @default("draft") // draft | pending_review | scheduled | rejected | archived
+  startAt      DateTime? // set by admin at validation
+  endAt        DateTime?
+  reviewNote   String? // admin feedback on reject
+  createdById  String? // User.id of author (scalar, no relation — pragmatic)
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  questions    ExamQuestion[]
+  attempts     ExamAttempt[]
+  retakeGrants ExamRetakeGrant[]
+
+  @@index([cohortId])
+  @@index([status])
+}
+
+// Per-student override that adds bonus attempts on top of Exam.maxAttempts and,
+// optionally, reopens the exam for that student on a custom window. Absent grant
+// => 0 extra and the cohort-wide schedule. `extraAttempts` is the total bonus,
+// not a delta. When startAtOverride/endAtOverride are set they replace the
+// exam's window for this student only and bypass cooldown / passed gates.
+model ExamRetakeGrant {
+  id              String    @id @default(cuid())
+  exam            Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examId          String
+  student         User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId       String
+  extraAttempts   Int       @default(0)
+  startAtOverride DateTime?
+  endAtOverride   DateTime?
+  reason          String?
+  grantedById     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([examId, studentId])
+  @@index([examId])
+}
+
+model ExamQuestion {
+  id      String       @id @default(cuid())
+  exam    Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examId  String
+  order   Int          @default(0)
+  type    String // mcq | true_false
+  text    String
+  options Json         @default("[]") // mcq: [{ id, text }]; true_false: []
+  correct Json // mcq: option id (string); true_false: boolean
+  marks   Int          @default(1)
+  answers ExamAnswer[]
+
+  @@index([examId])
+}
+
+model ExamAttempt {
+  id          String       @id @default(cuid())
+  exam        Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examId      String
+  student     User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId   String
+  attemptNo   Int          @default(1)
+  startedAt   DateTime     @default(now())
+  submittedAt DateTime?
+  score       Int? // percentage 0..100 (awarded/total)
+  passed      Boolean?
+  status      String       @default("in_progress") // in_progress | submitted
+  // --- Integrity state, fixed once at attempt creation so reloads are stable ---
+  servedQuestionIds Json    @default("[]") // question ids served to this attempt, in order
+  optionOrders      Json    @default("{}") // { [questionId]: optionId[] } shuffled option order
+  attestedAt        DateTime? // when the student accepted the honour pledge
+  violationCount    Int      @default(0) // flagged integrity events so far
+  autoClosedReason  String?  // "integrity" when force-submitted for violations (vs timer/window)
+  answers     ExamAnswer[]
+  events      ExamAttemptEvent[]
+
+  @@index([examId])
+  @@index([studentId])
+}
+
+// Append-only audit trail of client-side integrity signals during an attempt.
+// Feeds the admin risk indicator; the server counts these to enforce
+// `Exam.maxViolations` independently of the client.
+model ExamAttemptEvent {
+  id        String      @id @default(cuid())
+  attempt   ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  attemptId String
+  type      String // blur | visibility_hidden | fullscreen_exit | copy | paste | contextmenu
+  meta      Json        @default("{}")
+  createdAt DateTime    @default(now())
+
+  @@index([attemptId])
+}
+
+model ExamAnswer {
+  id         String       @id @default(cuid())
+  attempt    ExamAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  attemptId  String
+  question   ExamQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String
+  response   Json // mcq: option id (string); true_false: boolean
+  isCorrect  Boolean?
+  awarded    Int?
+
+  @@unique([attemptId, questionId])
+}
+
+// ---------------------------------------------------------------------------
+// Careers
+// ---------------------------------------------------------------------------
+
+model Job {
+  id        String   @id @default(cuid())
+  title     String
+  company   String
+  type      String // Internship | Graduate | Full-time
+  location  String
+  mode      String // Remote | Hybrid | On-site
+  salary    String
+  category  String
+  posted    String
+  deadline  String
+  summary   String
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applications JobApplication[]
+}
+
+// A public (no-login) application to a Job. Anyone can apply and attach a CV;
+// admins review these in admin/job-applications.
+model JobApplication {
+  id         String    @id @default(cuid())
+  job        Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId      String
+  name       String
+  email      String
+  phone      String?
+  coverNote  String
+  cvKey      String? // R2 object key (private bucket)
+  cvFileName String?
+  status     String    @default("pending") // pending | reviewed | rejected
+  reviewNote String?
+  reviewedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([jobId])
+  @@index([status])
+  @@index([email])
+}
+
+// ---------------------------------------------------------------------------
+// Insights (blog)
+// ---------------------------------------------------------------------------
+
+model Insight {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  title      String
+  excerpt    String
+  category   String
+  author     String
+  authorRole String
+  date       String
+  readMins   Int
+  accent     String
+  body       Json // string[]
+  published  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Resource hub
+// ---------------------------------------------------------------------------
+
+model Resource {
+  id          String   @id @default(cuid())
+  slug        String   @unique // corresponds to the old string `id`
+  title       String
+  type        String
+  icon        String // Lucide icon name
+  description String
+  gate        String // email | emailRole | emailCompany | full
+  tag         String
+  accent      String
+  fileUrl     String? // permanent public R2 URL of the uploaded PDF
+  fileName    String? // original filename, for the download attachment name
+  fileKey     String? // public bucket object key (for future deletion)
+  published   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Social proof
+// ---------------------------------------------------------------------------
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  company   String
+  quote     String
+  rating    Int
+  initials  String
+  published Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Portfolio {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  client      String
+  industry    String
+  service     String
+  title       String
+  summary     String
+  challenge   String
+  solution    String
+  results     Json // { metric, label }[]
+  tech        Json // string[]
+  testimonial Json? // { quote, name, role }
+  related     Json // string[]
+  accent      String
+  thumbnail   String? // permanent R2 public URL of the hero screenshot
+  sourceUrl   String? // live landing-page URL used to capture the thumbnail
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Services & Industries (modelled now; admin CRUD is a later pass)
+// ---------------------------------------------------------------------------
+
+model Service {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  icon      String
+  tagline   String
+  short     String
+  hero      String
+  problem   String
+  outcomes  Json // string[]
+  features  Json // { title, description }[]
+  process   Json // { step, title, description }[]
+  faqs      Json // { q, a }[]
+  related   Json // string[]
+  published Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Industry {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  name       String
+  icon       String
+  short      String
+  hero       String
+  challenges Json // string[]
+  solutions  Json // { title, description }[]
+  useCases   Json // string[]
+  stat       Json // { value, label }
+  faqs       Json // { q, a }[]
+  published  Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

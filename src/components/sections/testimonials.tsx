@@ -3,27 +3,28 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
-import { testimonials } from "@/data/testimonials";
+import type { Testimonial } from "@/data/testimonials";
 import { Section, SectionHeading } from "@/components/common/section";
 import { cn } from "@/lib/utils";
 
-export function Testimonials() {
+export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) {
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
   const count = testimonials.length;
 
   const go = React.useCallback(
-    (dir: number) => setIndex((i) => (i + dir + count) % count),
+    (dir: number) => setIndex((i) => (count ? (i + dir + count) % count : 0)),
     [count]
   );
 
   React.useEffect(() => {
-    if (paused) return;
+    if (paused || count === 0) return;
     const t = setInterval(() => setIndex((i) => (i + 1) % count), 6000);
     return () => clearInterval(t);
   }, [paused, count]);
 
   const t = testimonials[index];
+  if (!t) return null;
 
   return (
     <Section className="bg-secondary/40">

@@ -1,9 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 /*
   H-SETS design tokens.
-  Brand: deep navy/indigo base with an electric cyan -> violet accent.
+  Brand: deep navy base with a strong blue primary -> violet accent.
   Adjust the values in :root to retune the whole site.
 */
 
@@ -24,15 +25,15 @@
 
   --border: #e6e8f0;
   --input: #e6e8f0;
-  --ring: #7c3aed;
+  --ring: #002cd5;
 
   /* Brand */
-  --primary: #4f46e5;            /* indigo */
+  --primary: #002cd5;            /* strong blue */
   --primary-foreground: #ffffff;
   --secondary: #f1f2f9;
   --secondary-foreground: #0b1020;
-  --accent: #22d3ee;             /* cyan */
-  --accent-foreground: #06121a;
+  --accent: #002cd5;             /* strong blue */
+  --accent-foreground: #ffffff;
 
   --destructive: #e11d48;
 
@@ -42,7 +43,7 @@
   --ink-3: #18204a;
 
   /* Brand solid */
-  --brand: #7c3aed;
+  --brand: #002cd5;
 
   --star: #f5b301;
 }
@@ -83,6 +84,9 @@
 
   --shadow-glow: 0 0 60px -15px var(--brand);
   --shadow-soft: 0 10px 40px -12px rgba(11, 16, 32, 0.18);
+
+  --animate-accordion-down: accordion-down 0.3s ease-out;
+  --animate-accordion-up: accordion-up 0.3s ease-out;
 }
 
 @layer base {

@@ -15,7 +15,7 @@ import {
 import { Field } from "./field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { gateFields, type Resource } from "@/data/resources";
+import { gateFields, type ResourceView } from "@/data/resources";
 
 const fieldMeta: Record<string, { label: string; type: string; placeholder: string }> = {
   name: { label: "Full name", type: "text", placeholder: "Ada Lovelace" },
@@ -30,7 +30,7 @@ export function ResourceGateModal({
   open,
   onOpenChange,
 }: {
-  resource: Resource | null;
+  resource: ResourceView | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
@@ -79,12 +79,21 @@ export function ResourceGateModal({
             <CheckCircle2 className="size-12 text-emerald-500" />
             <DialogTitle className="text-xl">Check your inbox</DialogTitle>
             <DialogDescription>
-              We&apos;ve emailed your copy of <strong>{resource.title}</strong>. You can also
-              download it now.
+              We&apos;ve emailed your copy of <strong>{resource.title}</strong>.
+              {resource.fileUrl ? " You can also download it now." : ""}
             </DialogDescription>
-            <Button variant="gradient" className="mt-2" onClick={() => onOpenChange(false)}>
-              <Download className="size-4" /> Download now
-            </Button>
+            {resource.fileUrl && (
+              <Button variant="gradient" className="mt-2" asChild>
+                <a
+                  href={resource.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={resource.fileName}
+                >
+                  <Download className="size-4" /> Download now
+                </a>
+              </Button>
+            )}
           </div>
         ) : (
           <>

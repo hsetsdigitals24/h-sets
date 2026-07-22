@@ -2,17 +2,18 @@
 
 import * as React from "react";
 import { ArrowRight } from "lucide-react";
-import { resources, type Resource } from "@/data/resources";
+import type { ResourceView } from "@/data/resources";
 import { RevealGroup, RevealItem } from "@/components/common/reveal";
 import { Badge } from "@/components/ui/badge";
 import { ResourceGateModal } from "@/components/forms/resource-gate-modal";
+import { getIcon } from "@/lib/icon-map";
 import { cn } from "@/lib/utils";
 
-export function ResourcesGrid() {
-  const [active, setActive] = React.useState<Resource | null>(null);
+export function ResourcesGrid({ resources }: { resources: ResourceView[] }) {
+  const [active, setActive] = React.useState<ResourceView | null>(null);
   const [open, setOpen] = React.useState(false);
 
-  function openGate(resource: Resource) {
+  function openGate(resource: ResourceView) {
     setActive(resource);
     setOpen(true);
   }
@@ -21,7 +22,7 @@ export function ResourcesGrid() {
     <>
       <RevealGroup stagger={0.06} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {resources.map((r) => {
-          const Icon = r.icon;
+          const Icon = getIcon(r.icon);
           return (
             <RevealItem key={r.id} className="h-full">
               <button

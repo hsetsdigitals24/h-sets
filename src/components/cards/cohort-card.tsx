@@ -75,8 +75,14 @@ export function CohortCard({
           <p className="font-semibold">{formatNGN(programme.feeInstallment)}</p>
         </div>
         <Button asChild size="sm" variant={full ? "outline" : "gradient"}>
-          <Link href={`/academy/${programme.slug}`}>
-            {full ? "Join Waitlist" : "View cohort"}
+          <Link
+            href={
+              full
+                ? `/academy/${programme.slug}`
+                : `/academy/${programme.slug}/apply?cohort=${cohort.id}`
+            }
+          >
+            {full ? "Join Waitlist" : "Apply Now"}
             <ArrowRight className="size-4" />
           </Link>
         </Button>

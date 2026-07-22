@@ -151,7 +151,7 @@ export const mainNav: NavItem[] = [
         heading: "Read",
         links: [
           { label: "Insights / Blog", href: "/insights" },
-          { label: "Case Studies", href: "/portfolio" },
+          { label: "Portfolio", href: "/portfolio" },
         ],
       },
       {
