@@ -31,7 +31,7 @@ export const values: Value[] = [
 export type TeamMember = { name: string; role: string; initials: string; bio: string };
 
 export const team: TeamMember[] = [
-  { name: "Hassan Suleiman", role: "Founder & CEO", initials: "HS", bio: "Founded H-SETS to bridge the gap between world-class technology and Nigerian businesses." },
+  { name: "Ayorinde Fakunle", role: "Founder & CEO", initials: "AF", bio: "Founded H-SETS to bridge the gap between world-class technology and Nigerian businesses." },
   { name: "Tunde Bello", role: "Lead Engineer", initials: "TB", bio: "Leads engineering across client projects and the H-SETS Academy curriculum." },
   { name: "Zainab Yusuf", role: "Head of Design", initials: "ZY", bio: "Shapes the product and brand design practice and mentors design cohorts." },
   { name: "Emeka Nwosu", role: "AI Lead", initials: "EN", bio: "Drives the AI Solutions practice and the AI Engineering programme." },

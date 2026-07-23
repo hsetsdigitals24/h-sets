@@ -206,7 +206,7 @@ function MegaMenu({ item, onClose }: { item: NavItem; onClose: () => void }) {
                     <Link
                       href={link.href}
                       onClick={onClose}
-                      className="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-foreground/80 transition-colors hover:bg-secondary hover:text-primary"
+                      className="group flex items-center gap-2 rounded-lg px-[.5rem] py-1.5 text-sm text-foreground/80 transition-colors hover:bg-secondary hover:text-primary"
                     >
                       <span className="size-1.5 rounded-full bg-border transition-colors group-hover:bg-primary" />
                       {link.label}
