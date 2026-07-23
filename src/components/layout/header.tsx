@@ -26,6 +26,7 @@ export function Header() {
   const [scrolled, setScrolled] = React.useState(false);
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [accountOpen, setAccountOpen] = React.useState(false);
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -39,6 +40,7 @@ export function Header() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false);
     setOpenMenu(null);
+    setAccountOpen(false);
   }, [pathname]);
 
   React.useEffect(() => {
@@ -84,22 +86,69 @@ export function Header() {
                     : "/account/notifications"
                 }
               />
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/account" className="inline-flex items-center gap-1.5">
+              <div className="relative">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAccountOpen((v) => !v)}
+                  className="inline-flex items-center gap-1.5"
+                  aria-expanded={accountOpen}
+                  aria-haspopup="menu"
+                >
                   <User className="size-4" />
                   {firstName(user.name, user.email)}
-                </Link>
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="inline-flex items-center gap-1.5 text-muted-foreground"
-              >
-                <LogOut className="size-4" />
-                Sign out
-              </Button>
+                  <ChevronDown
+                    className={cn(
+                      "size-3.5 transition-transform duration-200",
+                      accountOpen && "rotate-180"
+                    )}
+                  />
+                </Button>
+                <AnimatePresence>
+                  {accountOpen && (
+                    <>
+                      <button
+                        type="button"
+                        aria-hidden
+                        tabIndex={-1}
+                        className="fixed inset-0 z-40 cursor-default"
+                        onClick={() => setAccountOpen(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        role="menu"
+                        className="absolute right-0 top-full z-50 mt-2 w-48 rounded-xl border border-border bg-background p-1 shadow-soft"
+                      >
+                        <Link
+                          href="/account"
+                          role="menuitem"
+                          onClick={() => setAccountOpen(false)}
+                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground/80 transition-colors hover:bg-secondary hover:text-primary"
+                        >
+                          <User className="size-4" />
+                          My account
+                        </Link>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setAccountOpen(false);
+                            signOut({ callbackUrl: "/" });
+                          }}
+                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                        >
+                          <LogOut className="size-4" />
+                          Sign out
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           ) : (
             <Button
@@ -166,7 +215,7 @@ function NavTrigger({
       <Link
         href={item.href}
         className={cn(
-          "inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+          "inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors",
           isActive ? "text-primary" : "text-foreground/80 hover:text-foreground",
           active && "text-primary"
         )}

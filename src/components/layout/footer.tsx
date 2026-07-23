@@ -28,7 +28,9 @@ export function Footer() {
             </p>
 
             <div className="mt-6">
-              <p className="text-sm font-medium text-white">Get insights in your inbox</p>
+              <p className="text-sm font-medium text-white">
+                Get insights in your inbox
+              </p>
               <p className="mb-3 text-xs text-white/60">
                 No spam. Unsubscribe anytime.
               </p>
@@ -40,7 +42,9 @@ export function Footer() {
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 lg:col-span-6">
             {footerNav.map((col) => (
               <div key={col.heading}>
-                <p className="mb-4 text-sm font-semibold text-white">{col.heading}</p>
+                <p className="mb-4 text-sm font-semibold text-white">
+                  {col.heading}
+                </p>
                 <ul className="space-y-2.5">
                   {col.links.map((link) => (
                     <li key={link.href + link.label}>
@@ -59,7 +63,9 @@ export function Footer() {
 
           {/* Contact */}
           <div className="lg:col-span-2">
-            <p className="mb-4 text-sm font-semibold text-white">Get in touch</p>
+            <p className="mb-4 text-sm font-semibold text-white">
+              Get in touch
+            </p>
             {/* NAP — kept consistent with LocalBusiness schema + Google Business Profile */}
             <address className="space-y-3 text-sm not-italic text-white/70">
               <a
@@ -79,7 +85,8 @@ export function Footer() {
               <p className="flex items-start gap-2">
                 <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
                 <span>
-                  {location.addressLocality}, {location.addressRegion} State, Nigeria
+                  {location.addressLocality}, {location.addressRegion} State,
+                  Nigeria
                 </span>
               </p>
             </address>
@@ -112,8 +119,15 @@ export function Footer() {
             ))}
           </div>
           <div className="flex gap-5 text-xs text-white/55">
-            <Link href="/contact" className="hover:text-accent">Privacy</Link>
-            <Link href="/contact" className="hover:text-accent">Terms</Link>
+            <Link href="/contact" className="hover:text-accent">
+              Privacy
+            </Link>
+            <Link href="/contact" className="hover:text-accent">
+              Terms
+            </Link>
+            <Link href="/admin" className="hover:text-accent">
+              Admin
+            </Link>
           </div>
         </div>
       </div>
