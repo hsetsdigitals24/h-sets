@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     "Real results for real businesses. Explore H-SETS case studies across healthcare, fintech, retail and more.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export default async function PortfolioPage() {
   const caseStudies = await getPortfolio();

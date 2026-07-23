@@ -14,7 +14,7 @@ import { CohortCard } from "@/components/cards/cohort-card";
 import { BreadcrumbSchema, CourseSchema, FaqSchema } from "@/lib/seo";
 import { formatNGN } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export async function generateMetadata({
   params,

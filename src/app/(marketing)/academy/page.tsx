@@ -25,7 +25,7 @@ const perks = [
 
 const categories = ["Engineering", "AI & Data", "Design", "Business"] as const;
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export default async function AcademyPage() {
   const programmes = await getProgrammes();

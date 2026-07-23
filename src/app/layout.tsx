@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
 import { Toaster } from "sonner";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
-import { OrganizationSchema } from "@/lib/seo";
+import { OrganizationSchema, WebsiteSchema, LocalBusinessSchema } from "@/lib/seo";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -59,6 +59,8 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-background antialiased">
         <OrganizationSchema />
+        <WebsiteSchema />
+        <LocalBusinessSchema />
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <Toaster position="top-center" richColors closeButton />
       </body>

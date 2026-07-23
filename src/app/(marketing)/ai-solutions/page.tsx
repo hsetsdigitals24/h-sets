@@ -33,7 +33,7 @@ const aiFaqs = [
   { q: "How do you prevent AI mistakes?", a: "We ground responses in your approved data using retrieval, set clear scope limits, and add escalation paths so the system asks for help when unsure." },
 ];
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export default async function AiSolutionsPage() {
   const aiServices = (

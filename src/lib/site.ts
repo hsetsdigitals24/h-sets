@@ -9,7 +9,12 @@ export const site = {
   url: "https://h-sets.com",
   email: "hello@h-sets.com",
   phone: "+234 800 000 0000",
-  address: "Ilorin · Lagos · Abuja, Nigeria",
+  // Human-readable one-liner (footer). Structured NAP lives in `location` below.
+  address: "Ilorin, Kwara State, Nigeria",
+  // Absolute path to the brand logo used in Organization/LocalBusiness schema + OG.
+  logo: "/logo.png",
+  foundingYear: "2020",
+  priceRange: "₦₦",
   socials: {
     linkedin: "https://linkedin.com/company/h-sets",
     twitter: "https://twitter.com/hsets",
@@ -17,6 +22,38 @@ export const site = {
     youtube: "https://youtube.com/@hsets",
   },
 };
+
+/**
+ * Structured NAP + geo for the flagship Ilorin location. Drives LocalBusiness
+ * schema and the on-page NAP block. Local-SEO ranking depends on this matching
+ * the Google Business Profile *exactly* (name, address, phone).
+ *
+ * TODO(real-data): replace the placeholder streetAddress, postalCode, phone,
+ * geo coordinates and gbpUrl with the verified GBP values before launch.
+ */
+export const location = {
+  streetAddress: "TODO: verified street address",
+  addressLocality: "Ilorin",
+  addressRegion: "Kwara",
+  postalCode: "240101",
+  addressCountry: "NG",
+  latitude: 8.4966,
+  longitude: 4.5421,
+  /** Google Business Profile share URL — used for `sameAs` + map link. */
+  gbpUrl: "TODO: Google Business Profile URL",
+  /** Opening hours in schema.org format. */
+  openingHours: "Mo-Fr 09:00-17:00",
+} as const;
+
+/** Geographic markets served, most-specific first (used in areaServed schema). */
+export const areasServed = [
+  "Ilorin",
+  "Kwara State",
+  "Lagos",
+  "Abuja",
+  "Nigeria",
+  "Africa",
+] as const;
 
 export type NavLink = { label: string; href: string; description?: string };
 export type NavColumn = { heading: string; links: NavLink[] };

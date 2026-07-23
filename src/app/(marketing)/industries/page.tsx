@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     "H-SETS delivers technology solutions across healthcare, fintech, education, manufacturing, government, NGOs and real estate.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export default async function IndustriesPage() {
   const industries = await getIndustries();

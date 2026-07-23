@@ -22,7 +22,7 @@ const tracks = [
   { icon: Users, title: "Talent Pool", description: "Graduates: opt in and get discovered by hiring partners." },
 ];
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export default async function CareersPage() {
   const jobs = await getJobs();

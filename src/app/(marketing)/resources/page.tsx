@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Free e-books, templates, checklists, playbooks and reports to help you grow your business and skills — from H-SETS.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export default async function ResourcesPage() {
   const resources = await getResources();

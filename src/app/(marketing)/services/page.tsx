@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     "From websites and software to AI automation and digital marketing — explore the full range of H-SETS technology services.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export default async function ServicesPage() {
   const services = await getServices();

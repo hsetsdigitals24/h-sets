@@ -9,7 +9,7 @@ import { CtaStrip } from "@/components/common/cta-strip";
 import { WebsiteSchema } from "@/lib/seo";
 import { getTestimonials } from "@/lib/content";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export default async function HomePage() {
   const testimonials = await getTestimonials();

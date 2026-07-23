@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Mail, MapPin, ArrowUpRight } from "lucide-react";
-import { footerNav, site } from "@/lib/site";
+import { Mail, MapPin, Phone, ArrowUpRight } from "lucide-react";
+import { footerNav, site, location } from "@/lib/site";
 import { Logo } from "./logo";
 import { NewsletterForm } from "@/components/forms/newsletter-form";
 import { LinkedInIcon, XIcon, InstagramIcon, YouTubeIcon } from "./social-icons";
@@ -60,18 +60,29 @@ export function Footer() {
           {/* Contact */}
           <div className="lg:col-span-2">
             <p className="mb-4 text-sm font-semibold text-white">Get in touch</p>
-            <ul className="space-y-3 text-sm text-white/70">
-              <li className="flex items-start gap-2">
+            {/* NAP — kept consistent with LocalBusiness schema + Google Business Profile */}
+            <address className="space-y-3 text-sm not-italic text-white/70">
+              <a
+                href={`mailto:${site.email}`}
+                className="flex items-start gap-2 hover:text-accent"
+              >
                 <Mail className="mt-0.5 size-4 shrink-0 text-accent" />
-                <a href={`mailto:${site.email}`} className="hover:text-accent">
-                  {site.email}
-                </a>
-              </li>
-              <li className="flex items-start gap-2">
+                <span>{site.email}</span>
+              </a>
+              <a
+                href={`tel:${site.phone.replace(/\s+/g, "")}`}
+                className="flex items-start gap-2 hover:text-accent"
+              >
+                <Phone className="mt-0.5 size-4 shrink-0 text-accent" />
+                <span>{site.phone}</span>
+              </a>
+              <p className="flex items-start gap-2">
                 <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
-                <span>{site.address}</span>
-              </li>
-            </ul>
+                <span>
+                  {location.addressLocality}, {location.addressRegion} State, Nigeria
+                </span>
+              </p>
+            </address>
             <Link
               href="/contact#consultation"
               className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"

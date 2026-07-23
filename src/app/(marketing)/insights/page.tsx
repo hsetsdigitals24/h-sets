@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "Practical perspectives on technology, AI, design and building a career in tech — from the H-SETS team.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export default async function InsightsPage() {
   const insights = await getPublishedInsights();

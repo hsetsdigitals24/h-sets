@@ -11,7 +11,7 @@ import { CtaStrip } from "@/components/common/cta-strip";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbSchema, FaqSchema, ServiceSchema } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export async function generateMetadata({
   params,
