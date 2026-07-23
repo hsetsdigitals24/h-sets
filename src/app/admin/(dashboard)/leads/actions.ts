@@ -5,12 +5,78 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
-import { LEAD_STATUSES, STATUS_LABELS } from "@/lib/leads";
+import { LEAD_STATUSES, LEAD_TYPES, STATUS_LABELS } from "@/lib/leads";
 import { tierForScore } from "@/lib/lead-scoring";
 import { logLeadEvent } from "@/lib/lead-events";
 import { createNotification } from "@/lib/notifications";
 
 export type LeadActionState = { ok?: boolean; error?: string };
+
+const createSchema = z.object({
+  type: z.enum(LEAD_TYPES),
+  name: z.string().min(1).max(200),
+  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().max(50).optional(),
+  company: z.string().max(200).optional(),
+  source: z.string().max(200).optional(),
+  status: z.enum(LEAD_STATUSES).default("new"),
+  score: z.coerce.number().int().min(0).max(100).default(0),
+  notes: z.string().max(5000).optional(),
+});
+
+export async function createLead(
+  _prev: LeadActionState,
+  formData: FormData
+): Promise<LeadActionState> {
+  const admin = await requireSection("leads");
+
+  const parsed = createSchema.safeParse({
+    type: formData.get("type"),
+    name: formData.get("name"),
+    email: formData.get("email") ?? "",
+    phone: formData.get("phone") ?? "",
+    company: formData.get("company") ?? "",
+    source: formData.get("source") ?? "",
+    status: formData.get("status") ?? "new",
+    score: formData.get("score") ?? 0,
+    notes: formData.get("notes") ?? "",
+  });
+  if (!parsed.success) {
+    return { error: "Please check the values and try again." };
+  }
+
+  const { type, name, email, phone, company, source, status, score, notes } = parsed.data;
+  const tier = tierForScore(score);
+  const sourceValue = source || "manual";
+
+  const lead = await prisma.lead.create({
+    data: {
+      type,
+      name,
+      email: email || null,
+      phone: phone || null,
+      company: company || null,
+      source: sourceValue,
+      status,
+      score,
+      tier,
+      notes: notes || null,
+    },
+    select: { id: true },
+  });
+
+  // Seed the activity timeline so the detail page mirrors captured leads.
+  await logLeadEvent(lead.id, {
+    type: "created",
+    message: `Lead added manually by ${admin.name} (score ${score}, ${tier}).`,
+    meta: { score, tier, source: sourceValue, manual: true },
+    actorId: admin.id,
+  });
+
+  revalidatePath("/admin/leads");
+  revalidatePath("/admin");
+  return { ok: true };
+}
 
 const updateSchema = z.object({
   id: z.string().min(1),

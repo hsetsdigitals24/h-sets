@@ -26,6 +26,7 @@ import {
   type LeadStatus,
   type LeadTier,
 } from "@/lib/leads";
+import { LeadCreateForm } from "./lead-create-form";
 
 export const dynamic = "force-dynamic";
 
@@ -108,6 +109,7 @@ export default async function LeadsPage({
         description={`${total} submission${total === 1 ? "" : "s"} captured.`}
         action={
           <div className="flex gap-2">
+            <LeadCreateForm />
             <Button asChild variant="outline" size="sm">
               <Link href="/admin/leads/analytics">Analytics</Link>
             </Button>
