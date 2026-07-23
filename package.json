@@ -9,7 +9,8 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "db:seed:admin": "node --experimental-strip-types prisma/seed-admin.ts"
   },
   "prisma": {
     "seed": "node --experimental-strip-types prisma/seed.ts"
