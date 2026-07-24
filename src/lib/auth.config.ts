@@ -17,6 +17,12 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isAdminArea = nextUrl.pathname.startsWith("/admin");
       const isLoginPage = nextUrl.pathname === "/admin/login";
+      // Public admin pages reachable without a session (sign-in + self-service
+      // password recovery). Everything else under /admin requires staff.
+      const isPublicAdminPath =
+        isLoginPage ||
+        nextUrl.pathname === "/admin/forgot-password" ||
+        nextUrl.pathname === "/admin/reset-password";
       // Admin dashboard requires an admin (staff) role — a signed-in STUDENT is
       // a public/academy user and must not reach the admin area.
       const isStaff = !!auth?.user && auth.user.role !== "STUDENT";
@@ -27,6 +33,7 @@ export const authConfig = {
         }
         return true;
       }
+      if (isPublicAdminPath) return true;
       if (isAdminArea) return isStaff;
       return true;
     },
