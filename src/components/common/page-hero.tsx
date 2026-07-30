@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Container } from "./section";
@@ -27,6 +28,21 @@ export function PageHero({
 }) {
   return (
     <section className={cn("relative overflow-hidden bg-ink-gradient text-white", className)}>
+      {/* hero background image */}
+      <div className="pointer-events-none absolute inset-0">
+        <Image
+          src="/hero/slide-2.png"
+          alt="H-SETS Academy learners at work"
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover"
+        />
+      </div>
+
+      {/* dark overlay for legibility */}
+      <div className="pointer-events-none absolute inset-0 bg-ink/70" />
+
       {/* aurora blobs */}
       <div className="pointer-events-none absolute -left-24 top-0 size-80 rounded-full bg-primary/25 blur-3xl animate-float-slow" />
       <div className="pointer-events-none absolute right-0 top-20 size-72 rounded-full bg-accent/15 blur-3xl animate-float-slow [animation-delay:-5s]" />
