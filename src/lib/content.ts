@@ -316,6 +316,9 @@ function mapIndustry(ind: {
     slug: ind.slug,
     name: ind.name,
     icon: getIcon(ind.icon),
+    // Card background — placeholder derived from the slug. Replace the file in
+    // /public/industries (keep the .svg name, or swap the extension here too).
+    image: `/industries/${ind.slug}.jpg`,
     short: ind.short,
     hero: ind.hero,
     challenges: ind.challenges as string[],

@@ -27,6 +27,11 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
   images: {
     remotePatterns: r2RemotePatterns(),
+    // The industry-tile placeholders in /public/industries are SVGs. next/image
+    // blocks SVG by default; these are our own trusted files, and the strict CSP
+    // + sandbox neutralise any script/interaction if one is ever swapped in.
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   async redirects() {
     return [

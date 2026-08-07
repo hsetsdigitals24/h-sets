@@ -12,24 +12,24 @@ export function Logo({
 
   if (light) {
     return (
-      <Link 
+      <Link
       href="/"
-      className={cn("group inline-flex items-center gap-2.5", className)}
+      className={cn("group inline-flex shrink-0 items-center gap-2.5", className)}
       aria-label="H-SETS home"
     >
-      
-    <Image src="/logo.png" width="300" height="200" alt="H-SETS logo"/>
+
+    <Image src="/logo-w.png" width="500" height="200" alt="H-SETS logo" className="h-10 w-auto shrink-0 lg:h-8" priority />
     </Link> )
   } else {
     return (
     <Link
       href="/"
-      className={cn("group inline-flex items-center gap-2.5", className)}
+      className={cn("group inline-flex shrink-0 items-center gap-2.5", className)}
       aria-label="H-SETS home"
     >
-      
-    <Image src="/logo.png" width="300" height="200" alt="H-SETS logo" />
-    </Link> 
+
+    <Image src="/logo-b.png" width="500" height="200" alt="H-SETS logo" className="h-10 w-auto shrink-0 lg:h-8" priority />
+    </Link>
     )
 }
 }

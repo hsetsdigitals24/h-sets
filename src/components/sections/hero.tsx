@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  AnimatePresence,
   motion,
   useReducedMotion,
   useScroll,
@@ -15,11 +16,28 @@ import { Button } from "@/components/ui/button";
 import { AnimatedCounter } from "@/components/common/animated-counter";
 import { stats } from "@/data/company";
 
-const headline = ["Technology", "that grows", "your business"];
-
+/**
+ * Each slide pairs a background image with its own headline + subheadline, so
+ * the copy changes in sync with the image. `gradientFrom` is the line index at
+ * which the accent gradient starts.
+ */
 const slides = [
-  { src: "/hero/slide-1.png", alt: "H-SETS team building software" },
-  { src: "/hero/slide-2.png", alt: "H-SETS Academy learners at work" },
+  {
+    src: "/hero/slide-1.png",
+    alt: "H-SETS team building software",
+    headline: ["Technology", "that grows", "your business"],
+    gradientFrom: 2,
+    subheadline:
+      "We build software, deploy AI and drive growth for ambitious businesses across Nigeria and beyond.",
+  },
+  {
+    src: "/hero/slide-2.jpeg",
+    alt: "H-SETS Academy learners at work",
+    headline: ["Skills that", "launch your", "tech career"],
+    gradientFrom: 2,
+    subheadline:
+      "Learn from senior engineers through hands-on, cohort-based training at the H-SETS Academy — and get hired.",
+  },
 ];
 
 const container: Variants = {
@@ -82,33 +100,40 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-ink/70" />
 
       <div className="relative mx-auto w-full max-w-4xl px-5 py-16 text-center sm:px-8">
-        <motion.h1
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="font-display text-[2.6rem] font-bold leading-[1.04] tracking-tight sm:text-6xl md:text-7xl"
-        >
-          {headline.map((line, i) => (
-            <span key={i} className="block overflow-hidden pb-1">
-              <motion.span
-                variants={word}
-                className={i >= 2 ? "inline-block text-gradient" : "inline-block"}
-              >
-                {line}
-              </motion.span>
-            </span>
-          ))}
-        </motion.h1>
+        <AnimatePresence mode="wait">
+          <motion.div key={active} exit={{ opacity: 0, transition: { duration: 0.3 } }}>
+            <motion.h1
+              variants={container}
+              initial="hidden"
+              animate="show"
+              className="font-display text-[2.6rem] font-bold leading-[1.04] tracking-tight sm:text-6xl md:text-7xl"
+            >
+              {slides[active].headline.map((line, i) => (
+                <span key={i} className="block overflow-hidden pb-1">
+                  <motion.span
+                    variants={word}
+                    className={
+                      i >= slides[active].gradientFrom
+                        ? "inline-block text-gradient"
+                        : "inline-block"
+                    }
+                  >
+                    {line}
+                  </motion.span>
+                </span>
+              ))}
+            </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.6 }}
-          className="mx-auto mt-6 max-w-2xl text-lg text-white/70 sm:text-xl"
-        >
-          We build software, deploy AI and drive growth for ambitious businesses — and
-          train the next generation of tech talent through the H-SETS Academy.
-        </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="mx-auto mt-6 max-w-2xl text-lg text-white/70 sm:text-xl"
+            >
+              {slides[active].subheadline}
+            </motion.p>
+          </motion.div>
+        </AnimatePresence>
 
         <motion.div
           initial={{ opacity: 0, y: 16 }}

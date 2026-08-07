@@ -8,10 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { markAllNotificationsRead } from "@/lib/notification-actions";
 import { NotificationRow } from "./notification-row";
 import type { NotificationItem } from "./types";
+import { cn } from "@/lib/utils";
 
 const POLL_MS = 45_000;
 
-export function NotificationBell({ viewAllHref }: { viewAllHref: string }) {
+export function NotificationBell({
+  viewAllHref,
+  light = false,
+}: {
+  viewAllHref: string;
+  light?: boolean;
+}) {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
@@ -62,7 +69,12 @@ export function NotificationBell({ viewAllHref }: { viewAllHref: string }) {
         <button
           type="button"
           aria-label={`Notifications${unread > 0 ? ` (${unread} unread)` : ""}`}
-          className="relative inline-flex size-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(
+            "relative inline-flex size-9 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            light
+              ? "border-white/25 text-white hover:bg-white/10"
+              : "border-border text-foreground hover:bg-secondary"
+          )}
         >
           <Bell className="size-4" />
           {unread > 0 && (

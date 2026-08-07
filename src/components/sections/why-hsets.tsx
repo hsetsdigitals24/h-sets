@@ -1,5 +1,6 @@
+import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
-import { Section } from "@/components/common/section";
+import { Section, Container } from "@/components/common/section";
 import { Reveal, RevealGroup, RevealItem } from "@/components/common/reveal";
 import { AnimatedCounter } from "@/components/common/animated-counter";
 import { aboutStats } from "@/data/company";
@@ -13,7 +14,19 @@ const points = [
 
 export function WhyHsets() {
   return (
-    <Section className="bg-ink-gradient text-white">
+    <Section bleak className="relative isolate overflow-hidden bg-ink-gradient text-white">
+      {/* Background image (placeholder — replace /public/why-hsets.svg) */}
+      <Image
+        src="/why-hsets.jpg"
+        alt=""
+        fill
+        sizes="100vw"
+        className="-z-10 object-cover opacity-40"
+      />
+      {/* Gradient scrim keeps text legible over any image */}
+      {/* <div className="pointer-events-none absolute inset-0 -z-10 [background:linear-gradient(180deg,rgba(2,6,23,0.85),rgba(2,6,23,0.7)_50%,rgba(2,6,23,0.9))]" /> */}
+
+      <Container>
       <div className="grid items-center gap-14 lg:grid-cols-2">
         <div>
           <Reveal>
@@ -75,6 +88,7 @@ export function WhyHsets() {
           </div>
         </div>
       </Reveal>
+      </Container>
     </Section>
   );
 }

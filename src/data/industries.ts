@@ -13,6 +13,8 @@ export type Industry = {
   slug: string;
   name: string;
   icon: LucideIcon;
+  /** Card background image. Replace the placeholder in /public/industries. */
+  image: string;
   short: string;
   hero: string;
   challenges: string[];
@@ -27,6 +29,7 @@ export const industries: Industry[] = [
     slug: "healthcare",
     name: "Healthcare",
     icon: HeartPulse,
+    image: "/industries/healthcare.svg",
     short: "HIPAA-minded digital systems for clinics, hospitals and health startups.",
     hero: "Technology that helps you deliver better care.",
     challenges: [
@@ -55,6 +58,7 @@ export const industries: Industry[] = [
     slug: "fintech",
     name: "Fintech",
     icon: Landmark,
+    image: "/industries/fintech.svg",
     short: "Secure, scalable platforms for payments, lending and financial services.",
     hero: "Build financial products customers trust.",
     challenges: [
@@ -83,6 +87,7 @@ export const industries: Industry[] = [
     slug: "education",
     name: "Education",
     icon: GraduationCap,
+    image: "/industries/education.svg",
     short: "Learning platforms, school systems and edtech products that scale.",
     hero: "Digital learning that actually engages.",
     challenges: [
@@ -111,6 +116,7 @@ export const industries: Industry[] = [
     slug: "manufacturing",
     name: "Manufacturing",
     icon: Factory,
+    image: "/industries/manufacturing.svg",
     short: "Operations, inventory and IoT systems for modern manufacturing.",
     hero: "Connect and optimise your operations.",
     challenges: [
@@ -139,6 +145,7 @@ export const industries: Industry[] = [
     slug: "government",
     name: "Government",
     icon: Building2,
+    image: "/industries/government.svg",
     short: "Citizen services and digital infrastructure for the public sector.",
     hero: "Public services that work for citizens.",
     challenges: [
@@ -167,6 +174,7 @@ export const industries: Industry[] = [
     slug: "ngos",
     name: "NGOs",
     icon: HandHeart,
+    image: "/industries/ngos.svg",
     short: "Impact-focused tech for non-profits, on non-profit budgets.",
     hero: "Do more good with the right tools.",
     challenges: [
@@ -195,6 +203,7 @@ export const industries: Industry[] = [
     slug: "real-estate",
     name: "Real Estate",
     icon: Home,
+    image: "/industries/real-estate.svg",
     short: "Listing platforms, CRM and virtual tools for property businesses.",
     hero: "Sell and manage property, digitally.",
     challenges: [

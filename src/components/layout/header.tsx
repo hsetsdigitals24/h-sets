@@ -50,18 +50,23 @@ export function Header() {
     };
   }, [mobileOpen]);
 
+  // At the very top the header floats transparently over the (dark) hero, so
+  // its content renders light. Once scrolled (or the mobile sheet is open) it
+  // becomes the solid, blurred light bar with dark content.
+  const light = !scrolled && !mobileOpen && !openMenu;
+
   return (
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-all duration-300",
-        scrolled || mobileOpen
-          ? "border-b border-border/50 bg-background/80 backdrop-blur-xl"
-          : "border-b bg-white"
+        light
+          ? "border-b border-transparent bg-transparent"
+          : "border-b border-border/50 bg-background/80 backdrop-blur-xl"
       )}
       onMouseLeave={() => setOpenMenu(null)}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8 lg:h-[72px]">
-        <Logo />
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8 lg:h-24">
+        <Logo light={light} />
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-0.5 lg:flex">
@@ -71,6 +76,7 @@ export function Header() {
               item={item}
               active={openMenu === item.label}
               pathname={pathname}
+              light={light}
               onOpen={() => setOpenMenu(item.columns ? item.label : null)}
             />
           ))}
@@ -80,6 +86,7 @@ export function Header() {
           {user ? (
             <div className="hidden items-center gap-1 lg:flex">
               <NotificationBell
+                light={light}
                 viewAllHref={
                   (user as { role?: string }).role && (user as { role?: string }).role !== "STUDENT"
                     ? "/admin/notifications"
@@ -92,7 +99,10 @@ export function Header() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setAccountOpen((v) => !v)}
-                  className="inline-flex items-center gap-1.5"
+                  className={cn(
+                    "inline-flex items-center gap-1.5",
+                    light && "text-white hover:bg-white/10 hover:text-white"
+                  )}
                   aria-expanded={accountOpen}
                   aria-haspopup="menu"
                 >
@@ -155,7 +165,11 @@ export function Header() {
               asChild
               variant="ghost"
               size="sm"
-              className={cn("hidden lg:inline-flex", status === "loading" && "invisible")}
+              className={cn(
+                "hidden lg:inline-flex",
+                status === "loading" && "invisible",
+                light && "text-white hover:bg-white/10 hover:text-white"
+              )}
             >
               <Link href="/login">Sign in</Link>
             </Button>
@@ -165,7 +179,10 @@ export function Header() {
           </Button>
           <button
             type="button"
-            className="grid size-10 place-items-center rounded-lg text-foreground transition-colors hover:bg-secondary lg:hidden"
+            className={cn(
+              "grid size-10 place-items-center rounded-lg transition-colors lg:hidden",
+              light ? "text-white hover:bg-white/10" : "text-foreground hover:bg-secondary"
+            )}
             onClick={() => setMobileOpen((v) => !v)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
@@ -202,11 +219,13 @@ function NavTrigger({
   item,
   active,
   pathname,
+  light,
   onOpen,
 }: {
   item: NavItem;
   active: boolean;
   pathname: string;
+  light: boolean;
   onOpen: () => void;
 }) {
   const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
@@ -216,8 +235,12 @@ function NavTrigger({
         href={item.href}
         className={cn(
           "inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-          isActive ? "text-primary" : "text-foreground/80 hover:text-foreground",
-          active && "text-primary"
+          light
+            ? cn("text-white/85 hover:text-white", (isActive || active) && "text-white")
+            : cn(
+                isActive ? "text-primary" : "text-foreground/80 hover:text-foreground",
+                active && "text-primary"
+              )
         )}
       >
         {item.label}
@@ -302,7 +325,7 @@ function MobileMenu({
   return (
     <motion.div
       initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "calc(100dvh - 4rem)" }}
+      animate={{ opacity: 1, height: "calc(100dvh - 5rem)" }}
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="overflow-y-auto overscroll-contain bg-background lg:hidden"

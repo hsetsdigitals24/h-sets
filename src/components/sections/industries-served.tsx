@@ -5,11 +5,22 @@ import { Section, SectionHeading } from "@/components/common/section";
 import { RevealGroup, RevealItem } from "@/components/common/reveal";
 import { IndustryTile } from "@/components/cards/industry-tile";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export async function IndustriesServed() {
   const industries = await getIndustries();
   return (
-    <Section className="bg-secondary/40">
+    <Section className="bg-secondary/40 relative">
+        <Image
+            src="/ind.jpg"
+            alt=""
+            fill
+            sizes="100vw"
+            className="-z-10 object-cover opacity-15"
+          />
+            {/* Gradient scrim keeps text legible over any image */}
+            {/* <div className="pointer-events-none absolute inset-0 -z-10 bg-white/80" /> */}
+      
       <SectionHeading
         eyebrow="Industries"
         title="Deep expertise across sectors"
