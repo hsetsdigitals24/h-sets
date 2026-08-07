@@ -53,8 +53,14 @@ export async function POST(req: Request) {
   api.searchParams.set("url", target.toString());
   api.searchParams.set("screenshot", "true");
   api.searchParams.set("meta", "false");
+  // fullPage=false pins the capture to the first viewport (the hero) rather than
+  // stitching a tall shot of the whole project page.
+  api.searchParams.set("screenshot.fullPage", "false");
+  api.searchParams.set("screenshot.type", "png");
   api.searchParams.set("viewport.width", "1200");
   api.searchParams.set("viewport.height", "630");
+  // Let hero animations/media settle before the shot so it isn't a blank frame.
+  api.searchParams.set("waitUntil", "networkidle0");
 
   let shotUrl: string;
   try {

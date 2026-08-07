@@ -1,12 +1,13 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 /**
- * Delete control with a confirmation prompt. Accepts a bound server action
+ * Delete control with a confirmation modal. Accepts a bound server action
  * taking FormData with `id`.
  */
 export function DeleteButton({
@@ -21,29 +22,42 @@ export function DeleteButton({
   confirmText?: string;
 }) {
   const [pending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
 
-  function onClick() {
-    if (!window.confirm(confirmText)) return;
+  function onConfirm() {
     startTransition(async () => {
       const fd = new FormData();
       fd.set("id", id);
       const res = await action(fd);
       if (res && "error" in res && res.error) toast.error(res.error);
       else toast.success("Deleted");
+      setOpen(false);
     });
   }
 
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      className="text-destructive"
-      disabled={pending}
-      onClick={onClick}
-    >
-      <Trash2 className="size-4" />
-      <span className="sr-only">{label}</span>
-    </Button>
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="text-destructive"
+        disabled={pending}
+        onClick={() => setOpen(true)}
+      >
+        <Trash2 className="size-4" />
+        <span className="sr-only">{label}</span>
+      </Button>
+      <ConfirmDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Confirm deletion"
+        description={confirmText}
+        confirmLabel={label}
+        destructive
+        pending={pending}
+        onConfirm={onConfirm}
+      />
+    </>
   );
 }

@@ -32,6 +32,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FormError, SubmitButton } from "@/components/admin/form-kit";
 import {
   addComment,
@@ -941,7 +942,8 @@ function TaskDrawer({
   onClose: () => void;
 }) {
   const [state, action] = useActionState(updateTask, {});
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const commentRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -964,7 +966,6 @@ function TaskDrawer({
   }
 
   function onDelete() {
-    if (!window.confirm("Delete this task?")) return;
     const fd = new FormData();
     fd.set("id", task.id);
     fd.set("projectId", projectId);
@@ -1068,13 +1069,24 @@ function TaskDrawer({
               type="button"
               variant="ghost"
               className="text-destructive"
-              onClick={onDelete}
+              onClick={() => setConfirmDelete(true)}
             >
               <Trash2 className="size-4" /> Delete
             </Button>
             <SubmitButton>Save changes</SubmitButton>
           </div>
         </form>
+
+        <ConfirmDialog
+          open={confirmDelete}
+          onOpenChange={setConfirmDelete}
+          title="Delete task"
+          description="Delete this task? This cannot be undone."
+          confirmLabel="Delete"
+          destructive
+          pending={pending}
+          onConfirm={onDelete}
+        />
 
         <div className="border-t border-border pt-4">
           <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold">
@@ -1263,6 +1275,7 @@ function EpicDialog({
   const [error, setError] = useState<string | null>(null);
   const [color, setColor] = useState(epic?.color ?? EPIC_COLORS[0]);
   const [pending, startTransition] = useTransition();
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -1283,7 +1296,6 @@ function EpicDialog({
 
   function onDelete() {
     if (!epic) return;
-    if (!window.confirm("Delete this epic? Its tasks stay in the project.")) return;
     const fd = new FormData();
     fd.set("id", epic.id);
     fd.set("projectId", projectId);
@@ -1350,7 +1362,7 @@ function EpicDialog({
                 type="button"
                 variant="ghost"
                 className="text-destructive"
-                onClick={onDelete}
+                onClick={() => setConfirmDelete(true)}
                 disabled={pending}
               >
                 <Trash2 className="size-4" /> Delete
@@ -1363,6 +1375,17 @@ function EpicDialog({
             </Button>
           </div>
         </form>
+
+        <ConfirmDialog
+          open={confirmDelete}
+          onOpenChange={setConfirmDelete}
+          title="Delete epic"
+          description="Delete this epic? Its tasks stay in the project."
+          confirmLabel="Delete"
+          destructive
+          pending={pending}
+          onConfirm={onDelete}
+        />
       </DialogContent>
     </Dialog>
   );
@@ -1381,6 +1404,7 @@ function SprintDialog({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -1400,7 +1424,6 @@ function SprintDialog({
 
   function onDelete() {
     if (!sprint) return;
-    if (!window.confirm("Delete this sprint? Its tasks return to the backlog.")) return;
     const fd = new FormData();
     fd.set("id", sprint.id);
     fd.set("projectId", projectId);
@@ -1506,7 +1529,7 @@ function SprintDialog({
                 type="button"
                 variant="ghost"
                 className="text-destructive"
-                onClick={onDelete}
+                onClick={() => setConfirmDelete(true)}
                 disabled={pending}
               >
                 <Trash2 className="size-4" /> Delete
@@ -1519,6 +1542,17 @@ function SprintDialog({
             </Button>
           </div>
         </form>
+
+        <ConfirmDialog
+          open={confirmDelete}
+          onOpenChange={setConfirmDelete}
+          title="Delete sprint"
+          description="Delete this sprint? Its tasks return to the backlog."
+          confirmLabel="Delete"
+          destructive
+          pending={pending}
+          onConfirm={onDelete}
+        />
       </DialogContent>
     </Dialog>
   );

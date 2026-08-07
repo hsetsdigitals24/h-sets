@@ -1,8 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 type Variant = React.ComponentProps<typeof Button>["variant"];
@@ -33,21 +34,38 @@ export function ActionButton({
   confirm?: string;
 }) {
   const [pending, startTransition] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  function onClick() {
-    if (confirm && !window.confirm(confirm)) return;
+  function run() {
     startTransition(async () => {
       const fd = new FormData();
       for (const [k, v] of Object.entries(fields)) fd.set(k, v);
       const res = await action(fd);
       if (res && "error" in res && res.error) toast.error(res.error);
       else if (successMessage) toast.success(successMessage);
+      setConfirmOpen(false);
     });
   }
 
+  function onClick() {
+    if (confirm) setConfirmOpen(true);
+    else run();
+  }
+
   return (
-    <Button type="button" variant={variant} size={size} disabled={pending} onClick={onClick} className={cn(className)}>
-      {children}
-    </Button>
+    <>
+      <Button type="button" variant={variant} size={size} disabled={pending} onClick={onClick} className={cn(className)}>
+        {children}
+      </Button>
+      {confirm && (
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          description={confirm}
+          pending={pending}
+          onConfirm={run}
+        />
+      )}
+    </>
   );
 }
