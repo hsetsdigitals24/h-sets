@@ -26,6 +26,7 @@ export type AdminSection =
   | "exams"
   | "attendance"
   | "certificates"
+  | "projects"
   | "notifications"
   | "users";
 
@@ -48,6 +49,9 @@ const SECTION_ROLES: Record<AdminSection, Role[] | "all"> = {
   exams: ["ACADEMY_ADMIN", "INSTRUCTOR"],
   attendance: ["ACADEMY_ADMIN", "INSTRUCTOR"],
   certificates: ["ACADEMY_ADMIN"],
+  // Internal admin project-management tool. Open to all admin roles; not
+  // instructors or students. (SUPER_ADMIN passes via canAccess regardless.)
+  projects: ["ACADEMY_ADMIN", "MARKETING_ADMIN", "SALES_ADMIN", "FINANCE_ADMIN"],
   // Every admin can open the notifications page to read their own list.
   // Broadcasting is gated separately (see BROADCAST_ROLES below).
   notifications: "all",

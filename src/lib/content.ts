@@ -156,6 +156,7 @@ function mapInsight(n: {
   date: string;
   readMins: number;
   accent: string;
+  coverImage?: string | null;
   body: unknown;
 }): Insight {
   return {
@@ -168,6 +169,7 @@ function mapInsight(n: {
     date: n.date,
     readMins: n.readMins,
     accent: n.accent,
+    coverImage: n.coverImage ?? null,
     body: bodyToHtml(n.body),
   };
 }

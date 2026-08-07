@@ -18,6 +18,13 @@ function r2RemotePatterns(): NonNullable<NextConfig["images"]>["remotePatterns"]
 }
 
 const nextConfig: NextConfig = {
+  // LiveKit's <VideoConference> (via @livekit/components-core's
+  // useVisualStableUpdate) crashes under React 19 StrictMode's dev double-render
+  // with "Element not part of the array" when a camera placeholder track flips
+  // to a real track between the two renders. StrictMode is a dev-only aid, so
+  // disabling it has no effect on production behaviour. Revisit if the LiveKit
+  // components add StrictMode support.
+  reactStrictMode: false,
   images: {
     remotePatterns: r2RemotePatterns(),
   },

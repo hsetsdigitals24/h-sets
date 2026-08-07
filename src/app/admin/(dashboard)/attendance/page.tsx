@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Video } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
 import { cohortScope, activeCohortWhere } from "@/lib/cohort-access";
@@ -7,6 +8,7 @@ import { formatDate } from "@/lib/utils";
 import { PageHeading } from "@/components/admin/page-heading";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { CohortPicker } from "@/components/lms/cohort-picker";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -97,7 +99,14 @@ export default async function AttendancePage({
                         <Badge variant="muted">{s._count.attendance}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <DeleteButton id={s.id} action={deleteSession} confirmText={`Delete "${s.title}"?`} />
+                        <div className="flex items-center justify-end gap-1">
+                          <Button asChild variant="ghost" size="sm">
+                            <Link href={`/meet/class/${s.id}`}>
+                              <Video className="size-4" /> Start call
+                            </Link>
+                          </Button>
+                          <DeleteButton id={s.id} action={deleteSession} confirmText={`Delete "${s.title}"?`} />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

@@ -26,6 +26,9 @@ export function InsightForm({ action, insight }: { action: Action; insight?: Ins
       <Field label="Excerpt" htmlFor="excerpt">
         <Textarea id="excerpt" name="excerpt" rows={2} defaultValue={insight?.excerpt} required />
       </Field>
+      <Field label="Cover image URL" htmlFor="coverImage" hint="Optional. Shown on cards and at the top of the article; falls back to the accent colour when blank.">
+        <Input id="coverImage" name="coverImage" type="url" defaultValue={insight?.coverImage ?? ""} placeholder="https://…/image.jpg" />
+      </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Category" htmlFor="category">

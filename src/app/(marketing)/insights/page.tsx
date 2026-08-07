@@ -48,7 +48,15 @@ export default async function InsightsPage() {
             href={`/insights/${featured.slug}`}
             className="group grid overflow-hidden rounded-3xl border border-border bg-card shadow-soft transition-all hover:border-primary/40 lg:grid-cols-2"
           >
-            <div className={cn("relative min-h-[240px]", featured.accent)}>
+            <div className={cn("relative min-h-[240px] overflow-hidden", featured.accent)}>
+              {featured.coverImage && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={featured.coverImage}
+                  alt={featured.title}
+                  className="absolute inset-0 size-full object-cover"
+                />
+              )}
               <span className="absolute left-6 top-6">
                 <Badge variant="glass">Featured · {featured.category}</Badge>
               </span>

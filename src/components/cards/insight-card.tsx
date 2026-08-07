@@ -11,6 +11,15 @@ export function InsightCard({ insight }: { insight: Insight }) {
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
     >
       <div className={cn("relative h-40 overflow-hidden", insight.accent)}>
+        {insight.coverImage && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={insight.coverImage}
+            alt={insight.title}
+            loading="lazy"
+            className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        )}
         <span className="absolute left-4 top-4">
           <Badge variant="glass">{insight.category}</Badge>
         </span>

@@ -67,6 +67,16 @@ export default async function InsightPage({
 
       <Section>
         <article className="mx-auto max-w-2xl">
+          {insight.coverImage && (
+            <Reveal>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={insight.coverImage}
+                alt={insight.title}
+                className="mb-10 aspect-video w-full rounded-2xl object-cover shadow-soft"
+              />
+            </Reveal>
+          )}
           <Reveal>
             <div
               className="prose prose-lg max-w-none text-foreground/90 prose-headings:text-foreground prose-a:text-primary prose-img:rounded-xl"

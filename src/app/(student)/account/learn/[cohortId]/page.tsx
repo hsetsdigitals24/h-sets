@@ -85,17 +85,26 @@ export default async function LearningCenter({
                   <CalendarClock className="size-4 text-muted-foreground" />
                   {s.title} · {formatDate(s.scheduledAt.toISOString())}
                 </span>
-                {attended.has(s.id) ? (
-                  <Badge variant="success">Present</Badge>
-                ) : (
-                  <ActionButton
-                    action={confirmAttendance}
-                    fields={{ sessionId: s.id }}
-                    successMessage="Attendance confirmed"
-                  >
-                    Confirm attendance
-                  </ActionButton>
-                )}
+                <span className="flex items-center gap-2">
+                  {attended.has(s.id) && <Badge variant="success">Present</Badge>}
+                  {/* Joining the call auto-marks attendance once you meet the
+                      minimum stay; the manual confirm below is a fallback. */}
+                  <Button asChild variant="gradient" size="sm">
+                    <a href={`/meet/class/${s.id}`}>
+                      <Video className="size-4" /> Join call
+                    </a>
+                  </Button>
+                  {!attended.has(s.id) && (
+                    <ActionButton
+                      action={confirmAttendance}
+                      fields={{ sessionId: s.id }}
+                      variant="outline"
+                      successMessage="Attendance confirmed"
+                    >
+                      Confirm
+                    </ActionButton>
+                  )}
+                </span>
               </li>
             ))}
           </ul>

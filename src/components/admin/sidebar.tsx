@@ -21,6 +21,15 @@ export function Sidebar({ role }: { role: Role }) {
     items.some((item) => item.group === group)
   );
 
+  // Groups are collapsed by default; only the group containing the active
+  // route starts open so the current page's link stays visible.
+  const activeItem = items.find((item) =>
+    item.href === "/admin"
+      ? pathname === "/admin"
+      : pathname.startsWith(item.href)
+  );
+  const defaultOpen = activeItem ? [activeItem.group] : [];
+
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
       <div className="flex h-16 items-center gap-2 border-b border-border px-6">
@@ -29,7 +38,7 @@ export function Sidebar({ role }: { role: Role }) {
         </span>
       </div>
       <nav className="flex-1 overflow-y-auto p-3">
-        <Accordion type="multiple" defaultValue={[...visibleGroups]} className="w-full">
+        <Accordion type="multiple" defaultValue={defaultOpen} className="w-full">
           {visibleGroups.map((group) => {
             const groupItems = items.filter((item) => item.group === group);
             return (

@@ -13,11 +13,15 @@ export type Insight = {
   date: string;
   readMins: number;
   accent: string;
+  coverImage: string | null;
   body: string;
 };
 
 /** Raw seed shape: body is an array of plain paragraphs. */
-type SeedInsight = Omit<Insight, "body"> & { body: string[] };
+type SeedInsight = Omit<Insight, "body" | "coverImage"> & {
+  body: string[];
+  coverImage?: string | null;
+};
 
 export const insights: SeedInsight[] = [
   {

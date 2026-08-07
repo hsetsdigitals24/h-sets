@@ -46,6 +46,12 @@ const insightSchema = z.object({
   date: z.string().min(1, "Date is required"),
   readMins: z.coerce.number().int().min(1).max(120),
   accent: z.string().min(1, "Accent is required"),
+  coverImage: z
+    .string()
+    .trim()
+    .url("Cover image must be a valid URL")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   published: z.enum(["true", "false"]).transform((v) => v === "true"),
 });
 
@@ -60,6 +66,7 @@ function readInsight(formData: FormData) {
     date: formData.get("date"),
     readMins: formData.get("readMins"),
     accent: formData.get("accent"),
+    coverImage: formData.get("coverImage") ?? undefined,
     published: formData.get("published") ?? "true",
   });
   const body = sanitizeBody(formData.get("body"));
@@ -94,6 +101,7 @@ export async function createInsight(
         date: parsed.data.date,
         readMins: parsed.data.readMins,
         accent: parsed.data.accent,
+        coverImage: parsed.data.coverImage ?? null,
         body,
         published: parsed.data.published,
       },
@@ -133,6 +141,7 @@ export async function updateInsight(
         date: parsed.data.date,
         readMins: parsed.data.readMins,
         accent: parsed.data.accent,
+        coverImage: parsed.data.coverImage ?? null,
         body,
         published: parsed.data.published,
       },
