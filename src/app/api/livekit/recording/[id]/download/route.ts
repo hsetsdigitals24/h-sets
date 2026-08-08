@@ -7,14 +7,15 @@ import { classSessionAccess, projectMeetingAccess } from "@/lib/livekit";
 /**
  * Redirects to a short-lived presigned URL for a finished recording.
  *
- * GET /api/livekit/recording/[id]/download
+ * GET /api/livekit/recording/[id]/download            → inline (for <video> playback)
+ * GET /api/livekit/recording/[id]/download?download=1 → forced attachment download
  *
  * Access mirrors who may join the underlying room: for a class, the enrolled
  * student / assigned instructor / academy admin; for a project, any member.
  * The private bucket is never public — every view goes through this gate.
  */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
@@ -22,6 +23,7 @@ export async function GET(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
   const { id } = await params;
+  const asAttachment = new URL(req.url).searchParams.get("download") === "1";
 
   const recording = await prisma.recording.findUnique({
     where: { id },
@@ -45,7 +47,10 @@ export async function GET(
 
   let url: string;
   try {
-    url = await presignDownload(recording.storageKey);
+    url = await presignDownload(
+      recording.storageKey,
+      asAttachment ? `recording-${id}.mp4` : undefined
+    );
   } catch {
     return NextResponse.json({ error: "Storage is not configured." }, { status: 503 });
   }

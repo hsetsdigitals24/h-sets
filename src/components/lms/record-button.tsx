@@ -7,6 +7,16 @@ import { cn } from "@/lib/utils";
 
 type State = "idle" | "recording" | "starting" | "stopping";
 
+/** Elapsed ms → clock string: "M:SS" under an hour, "H:MM:SS" beyond. */
+function formatElapsed(ms: number): string {
+  const total = Math.floor(ms / 1000);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+
 /**
  * Start/stop control for recording the current call, overlaid on the LiveKit
  * room. Only rendered for users allowed to record (instructors/admins for a
@@ -26,6 +36,9 @@ export function RecordButton({
 
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [state, setState] = useState<State>("idle");
+  // Epoch ms the current recording began, for the elapsed timer. Null when idle.
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [elapsed, setElapsed] = useState(0);
 
   // Reflect the room's current recording state (also catches stops triggered by
   // the webhook or another host). Runs on mount and on a light poll; setState
@@ -46,6 +59,13 @@ export function RecordButton({
               ? "recording"
               : "idle"
         );
+        // Anchor the timer to the server's start time (covers recordings begun
+        // by another host or before this component mounted).
+        if (data.recording?.startedAt) {
+          setStartedAt((prev) => prev ?? Date.parse(data.recording.startedAt));
+        } else if (!data.recording) {
+          setStartedAt(null);
+        }
       } catch {
         /* transient — leave state as-is */
       }
@@ -57,6 +77,18 @@ export function RecordButton({
       clearInterval(t);
     };
   }, [query]);
+
+  // Tick the elapsed timer once a second while recording.
+  useEffect(() => {
+    if (state !== "recording" || startedAt === null) {
+      setElapsed(0);
+      return;
+    }
+    const update = () => setElapsed(Math.max(0, Date.now() - startedAt));
+    update();
+    const t = setInterval(update, 1000);
+    return () => clearInterval(t);
+  }, [state, startedAt]);
 
   async function toggle() {
     const starting = state === "idle";
@@ -73,9 +105,11 @@ export function RecordButton({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Recording action failed.");
       if (starting) {
+        setStartedAt(Date.now());
         setState("recording");
         toast.success("Recording started");
       } else {
+        setStartedAt(null);
         setState("idle");
         toast.success("Recording stopped — processing the file…");
       }
@@ -111,7 +145,16 @@ export function RecordButton({
       ) : (
         <Circle className="size-3.5 fill-current text-destructive" />
       )}
-      {busy ? "Working…" : recording ? "Stop recording" : "Record"}
+      {busy ? (
+        "Working…"
+      ) : recording ? (
+        <span className="inline-flex items-center gap-2">
+          Stop
+          <span className="tabular-nums font-semibold">{formatElapsed(elapsed)}</span>
+        </span>
+      ) : (
+        "Record"
+      )}
     </button>
   );
 }

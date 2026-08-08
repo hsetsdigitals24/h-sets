@@ -89,7 +89,7 @@ export async function GET(req: Request) {
   const recording = await prisma.recording.findFirst({
     where: inFlightWhere(resolved.target),
     orderBy: { startedAt: "desc" },
-    select: { id: true, status: true },
+    select: { id: true, status: true, startedAt: true },
   });
 
   return NextResponse.json({

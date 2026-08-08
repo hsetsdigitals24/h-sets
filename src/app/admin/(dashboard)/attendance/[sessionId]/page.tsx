@@ -122,7 +122,7 @@ export default async function RosterPage({
       <section className="mt-8">
         <h2 className="mb-2 text-sm font-semibold text-foreground">Recordings</h2>
         <div className="rounded-2xl border border-border bg-card shadow-soft">
-          <RecordingsList recordings={recordings} />
+          <RecordingsList recordings={recordings} canManage />
         </div>
       </section>
     </div>

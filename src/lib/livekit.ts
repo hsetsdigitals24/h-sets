@@ -2,6 +2,7 @@ import "server-only";
 import {
   RoomServiceClient,
   EgressClient,
+  EgressStatus,
   EncodedFileOutput,
   EncodedFileType,
   S3Upload,
@@ -201,9 +202,53 @@ export async function startRoomRecording(
   return { egressId: info.egressId, storageKey };
 }
 
-/** Stop an in-progress recording. Idempotent-ish: LiveKit no-ops if already done. */
+/** Egress states that mean the job is already stopping or finished. */
+const TERMINAL_EGRESS = new Set<EgressStatus>([
+  EgressStatus.EGRESS_ENDING,
+  EgressStatus.EGRESS_COMPLETE,
+  EgressStatus.EGRESS_FAILED,
+  EgressStatus.EGRESS_ABORTED,
+  EgressStatus.EGRESS_LIMIT_REACHED,
+]);
+
+/**
+ * Stop an in-progress recording. Genuinely idempotent: if the egress has already
+ * ended (the room emptied and LiveKit auto-stopped it, the webhook finalised it,
+ * or another host stopped it) `stopEgress` throws a "already ended / not found"
+ * Twirp error — that's success from our point of view, not a failure, so we
+ * swallow it. Only real problems (auth, network) propagate.
+ */
 export async function stopRoomRecording(egressId: string): Promise<void> {
-  await egressClient().stopEgress(egressId);
+  const client = egressClient();
+
+  // If it's already in a terminal state, there's nothing to stop.
+  try {
+    const [info] = await client.listEgress({ egressId });
+    if (info && TERMINAL_EGRESS.has(info.status)) {
+      return;
+    }
+  } catch {
+    // Couldn't look it up (e.g. already purged) — fall through and try to stop.
+  }
+
+  try {
+    await client.stopEgress(egressId);
+  } catch (e) {
+    if (isAlreadyEndedError(e)) return; // already stopped — treat as success
+    throw e;
+  }
+}
+
+/** Whether a LiveKit egress error means the job was already stopped/gone. */
+function isAlreadyEndedError(e: unknown): boolean {
+  const msg = (e instanceof Error ? e.message : String(e)).toLowerCase();
+  return (
+    msg.includes("already ended") ||
+    msg.includes("already complete") ||
+    msg.includes("not found") ||
+    msg.includes("does not exist") ||
+    msg.includes("cannot stop")
+  );
 }
 
 /** Re-export so webhook/route code can narrow egress status without deep imports. */
