@@ -4,6 +4,7 @@ import { requireSection } from "@/lib/auth";
 import { PageHeading } from "@/components/admin/page-heading";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Badge } from "@/components/ui/badge";
+import { RecordingsList } from "@/components/lms/recordings-list";
 import { Board } from "./board";
 import { MeetingButton } from "./meeting-button";
 import { EditProjectDialog } from "./edit-project-dialog";
@@ -70,6 +71,19 @@ export default async function ProjectBoardPage({
     orderBy: { name: "asc" },
   });
 
+  // Recordings of this project's meetings. Same finalisation path as class
+  // recordings — the egress webhook flips rows to READY. Any project member can
+  // play/download; only the OWNER or a super admin can delete (mirrors the
+  // DELETE endpoint's canRecordProject rule).
+  const recordings = await prisma.recording.findMany({
+    where: { projectId: project.id },
+    orderBy: { startedAt: "desc" },
+    select: { id: true, status: true, durationSec: true, sizeBytes: true, startedAt: true },
+  });
+  const canManageRecordings =
+    isSuperAdmin ||
+    project.members.some((m) => m.user.id === user.id && m.role === "OWNER");
+
   // Epic → Sprint → Task: an epic's task count is the sum of its sprints' tasks.
   const epicTaskCount = new Map<string, number>();
   for (const s of project.sprints) {
@@ -115,6 +129,7 @@ export default async function ProjectBoardPage({
 
       <Board
         projectId={project.id}
+        currentUserId={user.id}
         tasks={project.tasks.map((t) => ({
           id: t.id,
           title: t.title,
@@ -165,6 +180,15 @@ export default async function ProjectBoardPage({
           taskCount: s._count.tasks,
         }))}
       />
+
+      <section className="mt-10">
+        <h2 className="mb-2 text-sm font-semibold text-foreground">
+          Meeting recordings
+        </h2>
+        <div className="rounded-2xl border border-border bg-card shadow-soft">
+          <RecordingsList recordings={recordings} canManage={canManageRecordings} />
+        </div>
+      </section>
     </div>
   );
 }

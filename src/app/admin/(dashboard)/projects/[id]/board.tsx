@@ -15,6 +15,7 @@ import {
   Plus,
   Rocket,
   Trash2,
+  UserCircle2,
   UserPlus,
   X,
 } from "lucide-react";
@@ -133,6 +134,7 @@ function sprintOptionLabel(s: Sprint) {
 
 export function Board({
   projectId,
+  currentUserId,
   tasks: tasksProp,
   members,
   admins,
@@ -140,6 +142,7 @@ export function Board({
   sprints,
 }: {
   projectId: string;
+  currentUserId: string;
   tasks: Task[];
   members: Person[];
   admins: Person[];
@@ -168,16 +171,24 @@ export function Board({
   // falling back to all tasks when no sprint is active.
   const activeSprintId = sprints.find((s) => s.status === "ACTIVE")?.id ?? "all";
   const [sprintFilter, setSprintFilter] = useState<string>(activeSprintId);
+  // "Mine only" — scope everything to work that concerns the current user
+  // (tasks they're assigned, and the sprints/epics housing those tasks).
+  const [mineOnly, setMineOnly] = useState(false);
   const [, startTransition] = useTransition();
 
   // Keep the open drawer in sync with the latest task data.
   const selectedTask = selected ? tasks.find((t) => t.id === selected.id) ?? null : null;
 
   function matchesFilter(t: Task) {
+    if (mineOnly && t.assigneeId !== currentUserId) return false;
     if (sprintFilter === "all") return true;
     if (sprintFilter === "backlog") return t.sprintId === null;
     return t.sprintId === sprintFilter;
   }
+
+  // Tasks concerning the current user — assigned to them. Drives the backlog
+  // outline when "Mine only" is on so empty sprints/epics fall away.
+  const mineTasks = tasks.filter((t) => t.assigneeId === currentUserId);
 
   function column(status: TaskStatus) {
     return tasks
@@ -267,24 +278,39 @@ export function Board({
           </button>
         </div>
 
-        {view === "board" && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">Sprint:</span>
-            <Select
-              className="h-9 w-52"
-              value={sprintFilter}
-              onChange={(e) => setSprintFilter(e.target.value)}
-            >
-              <option value="all">All tasks</option>
-              <option value="backlog">Backlog (no sprint)</option>
-              {sprints.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} · {SPRINT_STATUS_META[s.status].label}
-                </option>
-              ))}
-            </Select>
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setMineOnly((v) => !v)}
+            aria-pressed={mineOnly}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+              mineOnly
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+            title="Show only epics, sprints and tasks assigned to me"
+          >
+            <UserCircle2 className="size-4" /> Mine only
+          </button>
+          {view === "board" && (
+            <>
+              <span className="text-xs font-medium text-muted-foreground">Sprint:</span>
+              <Select
+                className="h-9 w-52"
+                value={sprintFilter}
+                onChange={(e) => setSprintFilter(e.target.value)}
+              >
+                <option value="all">All tasks</option>
+                <option value="backlog">Backlog (no sprint)</option>
+                {sprints.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} · {SPRINT_STATUS_META[s.status].label}
+                  </option>
+                ))}
+              </Select>
+            </>
+          )}
+        </div>
       </div>
 
       {view === "board" ? (
@@ -344,7 +370,8 @@ export function Board({
         <BacklogView
           epics={epics}
           sprints={sprints}
-          tasks={tasks}
+          tasks={mineOnly ? mineTasks : tasks}
+          hideEmpty={mineOnly}
           onOpenTask={(t) => setSelected(t)}
           onAddTask={(sprintId) => setAdding({ status: "TODO", sprintId })}
           onToggleDone={toggleDone}
@@ -388,6 +415,7 @@ function BacklogView({
   epics,
   sprints,
   tasks,
+  hideEmpty = false,
   onOpenTask,
   onAddTask,
   onToggleDone,
@@ -395,6 +423,9 @@ function BacklogView({
   epics: Epic[];
   sprints: Sprint[];
   tasks: Task[];
+  // When set (the "Mine only" filter), sprints/epics with no matching task are
+  // hidden so the outline shows only what concerns the current user.
+  hideEmpty?: boolean;
   onOpenTask: (t: Task) => void;
   onAddTask: (sprintId: string) => void;
   onToggleDone: (t: Task) => void;
@@ -409,12 +440,14 @@ function BacklogView({
       return next;
     });
 
+  const tasksInSprint = (sprintId: string) =>
+    tasks.filter((t) => t.sprintId === sprintId).sort((a, b) => a.order - b.order);
   const sprintsByEpic = (epicId: string | null) =>
     sprints
       .filter((s) => s.epicId === epicId)
+      // In "Mine only" mode, drop sprints that hold none of my tasks.
+      .filter((s) => !hideEmpty || tasksInSprint(s.id).length > 0)
       .sort((a, b) => a.name.localeCompare(b.name));
-  const tasksInSprint = (sprintId: string) =>
-    tasks.filter((t) => t.sprintId === sprintId).sort((a, b) => a.order - b.order);
   const backlogTasks = tasks
     .filter((t) => t.sprintId === null)
     .sort((a, b) => a.order - b.order);
@@ -488,6 +521,8 @@ function BacklogView({
       {epics.map((e) => {
         const open = !collapsed.has(e.id);
         const epicSprints = sprintsByEpic(e.id);
+        // Hide an epic entirely when it houses none of my tasks.
+        if (hideEmpty && epicSprints.length === 0) return null;
         return (
           <div
             key={e.id}
@@ -541,7 +576,9 @@ function BacklogView({
         </div>
       )}
 
-      {/* Backlog — tasks not yet assigned to any sprint. */}
+      {/* Backlog — tasks not yet assigned to any sprint. Hidden under "Mine
+          only" when none of my tasks sit in the backlog. */}
+      {(!hideEmpty || backlogTasks.length > 0) && (
       <div className="overflow-hidden rounded-2xl border border-dashed border-border bg-card">
         <div className="flex items-center justify-between px-3 py-2.5">
           <span className="inline-flex items-center gap-2 text-sm font-semibold">
@@ -576,6 +613,16 @@ function BacklogView({
           )}
         </div>
       </div>
+      )}
+
+      {hideEmpty &&
+        epics.every((e) => sprintsByEpic(e.id).length === 0) &&
+        orphanSprints.length === 0 &&
+        backlogTasks.length === 0 && (
+          <p className="rounded-2xl border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
+            Nothing is assigned to you in this project yet.
+          </p>
+        )}
     </div>
   );
 }
