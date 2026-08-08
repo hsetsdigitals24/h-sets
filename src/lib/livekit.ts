@@ -9,7 +9,7 @@ import {
 } from "livekit-server-sdk";
 import type { EgressInfo } from "livekit-server-sdk";
 import { randomUUID } from "crypto";
-import type { Role } from "@prisma/client";
+import type { Role, RecordingStatus } from "@prisma/client";
 import { prisma } from "./prisma";
 
 /**
@@ -273,6 +273,72 @@ function isAlreadyEndedError(e: unknown): boolean {
     msg.includes("does not exist") ||
     msg.includes("cannot stop")
   );
+}
+
+/** Statuses that mean a recording row is still "in flight" (not finalised). */
+const IN_FLIGHT_STATUSES: RecordingStatus[] = ["STARTING", "ACTIVE", "PROCESSING"];
+
+/**
+ * Self-heal any in-flight recordings for a target against LiveKit's real egress
+ * state, then return nothing — the caller re-reads the rows after.
+ *
+ * This is the fallback for when the egress webhook never reaches us (the usual
+ * cause: the LiveKit webhook URL isn't configured, or points at a URL LiveKit
+ * can't reach such as localhost in dev). Without it a stopped recording that
+ * nobody re-opens stays stuck in PROCESSING forever and never becomes playable.
+ *
+ * Unlike the lightweight reconcile in the recording GET route, this pulls the
+ * finished file's key/duration/size from the egress `fileResults` so a row
+ * healed here is as complete as one finalised by the webhook. Best-effort:
+ * transient lookup failures leave a row untouched (it retries next view), and a
+ * missing LiveKit config is a no-op so the page still renders.
+ */
+export async function finalizeInFlightRecordings(
+  where: { projectId: string } | { classSessionId: string }
+): Promise<void> {
+  const rows = await prisma.recording.findMany({
+    where: { status: { in: IN_FLIGHT_STATUSES }, ...where },
+    select: { id: true, egressId: true },
+  });
+  if (rows.length === 0) return;
+
+  let client: EgressClient;
+  try {
+    client = egressClient();
+  } catch {
+    return; // LiveKit not configured — nothing to reconcile against
+  }
+
+  for (const row of rows) {
+    let info: EgressInfo | undefined;
+    try {
+      [info] = await client.listEgress({ egressId: row.egressId });
+    } catch {
+      continue; // transient — leave the row for the next view
+    }
+    if (info && !TERMINAL_EGRESS.has(info.status)) continue; // genuinely still running
+
+    if (info && info.status === EgressStatus.EGRESS_COMPLETE) {
+      const file = info.fileResults?.[0];
+      await prisma.recording.update({
+        where: { id: row.id },
+        data: {
+          status: "READY",
+          endedAt: new Date(),
+          ...(file?.filename ? { storageKey: file.filename } : {}),
+          // Duration is reported in nanoseconds; size is a byte count.
+          ...(file?.duration ? { durationSec: Math.round(Number(file.duration) / 1e9) } : {}),
+          ...(file?.size ? { sizeBytes: BigInt(file.size) } : {}),
+        },
+      });
+    } else {
+      // Terminal-but-not-complete, or purged/unknown id → no usable file.
+      await prisma.recording.update({
+        where: { id: row.id },
+        data: { status: "FAILED", endedAt: new Date() },
+      });
+    }
+  }
 }
 
 /** Re-export so webhook/route code can narrow egress status without deep imports. */

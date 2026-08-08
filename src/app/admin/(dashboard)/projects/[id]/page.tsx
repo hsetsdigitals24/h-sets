@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
+import { finalizeInFlightRecordings } from "@/lib/livekit";
 import { PageHeading } from "@/components/admin/page-heading";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +76,11 @@ export default async function ProjectBoardPage({
   // recordings — the egress webhook flips rows to READY. Any project member can
   // play/download; only the OWNER or a super admin can delete (mirrors the
   // DELETE endpoint's canRecordProject rule).
+  //
+  // Self-heal first: if the LiveKit webhook never reached us, a stopped
+  // recording can be stuck in PROCESSING. Reconcile in-flight rows against
+  // LiveKit here so they finalise (READY with file metadata, or FAILED) on view.
+  await finalizeInFlightRecordings({ projectId: project.id });
   const recordings = await prisma.recording.findMany({
     where: { projectId: project.id },
     orderBy: { startedAt: "desc" },
