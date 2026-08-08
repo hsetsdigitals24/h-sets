@@ -32,6 +32,8 @@ export default async function ClassMeetPage({
       sessionId={sessionId}
       title={access.title ?? "Class"}
       isStudent={access.isStudent ?? false}
+      // Only instructors / academy admins may record — never students.
+      canRecord={access.isStudent === false}
     />
   );
 }

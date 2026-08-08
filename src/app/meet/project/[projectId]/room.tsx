@@ -10,6 +10,7 @@ import {
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { Button } from "@/components/ui/button";
+import { RecordButton } from "@/components/lms/record-button";
 
 type TokenResponse = { token: string; url: string; room: string; identity: string };
 
@@ -21,9 +22,11 @@ type TokenResponse = { token: string; url: string; room: string; identity: strin
 export function ProjectRoom({
   projectId,
   title,
+  canRecord = false,
 }: {
   projectId: string;
   title: string;
+  canRecord?: boolean;
 }) {
   const [conn, setConn] = useState<TokenResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +80,7 @@ export function ProjectRoom({
   }
 
   return (
-    <div className="h-screen w-screen" data-lk-theme="default">
+    <div className="relative h-screen w-screen" data-lk-theme="default">
       <LiveKitRoom
         token={conn.token}
         serverUrl={conn.url}
@@ -92,6 +95,11 @@ export function ProjectRoom({
       >
         <VideoConference chatMessageFormatter={formatChatMessageLinks} />
       </LiveKitRoom>
+      {canRecord && (
+        <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center">
+          <RecordButton projectId={projectId} />
+        </div>
+      )}
     </div>
   );
 }

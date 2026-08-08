@@ -5,6 +5,7 @@ import { canManageCohort } from "@/lib/cohort-access";
 import { formatDate } from "@/lib/utils";
 import { PageHeading } from "@/components/admin/page-heading";
 import { ActionButton } from "@/components/lms/action-button";
+import { RecordingsList } from "@/components/lms/recordings-list";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -33,13 +34,18 @@ export default async function RosterPage({
   if (!session) notFound();
   if (!(await canManageCohort(user, session.cohortId))) notFound();
 
-  const [enrollments, records] = await Promise.all([
+  const [enrollments, records, recordings] = await Promise.all([
     prisma.enrollment.findMany({
       where: { cohortId: session.cohortId, status: { not: "withdrawn" } },
       include: { student: { select: { id: true, name: true, email: true } } },
       orderBy: { enrolledAt: "asc" },
     }),
     prisma.attendance.findMany({ where: { sessionId }, select: { studentId: true, present: true } }),
+    prisma.recording.findMany({
+      where: { classSessionId: sessionId },
+      orderBy: { startedAt: "desc" },
+      select: { id: true, status: true, durationSec: true, sizeBytes: true, startedAt: true },
+    }),
   ]);
   const byStudent = new Map(records.map((r) => [r.studentId, r.present]));
 
@@ -112,6 +118,13 @@ export default async function RosterPage({
           </TableBody>
         </Table>
       </div>
+
+      <section className="mt-8">
+        <h2 className="mb-2 text-sm font-semibold text-foreground">Recordings</h2>
+        <div className="rounded-2xl border border-border bg-card shadow-soft">
+          <RecordingsList recordings={recordings} />
+        </div>
+      </section>
     </div>
   );
 }

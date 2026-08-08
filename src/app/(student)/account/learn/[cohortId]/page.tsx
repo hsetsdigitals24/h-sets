@@ -60,6 +60,18 @@ export default async function LearningCenter({
     cohortProgress(user.id, cohortId),
   ]);
 
+  // Ready-to-watch recordings for this cohort's live sessions.
+  const recordings = await prisma.recording.findMany({
+    where: { status: "READY", classSession: { cohortId } },
+    orderBy: { startedAt: "desc" },
+    select: {
+      id: true,
+      durationSec: true,
+      startedAt: true,
+      classSession: { select: { title: true } },
+    },
+  });
+
   const done = new Set(completed.map((c) => c.lessonId));
   const attended = new Set(myAttendance.map((a) => a.sessionId));
 
@@ -105,6 +117,33 @@ export default async function LearningCenter({
                     </ActionButton>
                   )}
                 </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Session recordings */}
+      {recordings.length > 0 && (
+        <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-soft">
+          <h2 className="mb-3 text-sm font-semibold">Session recordings</h2>
+          <ul className="space-y-2">
+            {recordings.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <span className="flex items-center gap-2">
+                  <Video className="size-4 text-muted-foreground" />
+                  {r.classSession?.title} · {formatDate(r.startedAt.toISOString())}
+                  {r.durationSec ? (
+                    <span className="text-muted-foreground">
+                      ({Math.max(1, Math.round(r.durationSec / 60))} min)
+                    </span>
+                  ) : null}
+                </span>
+                <Button asChild variant="outline" size="sm">
+                  <a href={`/api/livekit/recording/${r.id}/download`} target="_blank" rel="noreferrer">
+                    <Download className="size-4" /> Watch
+                  </a>
+                </Button>
               </li>
             ))}
           </ul>

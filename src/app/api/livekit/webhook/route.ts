@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { WebhookReceiver } from "livekit-server-sdk";
+import { WebhookReceiver, EgressStatus } from "livekit-server-sdk";
+import type { RecordingStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   attendanceMinSeconds,
@@ -41,6 +42,17 @@ export async function POST(req: Request) {
     event = await receiver.receive(body, authHeader);
   } catch {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  }
+
+  // Egress (recording) events carry an egressInfo instead of a participant and
+  // are matched by egressId, so handle them before the room-name gate.
+  if (event.event.startsWith("egress_")) {
+    try {
+      await handleEgressEvent(event);
+    } catch (err) {
+      console.error("livekit egress webhook error", err);
+    }
+    return NextResponse.json({ ok: true });
   }
 
   const room = event.room?.name;
@@ -251,4 +263,66 @@ async function accumulateProject(roomSid: string, userId: string) {
       },
     });
   });
+}
+
+// ---------------------------------------------------------------------------
+// Recording (egress) lifecycle → Recording rows
+// ---------------------------------------------------------------------------
+
+/**
+ * Update a Recording from an egress webhook. Matched by egressId (rows are
+ * created up-front when a user hits "record"). On completion we pull the file
+ * key/size/duration from the first fileResult and flip the row to READY; a
+ * failed/aborted egress flips it to FAILED.
+ */
+async function handleEgressEvent(
+  event: Awaited<ReturnType<WebhookReceiver["receive"]>>
+) {
+  const info = event.egressInfo;
+  if (!info?.egressId) return;
+
+  const existing = await prisma.recording.findUnique({
+    where: { egressId: info.egressId },
+    select: { id: true, storageKey: true },
+  });
+  if (!existing) return; // not one of ours
+
+  const status = mapEgressStatus(info.status);
+  const data: {
+    status: RecordingStatus;
+    storageKey?: string;
+    durationSec?: number;
+    sizeBytes?: bigint;
+    endedAt?: Date;
+  } = { status };
+
+  if (status === "READY" || status === "FAILED") {
+    data.endedAt = new Date();
+    const file = info.fileResults?.[0];
+    if (file) {
+      if (file.filename) data.storageKey = file.filename;
+      // LiveKit reports duration in nanoseconds and size in bytes (bigint).
+      if (file.duration) data.durationSec = Math.round(Number(file.duration) / 1e9);
+      if (file.size) data.sizeBytes = BigInt(file.size);
+    }
+  }
+
+  await prisma.recording.update({ where: { id: existing.id }, data });
+}
+
+/** Translate a LiveKit EgressStatus into our RecordingStatus. */
+function mapEgressStatus(status: EgressStatus): RecordingStatus {
+  switch (status) {
+    case EgressStatus.EGRESS_STARTING:
+      return "STARTING";
+    case EgressStatus.EGRESS_ACTIVE:
+      return "ACTIVE";
+    case EgressStatus.EGRESS_ENDING:
+      return "PROCESSING";
+    case EgressStatus.EGRESS_COMPLETE:
+      return "READY";
+    default:
+      // FAILED, ABORTED, LIMIT_REACHED
+      return "FAILED";
+  }
 }

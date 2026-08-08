@@ -1,5 +1,13 @@
 import "server-only";
-import { RoomServiceClient } from "livekit-server-sdk";
+import {
+  RoomServiceClient,
+  EgressClient,
+  EncodedFileOutput,
+  EncodedFileType,
+  S3Upload,
+} from "livekit-server-sdk";
+import type { EgressInfo } from "livekit-server-sdk";
+import { randomUUID } from "crypto";
 import type { Role } from "@prisma/client";
 import { prisma } from "./prisma";
 
@@ -100,6 +108,107 @@ export async function projectLivePresence(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Call recording (LiveKit room-composite egress → private R2 bucket)
+// ---------------------------------------------------------------------------
+
+/**
+ * R2 credentials for LiveKit egress uploads. LiveKit's egress workers write the
+ * finished MP4 straight to our private bucket (S3-compatible), so recordings
+ * never transit our own servers. Returns null when storage isn't configured.
+ */
+function egressR2Config() {
+  const {
+    R2_ACCOUNT_ID,
+    R2_ACCESS_KEY_ID,
+    R2_SECRET_ACCESS_KEY,
+    R2_BUCKET,
+  } = process.env;
+  if (
+    !R2_ACCOUNT_ID ||
+    !R2_ACCESS_KEY_ID ||
+    !R2_SECRET_ACCESS_KEY ||
+    !R2_BUCKET
+  ) {
+    return null;
+  }
+  return {
+    accessKey: R2_ACCESS_KEY_ID,
+    secret: R2_SECRET_ACCESS_KEY,
+    bucket: R2_BUCKET,
+    endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  };
+}
+
+/** True when both LiveKit and the private R2 bucket are configured. */
+export function isRecordingConfigured(): boolean {
+  try {
+    livekitConfig();
+  } catch {
+    return false;
+  }
+  return egressR2Config() !== null;
+}
+
+let egressService: EgressClient | null = null;
+function egressClient(): EgressClient {
+  const cfg = livekitConfig();
+  if (!egressService) {
+    const httpUrl = cfg.url.replace(/^ws/, "http");
+    egressService = new EgressClient(httpUrl, cfg.apiKey, cfg.apiSecret);
+  }
+  return egressService;
+}
+
+/** Object key (in the private bucket) for a new recording of `room`. */
+export function recordingKey(room: string): string {
+  return `recordings/${room}/${randomUUID()}.mp4`;
+}
+
+/**
+ * Start recording a room to R2 and return the egress job. Throws with a clear
+ * message when LiveKit or storage isn't configured. The caller persists the
+ * returned `egressId` + `storageKey`; the webhook finalises the row on end.
+ */
+export async function startRoomRecording(
+  room: string
+): Promise<{ egressId: string; storageKey: string }> {
+  const r2 = egressR2Config();
+  if (!r2) {
+    throw new Error(
+      "Recording storage is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY and R2_BUCKET."
+    );
+  }
+  const storageKey = recordingKey(room);
+  const output = new EncodedFileOutput({
+    fileType: EncodedFileType.MP4,
+    filepath: storageKey,
+    output: {
+      case: "s3",
+      value: new S3Upload({
+        accessKey: r2.accessKey,
+        secret: r2.secret,
+        bucket: r2.bucket,
+        endpoint: r2.endpoint,
+        region: "auto",
+        // R2 requires path-style addressing.
+        forcePathStyle: true,
+      }),
+    },
+  });
+
+  const info = await egressClient().startRoomCompositeEgress(room, output);
+  return { egressId: info.egressId, storageKey };
+}
+
+/** Stop an in-progress recording. Idempotent-ish: LiveKit no-ops if already done. */
+export async function stopRoomRecording(egressId: string): Promise<void> {
+  await egressClient().stopEgress(egressId);
+}
+
+/** Re-export so webhook/route code can narrow egress status without deep imports. */
+export type { EgressInfo };
+
 type Actor = { id: string; role: Role };
 
 export type ClassAccess = {
@@ -173,4 +282,19 @@ export async function projectMeetingAccess(
     where: { projectId, userId: user.id },
   });
   return { ok: isMember > 0, exists: true, name: project.name };
+}
+
+/**
+ * Whether `user` may start/stop recording a project meeting. Stricter than
+ * joining: only the project OWNER or a SUPER_ADMIN can record.
+ */
+export async function canRecordProject(
+  user: Actor,
+  projectId: string
+): Promise<boolean> {
+  if (user.role === "SUPER_ADMIN") return true;
+  const owner = await prisma.projectMember.count({
+    where: { projectId, userId: user.id, role: "OWNER" },
+  });
+  return owner > 0;
 }

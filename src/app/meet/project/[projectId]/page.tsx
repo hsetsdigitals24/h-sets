@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
-import { projectMeetingAccess } from "@/lib/livekit";
+import { projectMeetingAccess, canRecordProject } from "@/lib/livekit";
 import { ProjectRoom } from "./room";
 
 export const dynamic = "force-dynamic";
@@ -27,5 +27,13 @@ export default async function ProjectMeetPage({
     redirect(`/admin/projects/${projectId}`);
   }
 
-  return <ProjectRoom projectId={projectId} title={access.name ?? "Meeting"} />;
+  const canRecord = await canRecordProject(session.user, projectId);
+
+  return (
+    <ProjectRoom
+      projectId={projectId}
+      title={access.name ?? "Meeting"}
+      canRecord={canRecord}
+    />
+  );
 }

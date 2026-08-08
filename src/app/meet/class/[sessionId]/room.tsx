@@ -10,6 +10,7 @@ import {
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { Button } from "@/components/ui/button";
+import { RecordButton } from "@/components/lms/record-button";
 
 type TokenResponse = { token: string; url: string; room: string; identity: string };
 
@@ -23,10 +24,12 @@ export function ClassRoom({
   sessionId,
   title,
   isStudent,
+  canRecord = false,
 }: {
   sessionId: string;
   title: string;
   isStudent: boolean;
+  canRecord?: boolean;
 }) {
   const [conn, setConn] = useState<TokenResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +77,7 @@ export function ClassRoom({
   }
 
   return (
-    <div className="h-screen w-screen" data-lk-theme="default">
+    <div className="relative h-screen w-screen" data-lk-theme="default">
       <LiveKitRoom
         token={conn.token}
         serverUrl={conn.url}
@@ -88,6 +91,11 @@ export function ClassRoom({
       >
         <VideoConference chatMessageFormatter={formatChatMessageLinks} />
       </LiveKitRoom>
+      {canRecord && (
+        <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center">
+          <RecordButton sessionId={sessionId} />
+        </div>
+      )}
     </div>
   );
 }
