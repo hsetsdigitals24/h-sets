@@ -239,6 +239,30 @@ export async function stopRoomRecording(egressId: string): Promise<void> {
   }
 }
 
+/**
+ * Live reconciliation of a persisted "in-flight" recording against LiveKit's
+ * real egress state, so a row that got stuck in-flight (its end webhook never
+ * reached us) doesn't make a fresh call look like it's already recording.
+ *
+ *   "active"   — genuinely still running; keep showing it as recording
+ *   "complete" — egress finished; the file exists at its storageKey
+ *   "failed"   — egress aborted/failed; no usable file
+ *   "unknown"  — lookup failed (transient); leave the row untouched
+ */
+export async function reconcileEgress(
+  egressId: string
+): Promise<"active" | "complete" | "failed" | "unknown"> {
+  let info: EgressInfo | undefined;
+  try {
+    [info] = await egressClient().listEgress({ egressId });
+  } catch {
+    return "unknown";
+  }
+  if (!info) return "failed"; // purged / unknown id → nothing to play
+  if (!TERMINAL_EGRESS.has(info.status)) return "active";
+  return info.status === EgressStatus.EGRESS_COMPLETE ? "complete" : "failed";
+}
+
 /** Whether a LiveKit egress error means the job was already stopped/gone. */
 function isAlreadyEndedError(e: unknown): boolean {
   const msg = (e instanceof Error ? e.message : String(e)).toLowerCase();

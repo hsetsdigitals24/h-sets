@@ -9,6 +9,7 @@ import {
   isRecordingConfigured,
   startRoomRecording,
   stopRoomRecording,
+  reconcileEgress,
   roomForClassSession,
   roomForProject,
 } from "@/lib/livekit";
@@ -89,13 +90,37 @@ export async function GET(req: Request) {
   const recording = await prisma.recording.findFirst({
     where: inFlightWhere(resolved.target),
     orderBy: { startedAt: "desc" },
-    select: { id: true, status: true, startedAt: true },
+    select: { id: true, status: true, startedAt: true, egressId: true },
   });
+
+  // Reconcile against LiveKit: a row can get stuck in-flight if its end webhook
+  // never reached us (room emptied and egress auto-stopped, or it errored). Left
+  // alone, that makes a brand-new call look like it's already recording. If the
+  // egress is no longer running, finalise the row to a terminal state so nothing
+  // appears to auto-start recording on the next join.
+  let active = recording;
+  if (recording) {
+    const state = await reconcileEgress(recording.egressId);
+    if (state === "complete") {
+      await prisma.recording.update({
+        where: { id: recording.id },
+        data: { status: "READY", endedAt: new Date() },
+      });
+      active = null;
+    } else if (state === "failed") {
+      await prisma.recording.update({
+        where: { id: recording.id },
+        data: { status: "FAILED", endedAt: new Date() },
+      });
+      active = null;
+    }
+    // "active" → keep as-is; "unknown" → transient, don't touch the row
+  }
 
   return NextResponse.json({
     configured: isRecordingConfigured(),
     canRecord: true,
-    recording,
+    recording: active && { id: active.id, status: active.status, startedAt: active.startedAt },
   });
 }
 
