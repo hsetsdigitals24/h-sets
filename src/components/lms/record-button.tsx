@@ -38,7 +38,8 @@ export function RecordButton({
   const [state, setState] = useState<State>("idle");
   // Epoch ms the current recording began, for the elapsed timer. Null when idle.
   const [startedAt, setStartedAt] = useState<number | null>(null);
-  const [elapsed, setElapsed] = useState(0);
+  // Ticked each second while recording so the elapsed clock re-renders.
+  const [nowTick, setNowTick] = useState(() => Date.now());
 
   // Reflect the room's current recording state (also catches stops triggered by
   // the webhook or another host). Runs on mount and on a light poll; setState
@@ -78,17 +79,18 @@ export function RecordButton({
     };
   }, [query]);
 
-  // Tick the elapsed timer once a second while recording.
+  // Tick the clock while recording; elapsed is derived below so the effect never
+  // calls setState synchronously.
   useEffect(() => {
-    if (state !== "recording" || startedAt === null) {
-      setElapsed(0);
-      return;
-    }
-    const update = () => setElapsed(Math.max(0, Date.now() - startedAt));
-    update();
-    const t = setInterval(update, 1000);
+    if (state !== "recording" || startedAt === null) return;
+    const t = setInterval(() => setNowTick(Date.now()), 500);
     return () => clearInterval(t);
   }, [state, startedAt]);
+
+  const elapsed =
+    state === "recording" && startedAt !== null
+      ? Math.max(0, nowTick - startedAt)
+      : 0;
 
   async function toggle() {
     const starting = state === "idle";
