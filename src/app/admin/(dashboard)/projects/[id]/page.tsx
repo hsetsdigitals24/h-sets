@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
 import { finalizeInFlightRecordings } from "@/lib/livekit";
+import { isNoteTakerConfigured } from "@/lib/meeting-notes";
 import { PageHeading } from "@/components/admin/page-heading";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Badge } from "@/components/ui/badge";
@@ -84,11 +85,23 @@ export default async function ProjectBoardPage({
   const recordings = await prisma.recording.findMany({
     where: { projectId: project.id },
     orderBy: { startedAt: "desc" },
-    select: { id: true, status: true, durationSec: true, sizeBytes: true, startedAt: true },
+    select: {
+      id: true,
+      status: true,
+      durationSec: true,
+      sizeBytes: true,
+      startedAt: true,
+      // AI note-taker output, when generated (transcript + summary).
+      notes: { select: { status: true, summary: true, transcript: true, error: true } },
+    },
   });
   const canManageRecordings =
     isSuperAdmin ||
     project.members.some((m) => m.user.id === user.id && m.role === "OWNER");
+  // Generating notes spends on OpenAI, so gate it to the same people who can
+  // record (owner / super admin). The button is hidden entirely when the
+  // note-taker isn't configured (no OPENAI_API_KEY).
+  const notesEnabled = isNoteTakerConfigured();
 
   // Epic → Sprint → Task: an epic's task count is the sum of its sprints' tasks.
   const epicTaskCount = new Map<string, number>();
@@ -192,7 +205,12 @@ export default async function ProjectBoardPage({
           Meeting recordings
         </h2>
         <div className="rounded-2xl border border-border bg-card shadow-soft">
-          <RecordingsList recordings={recordings} canManage={canManageRecordings} />
+          <RecordingsList
+            recordings={recordings}
+            canManage={canManageRecordings}
+            canGenerate={canManageRecordings}
+            notesEnabled={notesEnabled}
+          />
         </div>
       </section>
     </div>

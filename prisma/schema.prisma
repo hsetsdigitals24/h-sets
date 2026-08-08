@@ -946,6 +946,9 @@ model Recording {
   startedAt      DateTime        @default(now())
   endedAt        DateTime?
 
+  // AI note-taker output for this recording (transcript + summary), if generated.
+  notes          MeetingNotes?
+
   @@index([classSessionId, startedAt])
   @@index([projectId, startedAt])
 }
@@ -956,4 +959,31 @@ enum RecordingStatus {
   PROCESSING // call ended, file being finalised/uploaded
   READY // file uploaded and playable
   FAILED // egress failed or was aborted
+}
+
+/// AI-generated meeting notes: a transcript of a finished recording plus an LLM
+/// summary (key points, decisions, action items). One row per recording,
+/// produced post-call once the recording reaches READY.
+model MeetingNotes {
+  id          String             @id @default(cuid())
+  recording   Recording          @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  recordingId String             @unique
+  status      MeetingNotesStatus @default(PENDING)
+  // Full speech-to-text transcript of the call audio.
+  transcript  String?
+  // Markdown summary: overview, key points, decisions, action items.
+  summary     String?
+  // Which models produced this (for transparency / re-runs), e.g. "whisper-1 + gpt-4o".
+  model       String?
+  // Populated when status is FAILED — a short, user-facing reason.
+  error       String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+enum MeetingNotesStatus {
+  PENDING // queued, not started
+  PROCESSING // transcribing / summarising
+  READY // transcript + summary available
+  FAILED // transcription or summary failed
 }

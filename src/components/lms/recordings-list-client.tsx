@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Play, Trash2, Video } from "lucide-react";
+import {
+  ChevronDown,
+  Download,
+  Loader2,
+  Play,
+  Sparkles,
+  Trash2,
+  Video,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,12 +23,20 @@ import {
 } from "@/components/ui/dialog";
 import { formatDate } from "@/lib/utils";
 
+export type ClientNotes = {
+  status: string;
+  summary: string | null;
+  transcript: string | null;
+  error: string | null;
+};
+
 export type ClientRecording = {
   id: string;
   status: string;
   durationSec: number | null;
   sizeBytes: number | null;
   startedAt: string;
+  notes: ClientNotes | null;
 };
 
 /** Human-readable clock from a seconds count, e.g. 3725 → "1h 2m". */
@@ -46,9 +62,13 @@ function formatSize(bytes: number | null): string | null {
 export function RecordingsListClient({
   recordings,
   canManage,
+  canGenerate,
+  notesEnabled,
 }: {
   recordings: ClientRecording[];
   canManage: boolean;
+  canGenerate: boolean;
+  notesEnabled: boolean;
 }) {
   const router = useRouter();
   const [playing, setPlaying] = useState<ClientRecording | null>(null);
@@ -93,7 +113,8 @@ export function RecordingsListClient({
             .join(" · ");
           const ready = r.status === "READY";
           return (
-            <li key={r.id} className="flex items-center gap-3 px-4 py-3">
+            <li key={r.id} className="px-4 py-3">
+              <div className="flex items-center gap-3">
               <Video className="size-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium">{formatDate(r.startedAt)}</div>
@@ -149,6 +170,10 @@ export function RecordingsListClient({
                   )}
                 </div>
               )}
+              </div>
+              {notesEnabled && ready && (
+                <NotesPanel recordingId={r.id} notes={r.notes} canGenerate={canGenerate} />
+              )}
             </li>
           );
         })}
@@ -187,5 +212,109 @@ export function RecordingsListClient({
         onConfirm={confirmDelete}
       />
     </>
+  );
+}
+
+/**
+ * AI note-taker panel shown under a READY recording. Transcribes + summarises
+ * the call on demand via POST /api/livekit/recording/[id]/notes. The request is
+ * awaited synchronously (transcription can take tens of seconds), so no polling
+ * is needed — on success we refresh to render the notes the server just wrote.
+ * `canGenerate` mirrors the record permission (owner / super admin); viewers
+ * without it still read finished notes but can't spend on generation.
+ */
+function NotesPanel({
+  recordingId,
+  notes,
+  canGenerate,
+}: {
+  recordingId: string;
+  notes: ClientNotes | null;
+  canGenerate: boolean;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [showTranscript, setShowTranscript] = useState(false);
+
+  const ready = notes?.status === "READY";
+  const failed = notes?.status === "FAILED";
+  // PENDING rows are created when the recording finalises but haven't been run.
+  const generated = ready && notes?.summary;
+
+  async function generate() {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/livekit/recording/${recordingId}/notes`, {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Could not generate notes.");
+      toast.success("Meeting notes ready");
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not generate notes.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="ml-7 mt-2 rounded-xl border border-border bg-muted/30 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+          <Sparkles className="size-3.5 text-primary" />
+          AI meeting notes
+        </div>
+        {canGenerate && (
+          <Button variant="outline" size="sm" onClick={generate} disabled={busy}>
+            {busy ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Sparkles className="size-4" />
+            )}
+            {busy ? "Generating…" : generated ? "Regenerate" : "Generate notes"}
+          </Button>
+        )}
+      </div>
+
+      {generated ? (
+        <>
+          <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+            {notes!.summary}
+          </div>
+          {notes!.transcript && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => setShowTranscript((s) => !s)}
+                className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                <ChevronDown
+                  className={`size-3.5 transition-transform ${showTranscript ? "rotate-180" : ""}`}
+                />
+                {showTranscript ? "Hide transcript" : "Show full transcript"}
+              </button>
+              {showTranscript && (
+                <div className="mt-2 max-h-64 overflow-y-auto whitespace-pre-wrap rounded-lg bg-background p-3 text-xs leading-relaxed text-muted-foreground">
+                  {notes!.transcript}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      ) : failed ? (
+        <p className="mt-2 text-xs text-destructive">
+          {notes?.error ?? "Note generation failed."}
+        </p>
+      ) : (
+        <p className="mt-2 text-xs text-muted-foreground">
+          {busy
+            ? "Transcribing and summarising the call…"
+            : canGenerate
+              ? "No notes yet — generate a transcript and summary from this recording."
+              : "Notes haven’t been generated for this meeting yet."}
+        </p>
+      )}
+    </div>
   );
 }
