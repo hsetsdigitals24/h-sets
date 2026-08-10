@@ -27,6 +27,7 @@ export type AdminSection =
   | "attendance"
   | "certificates"
   | "projects"
+  | "standups"
   | "notifications"
   | "users";
 
@@ -52,6 +53,10 @@ const SECTION_ROLES: Record<AdminSection, Role[] | "all"> = {
   // Internal admin project-management tool. Open to all admin roles; not
   // instructors or students. (SUPER_ADMIN passes via canAccess regardless.)
   projects: ["ACADEMY_ADMIN", "MARKETING_ADMIN", "SALES_ADMIN", "FINANCE_ADMIN"],
+  // Company-wide standup rooms — internal video calls outside any project or
+  // cohort. Open to every staff member (all admin roles + instructors); the
+  // join gate in companyMeetingAccess() enforces the same non-student rule.
+  standups: "all",
   // Every admin can open the notifications page to read their own list.
   // Broadcasting is gated separately (see BROADCAST_ROLES below).
   notifications: "all",

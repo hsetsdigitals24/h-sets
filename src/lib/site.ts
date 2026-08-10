@@ -41,7 +41,7 @@ export const location = {
   latitude: 8.4966,
   longitude: 4.5421,
   /** Google Business Profile share URL — used for `sameAs` + map link. */
-  gbpUrl: "TODO: Google Business Profile URL",
+  gbpUrl: "https://share.google/uyGRJOacAbtGKjRm9",
   /** Opening hours in schema.org format. */
   openingHours: "Mo-Fr 09:00-17:00",
 } as const;

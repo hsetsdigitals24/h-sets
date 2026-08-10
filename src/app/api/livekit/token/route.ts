@@ -4,9 +4,11 @@ import { auth } from "@/lib/auth";
 import {
   classSessionAccess,
   projectMeetingAccess,
+  companyMeetingAccess,
   livekitConfig,
   roomForClassSession,
   roomForProject,
+  roomForCompany,
 } from "@/lib/livekit";
 
 /**
@@ -28,9 +30,19 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const sessionId = url.searchParams.get("sessionId");
   const projectId = url.searchParams.get("projectId");
+  const company = url.searchParams.get("company");
 
   let room: string;
-  if (projectId) {
+  if (company) {
+    const access = companyMeetingAccess(session.user, company);
+    if (!access.exists) {
+      return NextResponse.json({ error: "Unknown standup room" }, { status: 404 });
+    }
+    if (!access.ok) {
+      return NextResponse.json({ error: "Staff only" }, { status: 403 });
+    }
+    room = roomForCompany(company);
+  } else if (projectId) {
     const access = await projectMeetingAccess(session.user, projectId);
     if (!access.ok) {
       return NextResponse.json({ error: "No access to this project" }, { status: 403 });
@@ -44,7 +56,7 @@ export async function GET(req: Request) {
     room = roomForClassSession(sessionId);
   } else {
     return NextResponse.json(
-      { error: "Missing sessionId or projectId" },
+      { error: "Missing sessionId, projectId or company" },
       { status: 400 }
     );
   }

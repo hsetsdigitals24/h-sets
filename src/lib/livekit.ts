@@ -28,6 +28,47 @@ import { prisma } from "./prisma";
 
 export const ROOM_PREFIX = "class-";
 export const PROJECT_ROOM_PREFIX = "project-";
+export const COMPANY_ROOM_PREFIX = "company-";
+
+/**
+ * Company-wide standup rooms — always-on internal video calls that live outside
+ * any project or cohort. A fixed, curated set (not per-occurrence records): each
+ * has a stable room name `company-<slug>` that staff join on demand. To add or
+ * rename one, edit this list — no migration needed.
+ */
+export const COMPANY_ROOMS = [
+  {
+    slug: "all-hands",
+    name: "All-Hands",
+    description: "Company-wide standup for everyone.",
+  },
+  {
+    slug: "engineering",
+    name: "Engineering Standup",
+    description: "Daily sync for the engineering team.",
+  },
+  {
+    slug: "sales",
+    name: "Sales Standup",
+    description: "Pipeline and revenue sync for sales & BD.",
+  },
+] as const;
+
+export type CompanyRoom = (typeof COMPANY_ROOMS)[number];
+
+export function companyRoomBySlug(slug: string): CompanyRoom | undefined {
+  return COMPANY_ROOMS.find((r) => r.slug === slug);
+}
+
+export function roomForCompany(slug: string): string {
+  return `${COMPANY_ROOM_PREFIX}${slug}`;
+}
+
+export function companySlugFromRoom(room: string): string | null {
+  return room.startsWith(COMPANY_ROOM_PREFIX)
+    ? room.slice(COMPANY_ROOM_PREFIX.length)
+    : null;
+}
 
 export function roomForClassSession(sessionId: string): string {
   return `${ROOM_PREFIX}${sessionId}`;
@@ -417,6 +458,39 @@ export async function projectMeetingAccess(
     where: { projectId, userId: user.id },
   });
   return { ok: isMember > 0, exists: true, name: project.name };
+}
+
+export type CompanyAccess = { ok: boolean; exists: boolean; name?: string };
+
+/**
+ * Decides whether `user` may join a company-wide standup room. The room must be
+ * one of the curated COMPANY_ROOMS, and the user must be internal staff — i.e.
+ * any role except STUDENT. There is no per-room membership; every staff member
+ * can join any company room.
+ */
+export function companyMeetingAccess(user: Actor, slug: string): CompanyAccess {
+  const room = companyRoomBySlug(slug);
+  if (!room) return { ok: false, exists: false };
+  return { ok: user.role !== "STUDENT", exists: true, name: room.name };
+}
+
+/**
+ * Who is *currently* connected to a company standup room, read straight from
+ * LiveKit (same ground-truth source as project presence). Empty when LiveKit is
+ * unconfigured or nobody has opened the room yet.
+ */
+export async function companyLivePresence(slug: string): Promise<LivePresence> {
+  const svc = roomServiceClient();
+  if (!svc) return { count: 0, names: [] };
+  try {
+    const parts = await svc.listParticipants(roomForCompany(slug));
+    return {
+      count: parts.length,
+      names: parts.map((p) => p.name || p.identity).filter(Boolean),
+    };
+  } catch {
+    return { count: 0, names: [] };
+  }
 }
 
 /**
