@@ -65,6 +65,9 @@ model User {
 
   // Meeting recordings this user started (instructor / admin).
   startedRecordings Recording[] @relation("RecordingStarter")
+
+  // External-guest meeting invites this user issued.
+  meetingInvites MeetingInvite[] @relation("MeetingInviteCreator")
 }
 
 // In-app notifications shown in the bell dropdown and notifications pages.
@@ -959,6 +962,40 @@ enum RecordingStatus {
   PROCESSING // call ended, file being finalised/uploaded
   READY // file uploaded and playable
   FAILED // egress failed or was aborted
+}
+
+/// An invitation for an external guest (someone with no platform account) to
+/// join a single video room by email. The `token` is an unguessable secret that
+/// gates a public, login-free join page (/meet/guest/<token>); a guest that opens
+/// it gets a restricted LiveKit token (publish/subscribe, no recording) scoped to
+/// `roomName` only. `roomName` is the resolved LiveKit room (e.g. company-all-hands,
+/// project-<id>, class-<id>), so invites are room-type agnostic. Revocable and
+/// time-limited; the LiveKit webhook ignores guest identities (no real User row).
+model MeetingInvite {
+  id            String    @id @default(cuid())
+  // Unguessable secret in the join URL — the only thing gating guest access.
+  token         String    @unique
+  // Resolved LiveKit room name this invite grants access to.
+  roomName      String
+  // Human-readable meeting name, shown in the email + guest join page.
+  label         String
+  // Who was invited; the email the link was sent to.
+  email         String
+  guestName     String?
+  // Access window — guests can only join before this instant.
+  expiresAt     DateTime
+  // Set when a host revokes the invite; a revoked invite can never join.
+  revokedAt     DateTime?
+  // First/last time this guest actually joined the room (light usage trail).
+  firstJoinedAt DateTime?
+  lastJoinedAt  DateTime?
+
+  createdBy   User?    @relation("MeetingInviteCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([roomName, createdAt])
+  @@index([email])
 }
 
 /// AI-generated meeting notes: a transcript of a finished recording plus an LLM

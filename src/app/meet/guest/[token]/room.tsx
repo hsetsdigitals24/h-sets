@@ -10,37 +10,33 @@ import {
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { Button } from "@/components/ui/button";
-import { RecordButton } from "@/components/lms/record-button";
-import { InviteGuestButton } from "@/components/meet/invite-guest-button";
+import { site } from "@/lib/site";
 
-type TokenResponse = { token: string; url: string; room: string; identity: string };
+type TokenResponse = {
+  token: string;
+  url: string;
+  room: string;
+  label: string;
+  identity: string;
+};
 
 /**
- * Client-side LiveKit room for a project meeting. Mirrors the class room but is
- * scoped to a project and returns to the project board on disconnect.
- * Participation is logged server-side via the LiveKit webhook.
+ * Login-free video room for an invited external guest. Identical UX to the staff
+ * rooms but scoped by the invite token (not a session), with no recording
+ * control. On leave the guest is returned to the marketing site rather than any
+ * authenticated area.
  */
-export function ProjectRoom({
-  projectId,
-  title,
-  canRecord = false,
-}: {
-  projectId: string;
-  title: string;
-  canRecord?: boolean;
-}) {
+export function GuestRoom({ token, title }: { token: string; title: string }) {
   const [conn, setConn] = useState<TokenResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
-
-  const homeHref = `/admin/projects/${projectId}`;
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch(
-          `/api/livekit/token?projectId=${encodeURIComponent(projectId)}`
+          `/api/livekit/guest-token?token=${encodeURIComponent(token)}`
         );
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Could not join the meeting.");
@@ -52,7 +48,7 @@ export function ProjectRoom({
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [token]);
 
   if (error) {
     return (
@@ -60,15 +56,12 @@ export function ProjectRoom({
         <VideoOff className="size-8 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">{error}</p>
         <Button asChild variant="outline" size="sm">
-          <Link href={homeHref}>Back to project</Link>
+          <Link href={site.url}>Go to {site.name}</Link>
         </Button>
       </Centered>
     );
   }
 
-  // Once we start leaving, unmount the LiveKit tree immediately. If we let
-  // VideoConference render again while the room tears down its tracks, its grid
-  // layout throws "Element not part of the array" before navigation completes.
   if (!conn || leaving) {
     return (
       <Centered>
@@ -90,16 +83,12 @@ export function ProjectRoom({
         audio
         onDisconnected={() => {
           setLeaving(true);
-          window.location.href = homeHref;
+          window.location.href = site.url;
         }}
         style={{ height: "100%" }}
       >
         <VideoConference chatMessageFormatter={formatChatMessageLinks} />
       </LiveKitRoom>
-      <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center gap-2 [&>*]:pointer-events-auto">
-        {canRecord && <RecordButton projectId={projectId} />}
-        <InviteGuestButton projectId={projectId} />
-      </div>
     </div>
   );
 }

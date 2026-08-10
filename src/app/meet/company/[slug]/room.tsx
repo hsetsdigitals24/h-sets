@@ -10,6 +10,7 @@ import {
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { Button } from "@/components/ui/button";
+import { InviteGuestButton } from "@/components/meet/invite-guest-button";
 
 type TokenResponse = { token: string; url: string; room: string; identity: string };
 
@@ -86,6 +87,9 @@ export function CompanyRoom({ slug, title }: { slug: string; title: string }) {
       >
         <VideoConference chatMessageFormatter={formatChatMessageLinks} />
       </LiveKitRoom>
+      <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center [&>*]:pointer-events-auto">
+        <InviteGuestButton company={slug} />
+      </div>
     </div>
   );
 }

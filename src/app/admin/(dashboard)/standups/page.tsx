@@ -4,6 +4,7 @@ import { requireSection } from "@/lib/auth";
 import { PageHeading } from "@/components/admin/page-heading";
 import { Button } from "@/components/ui/button";
 import { COMPANY_ROOMS, companyLivePresence } from "@/lib/livekit";
+import { InviteGuestButton } from "@/components/meet/invite-guest-button";
 
 export const dynamic = "force-dynamic";
 
@@ -70,11 +71,14 @@ export default async function StandupsPage() {
                     }`}
               </div>
 
-              <Button asChild className="mt-4">
-                <Link href={`/meet/company/${room.slug}`}>
-                  {live ? "Join call" : "Start call"}
-                </Link>
-              </Button>
+              <div className="mt-4 flex items-center gap-2">
+                <Button asChild className="flex-1">
+                  <Link href={`/meet/company/${room.slug}`}>
+                    {live ? "Join call" : "Start call"}
+                  </Link>
+                </Button>
+                <InviteGuestButton company={room.slug} />
+              </div>
             </div>
           );
         })}

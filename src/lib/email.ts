@@ -208,6 +208,40 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   });
 }
 
+/**
+ * Invite an external guest (no platform account) to a video meeting. The link
+ * carries an unguessable token that grants login-free, room-scoped access until
+ * it expires; see /meet/guest/[token].
+ */
+export async function sendMeetingInvite(opts: {
+  to: string;
+  guestName?: string | null;
+  meetingLabel: string;
+  joinUrl: string;
+  inviterName?: string | null;
+  expiresAt: Date;
+}) {
+  const who = opts.inviterName ? `${opts.inviterName} at ${site.name}` : site.name;
+  const expires = opts.expiresAt.toLocaleString("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+  await send({
+    to: opts.to,
+    subject: `You're invited to "${opts.meetingLabel}" on ${site.name}`,
+    html: layout({
+      heading: "You're invited to a meeting",
+      preheader: `Join "${opts.meetingLabel}" — no account needed.`,
+      body: `
+        <p style="margin:0 0 16px">Hi ${opts.guestName || "there"},</p>
+        <p style="margin:0 0 20px">${who} has invited you to join the video meeting <strong style="color:${INK}">${opts.meetingLabel}</strong>. No account or download is required — just click below to join from your browser.</p>
+        ${button(opts.joinUrl, "Join the meeting")}
+        <p style="margin:20px 0 0;color:${MUTED};font-size:13px">This invite link is personal to you and expires on ${expires}. Please don't forward it.</p>
+        <p style="margin:24px 0 0">— The ${site.name} Team</p>`,
+    }),
+  });
+}
+
 /** Send one nurture-sequence step to a lead. Wraps the step HTML in the layout. */
 export async function sendNurtureStep(opts: {
   to: string;

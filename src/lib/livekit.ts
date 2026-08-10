@@ -493,6 +493,59 @@ export async function companyLivePresence(slug: string): Promise<LivePresence> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// External-guest invites (login-free join by email link)
+// ---------------------------------------------------------------------------
+
+/** Which meeting an invite is for, before it's resolved to a room name. */
+export type InviteTarget =
+  | { kind: "company"; slug: string }
+  | { kind: "project"; id: string }
+  | { kind: "class"; id: string };
+
+export type ResolvedInviteTarget =
+  | { ok: true; roomName: string; label: string }
+  | { ok: false; status: number; error: string };
+
+/** How long a guest invite stays valid, in hours (default 24). */
+export function inviteTtlHours(): number {
+  const n = Number(process.env.GUEST_INVITE_TTL_HOURS);
+  return Number.isFinite(n) && n > 0 ? n : 24;
+}
+
+/**
+ * Resolve an InviteTarget to a concrete LiveKit room + display label, enforcing
+ * that `user` is allowed to invite a guest to it. Inviting is a staff action, so
+ * students are refused even for a class they're enrolled in; otherwise the same
+ * access gate the room itself uses applies (a member/assignee/admin of that room).
+ */
+export async function resolveInviteTarget(
+  user: Actor,
+  target: InviteTarget
+): Promise<ResolvedInviteTarget> {
+  if (user.role === "STUDENT") {
+    return { ok: false, status: 403, error: "Only staff can invite guests." };
+  }
+
+  if (target.kind === "company") {
+    const access = companyMeetingAccess(user, target.slug);
+    if (!access.exists) return { ok: false, status: 404, error: "Unknown standup room." };
+    if (!access.ok) return { ok: false, status: 403, error: "No access to this room." };
+    return { ok: true, roomName: roomForCompany(target.slug), label: access.name ?? "Standup" };
+  }
+
+  if (target.kind === "project") {
+    const access = await projectMeetingAccess(user, target.id);
+    if (!access.exists) return { ok: false, status: 404, error: "Project not found." };
+    if (!access.ok) return { ok: false, status: 403, error: "No access to this project." };
+    return { ok: true, roomName: roomForProject(target.id), label: access.name ?? "Project meeting" };
+  }
+
+  const access = await classSessionAccess(user, target.id);
+  if (!access.ok) return { ok: false, status: 403, error: "No access to this class." };
+  return { ok: true, roomName: roomForClassSession(target.id), label: access.title ?? "Class session" };
+}
+
 /**
  * Whether `user` may start/stop recording a project meeting. Stricter than
  * joining: only the project OWNER or a SUPER_ADMIN can record.

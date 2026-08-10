@@ -11,6 +11,7 @@ import {
 import "@livekit/components-styles";
 import { Button } from "@/components/ui/button";
 import { RecordButton } from "@/components/lms/record-button";
+import { InviteGuestButton } from "@/components/meet/invite-guest-button";
 
 type TokenResponse = { token: string; url: string; room: string; identity: string };
 
@@ -91,9 +92,10 @@ export function ClassRoom({
       >
         <VideoConference chatMessageFormatter={formatChatMessageLinks} />
       </LiveKitRoom>
-      {canRecord && (
-        <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center">
-          <RecordButton sessionId={sessionId} />
+      {!isStudent && (
+        <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center gap-2 [&>*]:pointer-events-auto">
+          {canRecord && <RecordButton sessionId={sessionId} />}
+          <InviteGuestButton sessionId={sessionId} />
         </div>
       )}
     </div>
