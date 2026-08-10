@@ -20,7 +20,7 @@ export const site = {
     twitter: "https://x.com/hsetsdigitals24",
     instagram: "https://intagram.com/hsetsdigitals24",
     facebook: "https://facebook.com/hsetsdigitals",
-    // youtube: "https://youtube.com/@hsets",
+    youtube: "https://youtube.com/@hsetsdigitals24",
   },
 };
 
