@@ -174,7 +174,14 @@ export default async function InsightsPage({
 
       {/* Grid */}
       <Section>
-        <RevealGroup stagger={0.06} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Keyed by page so the reveal observer remounts on client-side
+            pagination — otherwise the persisted group's whileInView/once has
+            already fired and the new page's cards stay stuck at opacity 0. */}
+        <RevealGroup
+          key={page}
+          stagger={0.06}
+          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+        >
           {pageItems.map((insight) => (
             <RevealItem key={insight.slug} className="h-full">
               <InsightCard insight={insight} />
