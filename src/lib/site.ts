@@ -3,23 +3,24 @@
 export const site = {
   name: "H-SETS",
   legalName: "H-SETS Digital & IT Solutions",
-  tagline: "Nigeria's end-to-end technology growth partner.",
+  tagline: "Innovative Solutions; Shaping Tomorrow, Today.",
   description:
     "H-SETS is a unified digital ecosystem helping businesses transform with software, AI and digital marketing — and training the next generation of tech talent through the H-SETS Academy.",
   url: "https://h-sets.com",
-  email: "hello@h-sets.com",
-  phone: "+234 800 000 0000",
+  email: "info@h-sets.com",
+  phone: "+234 707 819 8353 / +234 816 369 9882",
   // Human-readable one-liner (footer). Structured NAP lives in `location` below.
-  address: "Ilorin, Kwara State, Nigeria",
+  address: "Along Royal Valley Way, Beside CAC Olorunsogo Zonal H/Q, Kulende Estate, Sango, Ilorin, Kwara State, Nigeria",
   // Absolute path to the brand logo used in Organization/LocalBusiness schema + OG.
   logo: "/logo.png",
   foundingYear: "2020",
   priceRange: "₦₦",
   socials: {
     linkedin: "https://linkedin.com/company/h-sets",
-    twitter: "https://twitter.com/hsets",
-    instagram: "https://instagram.com/hsets",
-    youtube: "https://youtube.com/@hsets",
+    twitter: "https://x.com/hsetsdigitals24",
+    instagram: "https://intagram.com/hsetsdigitals24",
+    facebook: "https://facebook.com/hsetsdigitals",
+    // youtube: "https://youtube.com/@hsets",
   },
 };
 
@@ -32,7 +33,7 @@ export const site = {
  * geo coordinates and gbpUrl with the verified GBP values before launch.
  */
 export const location = {
-  streetAddress: "TODO: verified street address",
+  streetAddress: "Along Royal Valley Way, Beside CAC Olorunsogo Zonal H/Q, Kulende Estate, Sango.",
   addressLocality: "Ilorin",
   addressRegion: "Kwara",
   postalCode: "240101",
