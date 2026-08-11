@@ -19,6 +19,7 @@ export default function robots(): MetadataRoute.Robots {
         "/register",
         "/forgot-password",
         "/reset-password",
+        "/meet", // per-session meeting rooms (token/session-gated) — no SEO value, avoid crawler dead-ends
         "/verify/", // individual certificate lookups — noindex, avoid enumeration
       ],
     },

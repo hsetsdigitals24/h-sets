@@ -34,6 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const hubs: Entry[] = [
     ["/services", 0.9],
     ["/ai-solutions", 0.9],
+    ["/ai-solutions/readiness-assessment", 0.8],
     ["/industries", 0.8],
     ["/academy", 0.9],
     ["/portfolio", 0.7],
@@ -43,6 +44,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/careers", 0.6],
     ["/contact", 0.7],
   ].map(([path, p]) => entry(path as string, p as number, "weekly"));
+
+  // Low-priority but indexable legal pages.
+  const legal: Entry[] = [
+    ["/privacy", 0.3],
+    ["/terms", 0.3],
+  ].map(([path, p]) => entry(path as string, p as number, "yearly"));
 
   const servicePages = services.map((s) =>
     entry(`/services/${s.slug}`, 0.8, "monthly")
@@ -68,6 +75,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     home,
     ...hubs,
+    ...legal,
     ...servicePages,
     ...industryPages,
     ...programmePages,

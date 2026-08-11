@@ -45,6 +45,18 @@ const nextConfig: NextConfig = {
         destination: "/portfolio/:slug",
         permanent: true,
       },
+      // Legacy WordPress URLs still indexed by Google. Funnel their SEO value
+      // to the closest equivalent on the new platform instead of 404ing.
+      // Blog taxonomy + pagination (/category/uncategorized/page/2, /tag/…, /page/2).
+      { source: "/category/:path*", destination: "/insights", permanent: true },
+      { source: "/tag/:path*", destination: "/insights", permanent: true },
+      { source: "/author/:path*", destination: "/insights", permanent: true },
+      { source: "/page/:path*", destination: "/insights", permanent: true },
+      // WordPress core paths that no longer exist here.
+      { source: "/blog", destination: "/insights", permanent: true },
+      { source: "/blog/:slug", destination: "/insights/:slug", permanent: true },
+      { source: "/feed", destination: "/insights", permanent: true },
+      { source: "/feed/:path*", destination: "/insights", permanent: true },
     ];
   },
 };
