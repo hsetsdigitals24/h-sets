@@ -68,6 +68,9 @@ model User {
 
   // External-guest meeting invites this user issued.
   meetingInvites MeetingInvite[] @relation("MeetingInviteCreator")
+
+  // Company standup rooms this user created.
+  companyRoomsCreated CompanyRoom[] @relation("CompanyRoomCreator")
 }
 
 // In-app notifications shown in the bell dropdown and notifications pages.
@@ -938,6 +941,8 @@ model Recording {
   classSessionId String?
   project        Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId      String?
+  companyRoom    CompanyRoom?    @relation(fields: [companyRoomId], references: [id], onDelete: Cascade)
+  companyRoomId  String?
 
   // Object key in the private R2 bucket; null until egress reports the file.
   storageKey     String?
@@ -954,6 +959,26 @@ model Recording {
 
   @@index([classSessionId, startedAt])
   @@index([projectId, startedAt])
+  @@index([companyRoomId, startedAt])
+}
+
+/// A company-wide standup room — an always-on internal video call that lives
+/// outside any project or cohort. Created on demand by staff (unlike projects/
+/// cohorts, there's no per-room membership: every internal, non-student user can
+/// join any room). The LiveKit room name is `company-<slug>`.
+model CompanyRoom {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+
+  createdBy   User?    @relation("CompanyRoomCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  recordings  Recording[]
+
+  @@index([createdAt])
 }
 
 enum RecordingStatus {

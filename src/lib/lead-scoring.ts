@@ -65,8 +65,12 @@ export function scoreLead(input: ScoreInput): number {
 
   switch (input.type) {
     case "contact":
+      // A completed assessment tool is active, ready-to-buy engagement (PRD: +25).
+      if (typeof input.source === "string" && /assessment/i.test(input.source)) {
+        score = Math.max(score, 25);
+      }
       // Corporate training enquiries are high-value B2B intent (PRD: +35).
-      if (looksCorporate(data)) score = 35;
+      else if (looksCorporate(data)) score = 35;
       break;
     case "resource":
       // A full-gate download (phone captured) signals a hotter, higher-value

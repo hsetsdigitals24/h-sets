@@ -34,7 +34,7 @@ export async function GET(req: Request) {
 
   let room: string;
   if (company) {
-    const access = companyMeetingAccess(session.user, company);
+    const access = await companyMeetingAccess(session.user, company);
     if (!access.exists) {
       return NextResponse.json({ error: "Unknown standup room" }, { status: 404 });
     }

@@ -32,14 +32,36 @@ function getTransport(): Transporter | null {
   return globalForMail._hsetsTransport;
 }
 
-type Mail = { to: string; subject: string; html: string; replyTo?: string };
+type Attachment = {
+  filename: string;
+  content: string;
+  contentType?: string;
+};
+type Mail = {
+  to: string;
+  subject: string;
+  html: string;
+  replyTo?: string;
+  attachments?: Attachment[];
+};
+
+/**
+ * Resolve the "From" header. We always present a branded display name so
+ * inboxes show "H-SETS" rather than the raw mailbox (e.g. a personal Gmail).
+ * Set MAIL_FROM to a dedicated address like "H-SETS <hello@h-sets.com>" to also
+ * fix the sender address and avatar shown by the mail client.
+ */
+function fromHeader(): string {
+  const raw = process.env.MAIL_FROM || process.env.SMTP_USER || "no-reply@h-sets.com";
+  return raw.includes("<") ? raw : `${site.name} <${raw}>`;
+}
 
 async function send(mail: Mail) {
   const transport = getTransport();
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || "no-reply@h-sets.com";
+  const from = fromHeader();
   if (!transport) {
     console.info(
-      `[email:log-only] to=${mail.to} subject="${mail.subject}" (set SMTP_* env vars to send real email)`
+      `[email:log-only] from=${from} to=${mail.to} subject="${mail.subject}" (set SMTP_* env vars to send real email)`
     );
     return;
   }
@@ -299,4 +321,114 @@ export async function notifyNewLead(opts: {
       }),
     });
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Calendar (consultation bookings)                                    */
+/* ------------------------------------------------------------------ */
+
+/** Format a Date as an iCalendar UTC timestamp: YYYYMMDDTHHMMSSZ. */
+function icsStamp(d: Date): string {
+  return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+}
+
+/** Escape text for an iCalendar TEXT value (RFC 5545). */
+function icsEscape(text: string): string {
+  return text.replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
+}
+
+/** Build a minimal, widely-compatible .ics VEVENT for a booking. */
+function buildIcs(opts: {
+  uid: string;
+  start: Date;
+  end: Date;
+  title: string;
+  description: string;
+  organizerEmail: string;
+  organizerName: string;
+}): string {
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    `PRODID:-//${site.name}//Booking//EN`,
+    "CALSCALE:GREGORIAN",
+    "METHOD:REQUEST",
+    "BEGIN:VEVENT",
+    `UID:${opts.uid}`,
+    `DTSTAMP:${icsStamp(new Date())}`,
+    `DTSTART:${icsStamp(opts.start)}`,
+    `DTEND:${icsStamp(opts.end)}`,
+    `SUMMARY:${icsEscape(opts.title)}`,
+    `DESCRIPTION:${icsEscape(opts.description)}`,
+    `ORGANIZER;CN=${icsEscape(opts.organizerName)}:mailto:${opts.organizerEmail}`,
+    "STATUS:CONFIRMED",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+}
+
+/** Build an "Add to Google Calendar" URL for the booking. */
+function googleCalendarUrl(opts: {
+  start: Date;
+  end: Date;
+  title: string;
+  details: string;
+}): string {
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: opts.title,
+    dates: `${icsStamp(opts.start)}/${icsStamp(opts.end)}`,
+    details: opts.details,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+/**
+ * Confirm a booked consultation to the prospect, with a real calendar invite:
+ * an attached .ics file (so most clients show "Add to Calendar") plus an
+ * explicit "Add to Google Calendar" button in the body.
+ */
+export async function sendConsultationConfirmation(opts: {
+  to: string;
+  name?: string | null;
+  sessionLabel: string;
+  whenLabel: string;
+  start: Date;
+  durationMins: number;
+}) {
+  const end = new Date(opts.start.getTime() + opts.durationMins * 60_000);
+  const title = `${opts.sessionLabel} with ${site.name}`;
+  const details = `Your ${opts.sessionLabel} with ${site.name}. We'll be in touch with the meeting link before the call. Questions? ${site.email}`;
+  const gcal = googleCalendarUrl({ start: opts.start, end, title, details });
+  const ics = buildIcs({
+    uid: `${crypto.randomUUID()}@h-sets.com`,
+    start: opts.start,
+    end,
+    title,
+    description: details,
+    organizerEmail: site.email,
+    organizerName: site.name,
+  });
+
+  await send({
+    to: opts.to,
+    subject: "Your H-SETS consultation is booked",
+    html: layout({
+      heading: "Your consultation is booked",
+      preheader: `${opts.sessionLabel} — ${opts.whenLabel}`,
+      body: `
+        <p style="margin:0 0 16px">Hi ${opts.name || "there"},</p>
+        <p style="margin:0 0 20px">Your <strong style="color:${INK}">${opts.sessionLabel}</strong> is confirmed for <strong style="color:${INK}">${opts.whenLabel}</strong> (${opts.durationMins} minutes). A calendar invite is attached — add it to your calendar so you don't miss it.</p>
+        ${button(gcal, "Add to Google Calendar")}
+        <p style="margin:20px 0 0;color:${MUTED};font-size:13px">We'll send the meeting link and a reminder before the call. Need to reschedule? Just reply to this email.</p>
+        <p style="margin:24px 0 0">— The ${site.name} Team</p>`,
+    }),
+    attachments: [
+      {
+        filename: "h-sets-consultation.ics",
+        content: ics,
+        contentType: "text/calendar; method=REQUEST; charset=utf-8",
+      },
+    ],
+  });
 }

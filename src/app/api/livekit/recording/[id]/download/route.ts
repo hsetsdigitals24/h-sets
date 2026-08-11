@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { presignDownload } from "@/lib/storage";
-import { classSessionAccess, projectMeetingAccess } from "@/lib/livekit";
+import {
+  classSessionAccess,
+  projectMeetingAccess,
+  canRecordCompany,
+} from "@/lib/livekit";
 
 /**
  * Redirects to a short-lived presigned URL for a finished recording.
@@ -27,7 +31,13 @@ export async function GET(
 
   const recording = await prisma.recording.findUnique({
     where: { id },
-    select: { status: true, storageKey: true, classSessionId: true, projectId: true },
+    select: {
+      status: true,
+      storageKey: true,
+      classSessionId: true,
+      projectId: true,
+      companyRoomId: true,
+    },
   });
   if (!recording) {
     return NextResponse.json({ error: "Recording not found." }, { status: 404 });
@@ -40,7 +50,9 @@ export async function GET(
     ? (await classSessionAccess(session.user, recording.classSessionId)).ok
     : recording.projectId
       ? (await projectMeetingAccess(session.user, recording.projectId)).ok
-      : false;
+      : recording.companyRoomId
+        ? await canRecordCompany(session.user, recording.companyRoomId)
+        : false;
   if (!allowed) {
     return NextResponse.json({ error: "No access to this recording." }, { status: 403 });
   }

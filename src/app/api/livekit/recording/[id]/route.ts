@@ -5,6 +5,7 @@ import { deleteObject } from "@/lib/storage";
 import {
   classSessionAccess,
   canRecordProject,
+  canRecordCompany,
   stopRoomRecording,
 } from "@/lib/livekit";
 
@@ -36,6 +37,7 @@ export async function DELETE(
       storageKey: true,
       classSessionId: true,
       projectId: true,
+      companyRoomId: true,
     },
   });
   if (!recording) {
@@ -48,7 +50,9 @@ export async function DELETE(
       )
     : recording.projectId
       ? await canRecordProject(session.user, recording.projectId)
-      : false;
+      : recording.companyRoomId
+        ? await canRecordCompany(session.user, recording.companyRoomId)
+        : false;
   if (!canManage) {
     return NextResponse.json(
       { error: "You can't delete this recording." },

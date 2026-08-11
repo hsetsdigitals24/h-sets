@@ -32,32 +32,33 @@ export const COMPANY_ROOM_PREFIX = "company-";
 
 /**
  * Company-wide standup rooms — always-on internal video calls that live outside
- * any project or cohort. A fixed, curated set (not per-occurrence records): each
- * has a stable room name `company-<slug>` that staff join on demand. To add or
- * rename one, edit this list — no migration needed.
+ * any project or cohort. Created on demand by staff and stored in the DB (see
+ * the CompanyRoom model); each has a stable room name `company-<slug>` that
+ * staff join. There's no per-room membership — every non-student can join any
+ * room.
  */
-export const COMPANY_ROOMS = [
-  {
-    slug: "all-hands",
-    name: "All-Hands",
-    description: "Company-wide standup for everyone.",
-  },
-  {
-    slug: "engineering",
-    name: "Engineering Standup",
-    description: "Daily sync for the engineering team.",
-  },
-  {
-    slug: "sales",
-    name: "Sales Standup",
-    description: "Pipeline and revenue sync for sales & BD.",
-  },
-] as const;
+export type CompanyRoomInfo = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+};
 
-export type CompanyRoom = (typeof COMPANY_ROOMS)[number];
+/** All company standup rooms, oldest first (stable order for the directory). */
+export async function listCompanyRooms(): Promise<CompanyRoomInfo[]> {
+  return prisma.companyRoom.findMany({
+    orderBy: { createdAt: "asc" },
+    select: { id: true, slug: true, name: true, description: true },
+  });
+}
 
-export function companyRoomBySlug(slug: string): CompanyRoom | undefined {
-  return COMPANY_ROOMS.find((r) => r.slug === slug);
+export async function companyRoomBySlug(
+  slug: string
+): Promise<CompanyRoomInfo | null> {
+  return prisma.companyRoom.findUnique({
+    where: { slug },
+    select: { id: true, slug: true, name: true, description: true },
+  });
 }
 
 export function roomForCompany(slug: string): string {
@@ -335,7 +336,7 @@ const IN_FLIGHT_STATUSES: RecordingStatus[] = ["STARTING", "ACTIVE", "PROCESSING
  * missing LiveKit config is a no-op so the page still renders.
  */
 export async function finalizeInFlightRecordings(
-  where: { projectId: string } | { classSessionId: string }
+  where: { projectId: string } | { classSessionId: string } | { companyRoomId: string }
 ): Promise<void> {
   const rows = await prisma.recording.findMany({
     where: { status: { in: IN_FLIGHT_STATUSES }, ...where },
@@ -460,18 +461,40 @@ export async function projectMeetingAccess(
   return { ok: isMember > 0, exists: true, name: project.name };
 }
 
-export type CompanyAccess = { ok: boolean; exists: boolean; name?: string };
+export type CompanyAccess = {
+  ok: boolean;
+  exists: boolean;
+  id?: string;
+  name?: string;
+};
 
 /**
- * Decides whether `user` may join a company-wide standup room. The room must be
- * one of the curated COMPANY_ROOMS, and the user must be internal staff — i.e.
+ * Decides whether `user` may join a company-wide standup room. The room must
+ * exist (be a CompanyRoom record), and the user must be internal staff — i.e.
  * any role except STUDENT. There is no per-room membership; every staff member
  * can join any company room.
  */
-export function companyMeetingAccess(user: Actor, slug: string): CompanyAccess {
-  const room = companyRoomBySlug(slug);
+export async function companyMeetingAccess(
+  user: Actor,
+  slug: string
+): Promise<CompanyAccess> {
+  const room = await companyRoomBySlug(slug);
   if (!room) return { ok: false, exists: false };
-  return { ok: user.role !== "STUDENT", exists: true, name: room.name };
+  return { ok: user.role !== "STUDENT", exists: true, id: room.id, name: room.name };
+}
+
+/**
+ * Whether `user` may start/stop/delete a company standup recording. Company
+ * rooms have no owner, so any internal staff member (non-student) with the room
+ * present may record — the same people who can join it.
+ */
+export async function canRecordCompany(
+  user: Actor,
+  companyRoomId: string
+): Promise<boolean> {
+  if (user.role === "STUDENT") return false;
+  const exists = await prisma.companyRoom.count({ where: { id: companyRoomId } });
+  return exists > 0;
 }
 
 /**
@@ -528,7 +551,7 @@ export async function resolveInviteTarget(
   }
 
   if (target.kind === "company") {
-    const access = companyMeetingAccess(user, target.slug);
+    const access = await companyMeetingAccess(user, target.slug);
     if (!access.exists) return { ok: false, status: 404, error: "Unknown standup room." };
     if (!access.ok) return { ok: false, status: 403, error: "No access to this room." };
     return { ok: true, roomName: roomForCompany(target.slug), label: access.name ?? "Standup" };

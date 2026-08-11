@@ -67,13 +67,13 @@ export default async function AiSolutionsPage() {
             </Link>
           </Button>
           <Button asChild variant="outlineLight" size="lg">
-            <Link href="/resources">Try the readiness assessment</Link>
+            <Link href="/ai-solutions/readiness-assessment">Try the readiness assessment</Link>
           </Button>
         </div>
       </PageHero>
 
       {/* Capabilities */}
-      <Section>
+      <Section id="ai-strategy" className="scroll-mt-24">
         <SectionHeading
           eyebrow="Capabilities"
           title="How we put AI to work"
@@ -108,7 +108,7 @@ export default async function AiSolutionsPage() {
                 AI can cut costs and unlock growth — across data, process and people.
               </p>
               <Button asChild variant="light" size="lg" className="mt-7">
-                <Link href="/resources">
+                <Link href="/ai-solutions/readiness-assessment">
                   Start the assessment
                   <ArrowRight className="size-4" />
                 </Link>

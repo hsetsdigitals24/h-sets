@@ -20,12 +20,13 @@ export default async function CompanyMeetPage({
   const session = await auth();
   if (!session?.user) redirect(`/login?next=/meet/company/${slug}`);
 
-  const access = companyMeetingAccess(session.user, slug);
+  const access = await companyMeetingAccess(session.user, slug);
   if (!access.ok) {
     // Room doesn't exist, or this user is a student (not internal staff).
     if (!access.exists) notFound();
     redirect("/admin/standups");
   }
 
-  return <CompanyRoom slug={slug} title={access.name ?? "Standup"} />;
+  // Any staff member who can join can also record a standup (no per-room owner).
+  return <CompanyRoom slug={slug} title={access.name ?? "Standup"} canRecord />;
 }

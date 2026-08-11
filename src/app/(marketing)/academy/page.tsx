@@ -25,6 +25,33 @@ const perks = [
 
 const categories = ["Engineering", "AI & Data", "Design", "Business"] as const;
 
+const graduateStories = [
+  {
+    name: "Chukwuemeka Eze",
+    initials: "CE",
+    programme: "Software Development",
+    now: "Developer at Paystack",
+    quote:
+      "I came in with an economics degree and no code. Five months later I had a portfolio and a job offer. The cohort structure and mentorship made all the difference.",
+  },
+  {
+    name: "Fatima Bello",
+    initials: "FB",
+    programme: "AI Engineering",
+    now: "Now at Andela",
+    quote:
+      "The AI Engineering track is the real deal. We shipped actual production projects, not toy examples. It directly landed me my role.",
+  },
+  {
+    name: "Daniel Mensah",
+    initials: "DM",
+    programme: "Product Design",
+    now: "Product Designer at Kudi Africa",
+    quote:
+      "The feedback on real briefs pushed my work to a professional standard. I walked out with a portfolio that got me interviews straight away.",
+  },
+] as const;
+
 export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
 export default async function AcademyPage() {
@@ -108,8 +135,39 @@ export default async function AcademyPage() {
         </div>
       </Section>
 
+      {/* Graduate stories */}
+      <Section id="graduate-stories" className="scroll-mt-24">
+        <SectionHeading
+          eyebrow="Graduate stories"
+          title="Where our graduates are now"
+          description="Real people who switched careers and levelled up through the H-SETS Academy."
+        />
+        <RevealGroup stagger={0.08} className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {graduateStories.map((g) => (
+            <RevealItem key={g.name} className="h-full">
+              <figure className="flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-soft">
+                <blockquote className="flex-1 text-sm leading-relaxed text-foreground/90">
+                  &ldquo;{g.quote}&rdquo;
+                </blockquote>
+                <figcaption className="mt-5 flex items-center gap-3">
+                  <div className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-primary">
+                    {g.initials}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold">{g.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {g.programme} · {g.now}
+                    </div>
+                  </div>
+                </figcaption>
+              </figure>
+            </RevealItem>
+          ))}
+        </RevealGroup>
+      </Section>
+
       {/* Corporate training band */}
-      <Section className="py-0">
+      <Section id="corporate-training" className="scroll-mt-24 py-0">
         <Reveal>
           <div className="relative overflow-hidden rounded-3xl bg-ink-gradient p-8 sm:p-12">
             <div className="pointer-events-none absolute -right-10 -top-10 size-64 rounded-full bg-accent/15 blur-3xl" />
@@ -140,7 +198,7 @@ export default async function AcademyPage() {
         title="Not sure which programme fits?"
         description="Book a free guidance call and we'll help you choose the right path for your background and goals."
         primary={{ label: "Book a guidance call", href: "/contact#consultation" }}
-        secondary={{ label: "See graduate stories", href: "/" }}
+        secondary={{ label: "See graduate stories", href: "#graduate-stories" }}
       />
     </>
   );

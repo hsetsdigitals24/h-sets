@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import {
   classSessionAccess,
   projectMeetingAccess,
+  companyMeetingAccess,
   canRecordProject,
   isRecordingConfigured,
   startRoomRecording,
@@ -12,6 +13,7 @@ import {
   reconcileEgress,
   roomForClassSession,
   roomForProject,
+  roomForCompany,
 } from "@/lib/livekit";
 
 /**
@@ -33,13 +35,17 @@ const IN_FLIGHT: RecordingStatus[] = ["STARTING", "ACTIVE", "PROCESSING"];
 
 type Target =
   | { kind: "class"; id: string; room: string }
-  | { kind: "project"; id: string; room: string };
+  | { kind: "project"; id: string; room: string }
+  // For a company standup `id` is the CompanyRoom id (the room name derives from
+  // the slug, so both are carried).
+  | { kind: "company"; id: string; room: string };
 
 /** Resolve + authorize the recording target from query/body params. */
 async function resolveTarget(
   user: { id: string; role: Role },
   sessionId: string | null,
-  projectId: string | null
+  projectId: string | null,
+  company: string | null
 ): Promise<
   | { ok: true; target: Target }
   | { ok: false; status: number; error: string }
@@ -59,7 +65,17 @@ async function resolveTarget(
     }
     return { ok: true, target: { kind: "project", id: projectId, room: roomForProject(projectId) } };
   }
-  return { ok: false, status: 400, error: "Missing sessionId or projectId." };
+  if (company) {
+    const access = await companyMeetingAccess(user, company);
+    if (!access.exists || !access.id) {
+      return { ok: false, status: 404, error: "Standup room not found." };
+    }
+    if (!access.ok) {
+      return { ok: false, status: 403, error: "You can't record this standup." };
+    }
+    return { ok: true, target: { kind: "company", id: access.id, room: roomForCompany(company) } };
+  }
+  return { ok: false, status: 400, error: "Missing sessionId, projectId or company." };
 }
 
 /** The in-flight recording for a target, if any. */
@@ -68,8 +84,22 @@ function inFlightWhere(target: Target) {
     status: { in: IN_FLIGHT },
     ...(target.kind === "class"
       ? { classSessionId: target.id }
-      : { projectId: target.id }),
+      : target.kind === "project"
+        ? { projectId: target.id }
+        : { companyRoomId: target.id }),
   };
+}
+
+/** The owning-relation field to set when creating a recording row for a target. */
+function ownerData(target: Target) {
+  switch (target.kind) {
+    case "class":
+      return { classSessionId: target.id };
+    case "project":
+      return { projectId: target.id };
+    case "company":
+      return { companyRoomId: target.id };
+  }
 }
 
 export async function GET(req: Request) {
@@ -81,7 +111,8 @@ export async function GET(req: Request) {
   const resolved = await resolveTarget(
     session.user,
     url.searchParams.get("sessionId"),
-    url.searchParams.get("projectId")
+    url.searchParams.get("projectId"),
+    url.searchParams.get("company")
   );
   if (!resolved.ok) {
     return NextResponse.json({ error: resolved.error }, { status: resolved.status });
@@ -130,7 +161,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  let body: { action?: unknown; sessionId?: unknown; projectId?: unknown };
+  let body: {
+    action?: unknown;
+    sessionId?: unknown;
+    projectId?: unknown;
+    company?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -144,7 +180,8 @@ export async function POST(req: Request) {
 
   const sessionId = typeof body.sessionId === "string" ? body.sessionId : null;
   const projectId = typeof body.projectId === "string" ? body.projectId : null;
-  const resolved = await resolveTarget(session.user, sessionId, projectId);
+  const company = typeof body.company === "string" ? body.company : null;
+  const resolved = await resolveTarget(session.user, sessionId, projectId, company);
   if (!resolved.ok) {
     return NextResponse.json({ error: resolved.error }, { status: resolved.status });
   }
@@ -185,9 +222,7 @@ export async function POST(req: Request) {
         storageKey: job.storageKey,
         status: "STARTING",
         startedById: session.user.id,
-        ...(target.kind === "class"
-          ? { classSessionId: target.id }
-          : { projectId: target.id }),
+        ...ownerData(target),
       },
       select: { id: true, status: true },
     });

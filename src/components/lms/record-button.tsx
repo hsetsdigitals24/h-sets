@@ -26,13 +26,17 @@ function formatElapsed(ms: number): string {
 export function RecordButton({
   sessionId,
   projectId,
+  company,
 }: {
   sessionId?: string;
   projectId?: string;
+  company?: string;
 }) {
   const query = sessionId
     ? `sessionId=${encodeURIComponent(sessionId)}`
-    : `projectId=${encodeURIComponent(projectId ?? "")}`;
+    : projectId
+      ? `projectId=${encodeURIComponent(projectId)}`
+      : `company=${encodeURIComponent(company ?? "")}`;
 
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [state, setState] = useState<State>("idle");
@@ -101,7 +105,11 @@ export function RecordButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: starting ? "start" : "stop",
-          ...(sessionId ? { sessionId } : { projectId }),
+          ...(sessionId
+            ? { sessionId }
+            : projectId
+              ? { projectId }
+              : { company }),
         }),
       });
       const data = await res.json();

@@ -119,10 +119,10 @@ export function Footer() {
             ))}
           </div>
           <div className="flex gap-5 text-xs text-white/55">
-            <Link href="/contact" className="hover:text-accent">
+            <Link href="/privacy" className="hover:text-accent">
               Privacy
             </Link>
-            <Link href="/contact" className="hover:text-accent">
+            <Link href="/terms" className="hover:text-accent">
               Terms
             </Link>
             <Link href="/admin" className="hover:text-accent">

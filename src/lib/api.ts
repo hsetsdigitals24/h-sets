@@ -8,7 +8,8 @@ export type ApiEndpoint =
   | "newsletter"
   | "resource"
   | "application"
-  | "job-application";
+  | "job-application"
+  | "assessment";
 
 export async function submitForm<T extends Record<string, unknown>>(
   endpoint: ApiEndpoint,

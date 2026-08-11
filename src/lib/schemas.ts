@@ -97,6 +97,17 @@ export const resourceSchema = z.object({
 });
 export type ResourceInput = z.infer<typeof resourceSchema>;
 
+export const assessmentSchema = z.object({
+  name: z.string().min(2, "Please enter your name"),
+  email: z.string().email("Enter a valid email"),
+  company: z.string().optional(),
+  phone: z.string().optional(),
+  percent: z.number().min(0).max(100),
+  level: z.string().min(1),
+  answers: z.record(z.string(), z.number()),
+});
+export type AssessmentInput = z.infer<typeof assessmentSchema>;
+
 export const broadcastSchema = z.object({
   audience: z.enum([
     "all",

@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { classSessionAccess, canRecordProject } from "@/lib/livekit";
+import {
+  classSessionAccess,
+  canRecordProject,
+  canRecordCompany,
+} from "@/lib/livekit";
 import {
   generateMeetingNotes,
   isNoteTakerConfigured,
@@ -30,7 +34,7 @@ export async function POST(
 
   const recording = await prisma.recording.findUnique({
     where: { id },
-    select: { status: true, classSessionId: true, projectId: true },
+    select: { status: true, classSessionId: true, projectId: true, companyRoomId: true },
   });
   if (!recording) {
     return NextResponse.json({ error: "Recording not found." }, { status: 404 });
@@ -49,7 +53,9 @@ export async function POST(
       })()
     : recording.projectId
       ? await canRecordProject(session.user, recording.projectId)
-      : false;
+      : recording.companyRoomId
+        ? await canRecordCompany(session.user, recording.companyRoomId)
+        : false;
   if (!allowed) {
     return NextResponse.json(
       { error: "You can't generate notes for this recording." },

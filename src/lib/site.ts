@@ -6,7 +6,10 @@ export const site = {
   tagline: "Innovative Solutions; Shaping Tomorrow, Today.",
   description:
     "H-SETS is a unified digital ecosystem helping businesses transform with software, AI and digital marketing — and training the next generation of tech talent through the H-SETS Academy.",
-  url: "https://h-sets.com",
+  // Canonical site URL. Override with NEXT_PUBLIC_SITE_URL in each environment
+  // so emails/OG images resolve against the actual deployed domain (a wrong host
+  // here shows as a broken logo in transactional email — see lib/email.ts).
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://h-sets.com",
   email: "info@h-sets.com",
   phone: "+234 707 819 8353 / +234 816 369 9882",
   // Human-readable one-liner (footer). Structured NAP lives in `location` below.
@@ -18,7 +21,7 @@ export const site = {
   socials: {
     linkedin: "https://linkedin.com/company/h-sets",
     twitter: "https://x.com/hsetsdigitals24",
-    instagram: "https://intagram.com/hsetsdigitals24",
+    instagram: "https://instagram.com/hsetsdigitals24",
     facebook: "https://facebook.com/hsetsdigitals",
     youtube: "https://youtube.com/@hsetsdigitals24",
   },
@@ -109,7 +112,7 @@ export const mainNav: NavItem[] = [
     featured: {
       title: "AI Readiness Assessment",
       description: "Find out where AI can cut costs and unlock growth in 5 minutes.",
-      href: "/ai-solutions",
+      href: "/ai-solutions/readiness-assessment",
     },
     columns: [
       {
@@ -117,7 +120,7 @@ export const mainNav: NavItem[] = [
         links: [
           { label: "AI Automation", href: "/services/ai-automation" },
           { label: "AI Agents", href: "/services/ai-agents" },
-          { label: "AI Strategy", href: "/ai-solutions" },
+          { label: "AI Strategy", href: "/ai-solutions#ai-strategy" },
         ],
       },
       {
@@ -175,8 +178,8 @@ export const mainNav: NavItem[] = [
         heading: "More",
         links: [
           { label: "Data Analytics", href: "/academy/data-analytics" },
-          { label: "Corporate Training", href: "/academy" },
-          { label: "Graduate Stories", href: "/academy" },
+          { label: "Corporate Training", href: "/academy#corporate-training" },
+          { label: "Graduate Stories", href: "/academy#graduate-stories" },
         ],
       },
     ],
@@ -195,9 +198,9 @@ export const mainNav: NavItem[] = [
       {
         heading: "Download",
         links: [
-          { label: "E-Books & Guides", href: "/resources" },
-          { label: "Templates & Checklists", href: "/resources" },
-          { label: "Industry Reports", href: "/resources" },
+          { label: "E-Books & Guides", href: "/resources?type=guides" },
+          { label: "Templates & Checklists", href: "/resources?type=templates" },
+          { label: "Industry Reports", href: "/resources?type=reports" },
         ],
       },
     ],
@@ -222,7 +225,7 @@ export const footerNav: NavColumn[] = [
       { label: "Programmes", href: "/academy" },
       { label: "Software Development", href: "/academy/software-development" },
       { label: "AI Engineering", href: "/academy/ai-engineering" },
-      { label: "Corporate Training", href: "/academy" },
+      { label: "Corporate Training", href: "/academy#corporate-training" },
     ],
   },
   {
