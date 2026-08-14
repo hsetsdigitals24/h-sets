@@ -71,6 +71,101 @@ model User {
 
   // Company standup rooms this user created.
   companyRoomsCreated CompanyRoom[] @relation("CompanyRoomCreator")
+
+  // Per-user admin-section access overrides (managed by a super admin). When a
+  // user has any rows here, that set is the authoritative allowlist of sections
+  // they can open, replacing their role defaults. No rows = role defaults apply.
+  sectionPermissions UserSectionPermission[]
+
+  // Finance ledger entries this user recorded (role FINANCE_ADMIN / SUPER_ADMIN).
+  financeEntries FinanceTransaction[] @relation("FinanceEntryAuthor")
+}
+
+// Per-user override of which admin dashboard sections a member can access.
+// Each row is one granted section (an AdminSection slug, e.g. "cohorts").
+// Only a SUPER_ADMIN edits these. See src/lib/rbac.ts for how they combine
+// with role defaults.
+model UserSectionPermission {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  section String
+
+  @@unique([userId, section])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Finance — revenue & expenditure record keeping + budgeting.
+// Managed under /admin/finance by FINANCE_ADMIN / SUPER_ADMIN. All amounts are
+// stored as whole Nigerian Naira (Int), matching Programme.feeFull. There is no
+// kobo/decimal handling — the platform bills in whole naira.
+// ---------------------------------------------------------------------------
+
+// A bucket transactions are grouped under, and the unit budgets are planned in.
+// `kind` scopes a category to either income (e.g. Tuition, Consulting) or
+// expense (e.g. Salaries, Marketing), so it can't be used on the wrong side.
+model FinanceCategory {
+  id           String               @id @default(cuid())
+  name         String
+  kind         String // "income" | "expense"
+  archived     Boolean              @default(false)
+  sortOrder    Int                  @default(0)
+  createdAt    DateTime             @default(now())
+  transactions FinanceTransaction[]
+  budgetLines  BudgetLine[]
+
+  @@unique([kind, name])
+  @@index([kind])
+}
+
+// A single money movement — one row per income receipt or expense payment.
+model FinanceTransaction {
+  id          String           @id @default(cuid())
+  kind        String // "income" | "expense"
+  amount      Int // whole NGN, always positive; direction comes from `kind`
+  occurredAt  DateTime // the date the money moved (not the record date)
+  description String
+  method      String? // cash | bank | paystack | flutterwave | card | other
+  reference   String? // receipt no. / gateway reference / invoice no.
+  category    FinanceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId  String?
+  createdBy   User?            @relation("FinanceEntryAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([kind])
+  @@index([occurredAt])
+  @@index([categoryId])
+}
+
+// A plan for a period (month/quarter/year). Actuals are computed by summing
+// transactions whose occurredAt falls in [periodStart, periodEnd].
+model Budget {
+  id          String       @id @default(cuid())
+  name        String
+  periodStart DateTime
+  periodEnd   DateTime
+  note        String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  lines       BudgetLine[]
+
+  @@index([periodStart])
+}
+
+// One planned amount per category within a budget.
+model BudgetLine {
+  id         String          @id @default(cuid())
+  budget     Budget          @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budgetId   String
+  category   FinanceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String
+  planned    Int // whole NGN planned for this category over the budget period
+
+  @@unique([budgetId, categoryId])
+  @@index([budgetId])
 }
 
 // In-app notifications shown in the bell dropdown and notifications pages.

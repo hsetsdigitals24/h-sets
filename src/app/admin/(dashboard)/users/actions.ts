@@ -7,6 +7,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireSection, requireUser } from "@/lib/auth";
 import { ensureInstructorProfile } from "@/lib/instructors";
+import { ALL_SECTIONS, type AdminSection } from "@/lib/rbac";
 import type { ContentActionState } from "@/lib/content-forms";
 
 const ROLE_VALUES = Object.values(Role) as [Role, ...Role[]];
@@ -82,6 +83,56 @@ export async function updateUserRole(formData: FormData): Promise<void> {
     revalidatePath("/admin/instructors");
     revalidatePath("/admin/cohorts");
   }
+  revalidatePath("/admin/users");
+}
+
+/**
+ * Replace a member's per-section access allowlist. Strictly SUPER_ADMIN — this
+ * is not gated on the "users" section, because granting "users" to a non-super
+ * admin must never let them edit their own or others' permissions (escalation).
+ *
+ * The submitted `section` checkboxes become the authoritative allowlist for the
+ * target user, fully replacing their role defaults. Submitting none clears all
+ * overrides, restoring role-default behaviour. Overrides on a SUPER_ADMIN are
+ * meaningless (they bypass every check) so we reject that to avoid confusion.
+ */
+export async function updateUserPermissions(
+  formData: FormData
+): Promise<{ error?: string } | void> {
+  const current = await requireUser();
+  if (current.role !== Role.SUPER_ADMIN) {
+    return { error: "Only a super admin can edit access permissions." };
+  }
+
+  const id = formData.get("id");
+  if (typeof id !== "string") return { error: "Missing user id." };
+
+  const target = await prisma.user.findUnique({ where: { id } });
+  if (!target) return { error: "User not found." };
+  if (target.role === Role.SUPER_ADMIN) {
+    return { error: "Super admins already have access to everything." };
+  }
+  if (target.role === Role.STUDENT) {
+    return { error: "Students have no admin sections to manage." };
+  }
+
+  // Keep only recognised sections; ignore anything unexpected in the payload.
+  const sections = (formData.getAll("section") as string[]).filter(
+    (s): s is AdminSection => ALL_SECTIONS.includes(s as AdminSection)
+  );
+  const unique = Array.from(new Set(sections));
+
+  await prisma.$transaction([
+    prisma.userSectionPermission.deleteMany({ where: { userId: id } }),
+    ...(unique.length
+      ? [
+          prisma.userSectionPermission.createMany({
+            data: unique.map((section) => ({ userId: id, section })),
+          }),
+        ]
+      : []),
+  ]);
+
   revalidatePath("/admin/users");
 }
 

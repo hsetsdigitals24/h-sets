@@ -1,5 +1,10 @@
 "use client";
 
+/* eslint-disable react-hooks/refs -- `setAnswer` closes over the `saveTimers`
+   ref but only reads it inside event callbacks (clearTimeout/setTimeout), never
+   during render. The rule can't see that and flags the prop pass-through as a
+   render-time ref read; false positive in this file. */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";

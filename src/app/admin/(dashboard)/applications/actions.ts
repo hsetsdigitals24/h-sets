@@ -57,26 +57,42 @@ export async function approveApplication(
     return { error: "That email belongs to a staff account and can't be enrolled as a student." };
   }
 
-  // Enroll them (ignore if already enrolled).
+  // Enroll + decrement the seat + mark the application approved atomically, so a
+  // failure can't leave a student enrolled without the application updated (or
+  // vice versa). Account creation (bcrypt) stays outside to keep the txn short.
+  const alreadyEnrolled = await prisma.enrollment.findUnique({
+    where: { studentId_cohortId: { studentId: student.id, cohortId: application.cohortId } },
+    select: { id: true },
+  });
   try {
-    await prisma.enrollment.create({
-      data: { studentId: student.id, cohortId: application.cohortId, status: "active" },
-    });
-    // Best-effort seat decrement.
-    await prisma.cohort.updateMany({
-      where: { id: application.cohortId, seatsLeft: { gt: 0 } },
-      data: { seatsLeft: { decrement: 1 } },
+    await prisma.$transaction(async (tx) => {
+      if (!alreadyEnrolled) {
+        await tx.enrollment.create({
+          data: { studentId: student!.id, cohortId: application.cohortId, status: "active" },
+        });
+        // Only consume a seat when a new enrollment is actually created.
+        await tx.cohort.updateMany({
+          where: { id: application.cohortId, seatsLeft: { gt: 0 } },
+          data: { seatsLeft: { decrement: 1 } },
+        });
+      }
+      await tx.application.update({
+        where: { id },
+        data: { status: "approved", reviewedAt: new Date(), studentId: student!.id },
+      });
     });
   } catch (e) {
-    if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002")) {
+    // Lost a race to enroll the same student — the other request already did the
+    // work, so just make sure the application reflects the approval.
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      await prisma.application.update({
+        where: { id },
+        data: { status: "approved", reviewedAt: new Date(), studentId: student.id },
+      });
+    } else {
       throw e;
     }
   }
-
-  await prisma.application.update({
-    where: { id },
-    data: { status: "approved", reviewedAt: new Date(), studentId: student.id },
-  });
 
   // Acceptance email.
   let setupBody = `<p>You can sign in to your student portal to get started.</p>`;

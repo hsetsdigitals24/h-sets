@@ -1,15 +1,23 @@
 import { LogOut } from "lucide-react";
 import type { Role } from "@prisma/client";
-import { ROLE_LABELS } from "@/lib/rbac";
+import { ROLE_LABELS, type AdminSection } from "@/lib/rbac";
 import { signOutAction } from "@/app/admin/actions";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { MobileNav } from "@/components/admin/mobile-nav";
 
-export function Topbar({ name, role }: { name?: string | null; role: Role }) {
+export function Topbar({
+  name,
+  role,
+  sections,
+}: {
+  name?: string | null;
+  role: Role;
+  sections: AdminSection[];
+}) {
   return (
     <header className="flex h-16 items-center justify-between gap-3 border-b border-border bg-card px-4 sm:px-6">
       <div className="flex items-center gap-3">
-        <MobileNav role={role} />
+        <MobileNav sections={sections} />
         <div className="text-base font-bold md:hidden">
           H-SETS <span className="text-primary">Admin</span>
         </div>

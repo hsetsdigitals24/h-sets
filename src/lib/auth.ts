@@ -7,7 +7,11 @@ import type { Role } from "@prisma/client";
 import { prisma } from "./prisma";
 import { authConfig } from "./auth.config";
 import { loginSchema } from "./schemas";
-import { canAccess, type AdminSection } from "./rbac";
+import {
+  canAccessWith,
+  effectiveSections,
+  type AdminSection,
+} from "./rbac";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -50,12 +54,55 @@ export async function requireUser() {
 }
 
 /**
+ * Loads a user's per-section access overrides. Returns the explicit allowlist
+ * of sections when the user has any override rows, or `null` when they have
+ * none (meaning: fall back to their role defaults). Super admins never need
+ * overrides, so we skip the query for them.
+ */
+export async function getSectionOverrides(
+  userId: string,
+  role: Role
+): Promise<AdminSection[] | null> {
+  if (role === "SUPER_ADMIN") return null;
+  const rows = await prisma.userSectionPermission.findMany({
+    where: { userId },
+    select: { section: true },
+  });
+  return rows.length ? (rows.map((r) => r.section) as AdminSection[]) : null;
+}
+
+/** The sections a given user may access right now (role defaults + overrides). */
+export async function getAllowedSections(
+  userId: string,
+  role: Role
+): Promise<AdminSection[]> {
+  const overrides = await getSectionOverrides(userId, role);
+  return effectiveSections(role, overrides);
+}
+
+/**
+ * Boolean, override-aware access check for use in API routes (which return JSON
+ * rather than redirecting). Mirrors requireSection's logic so a section revoked
+ * from a user via the per-user editor is denied here too — unlike the plain
+ * role-only canAccess(), which ignores overrides.
+ */
+export async function userCanAccessSection(
+  user: { id: string; role: Role },
+  section: AdminSection
+): Promise<boolean> {
+  const overrides = await getSectionOverrides(user.id, user.role);
+  return canAccessWith(user.role, section, overrides);
+}
+
+/**
  * Guards a section: returns the user if allowed, otherwise redirects to the
- * dashboard home. SUPER_ADMIN passes every check (see canAccess).
+ * dashboard home. Honours per-user overrides (see getSectionOverrides).
+ * SUPER_ADMIN and the always-on dashboard pass every check.
  */
 export async function requireSection(section: AdminSection) {
   const user = await requireUser();
-  if (!canAccess(user.role, section)) redirect("/admin");
+  const overrides = await getSectionOverrides(user.id, user.role);
+  if (!canAccessWith(user.role, section, overrides)) redirect("/admin");
   return user;
 }
 

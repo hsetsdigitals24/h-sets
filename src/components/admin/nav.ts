@@ -19,6 +19,7 @@ import {
   Bell,
   KanbanSquare,
   Video,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import type { AdminSection } from "@/lib/rbac";
@@ -29,6 +30,7 @@ export const NAV_GROUPS = [
   "Careers",
   "Marketing",
   "Sales",
+  "Finance",
   "Administration",
 ] as const;
 
@@ -64,6 +66,8 @@ export const NAV_ITEMS: NavItem[] = [
   { group: "Marketing", section: "portfolio", label: "Portfolio", href: "/admin/portfolio", icon: FolderKanban },
 
   { group: "Sales", section: "leads", label: "Leads / CRM", href: "/admin/leads", icon: Inbox },
+
+  { group: "Finance", section: "finance", label: "Finance", href: "/admin/finance", icon: Wallet },
 
   { group: "Administration", section: "projects", label: "Projects", href: "/admin/projects", icon: KanbanSquare },
   { group: "Administration", section: "standups", label: "Standups", href: "/admin/standups", icon: Video },

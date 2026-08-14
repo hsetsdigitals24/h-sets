@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import type { Role } from "@prisma/client";
-import { canAccess } from "@/lib/rbac";
+import type { AdminSection } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 import {
   Accordion,
@@ -21,14 +20,14 @@ import { NAV_ITEMS, NAV_GROUPS } from "./nav";
  * link is tapped.
  */
 export function SidebarNav({
-  role,
+  sections,
   onNavigate,
 }: {
-  role: Role;
+  sections: AdminSection[];
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const items = NAV_ITEMS.filter((item) => canAccess(role, item.section));
+  const items = NAV_ITEMS.filter((item) => sections.includes(item.section));
   const visibleGroups = NAV_GROUPS.filter((group) =>
     items.some((item) => item.group === group)
   );

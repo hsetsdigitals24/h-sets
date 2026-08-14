@@ -1,7 +1,7 @@
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
-import { ROLE_LABELS } from "@/lib/rbac";
+import { ROLE_LABELS, effectiveSections, type AdminSection } from "@/lib/rbac";
 import { PageHeading } from "@/components/admin/page-heading";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,32 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { UserCreateForm } from "./user-create-form";
+import { PermissionsEditor } from "./permissions-editor";
 import { updateUserRole, deleteUser } from "./actions";
 
 export const dynamic = "force-dynamic";
 
+// Roles whose page access can be tuned per member. Super admins already see
+// everything; students are academy users with no admin sections.
+const MANAGEABLE = (r: Role) => r !== Role.SUPER_ADMIN && r !== Role.STUDENT;
+
 export default async function UsersPage() {
   const current = await requireSection("users");
   const users = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
+
+  // Batch-load per-user overrides so each row can prefill the access editor with
+  // the member's current effective sections (role defaults when no overrides).
+  const permRows = await prisma.userSectionPermission.findMany({
+    where: { userId: { in: users.map((u) => u.id) } },
+    select: { userId: true, section: true },
+  });
+  const overridesByUser = new Map<string, AdminSection[]>();
+  for (const row of permRows) {
+    const list = overridesByUser.get(row.userId) ?? [];
+    list.push(row.section as AdminSection);
+    overridesByUser.set(row.userId, list);
+  }
+  const canManage = current.role === Role.SUPER_ADMIN;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -69,9 +88,21 @@ export default async function UsersPage() {
                   </form>
                 </TableCell>
                 <TableCell className="text-right">
-                  {u.id !== current.id && (
-                    <DeleteButton id={u.id} action={deleteUser} confirmText={`Delete ${u.email}?`} />
-                  )}
+                  <div className="flex items-center justify-end gap-2">
+                    {canManage && MANAGEABLE(u.role) && (
+                      <PermissionsEditor
+                        userId={u.id}
+                        userName={u.name}
+                        current={effectiveSections(
+                          u.role,
+                          overridesByUser.get(u.id) ?? null
+                        )}
+                      />
+                    )}
+                    {u.id !== current.id && (
+                      <DeleteButton id={u.id} action={deleteUser} confirmText={`Delete ${u.email}?`} />
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

@@ -26,6 +26,7 @@ export type AdminSection =
   | "exams"
   | "attendance"
   | "certificates"
+  | "finance"
   | "projects"
   | "standups"
   | "notifications"
@@ -50,6 +51,9 @@ const SECTION_ROLES: Record<AdminSection, Role[] | "all"> = {
   exams: ["ACADEMY_ADMIN", "INSTRUCTOR"],
   attendance: ["ACADEMY_ADMIN", "INSTRUCTOR"],
   certificates: ["ACADEMY_ADMIN"],
+  // Company financial record keeping (revenue, expenditure, budgets). Restricted
+  // to the finance role; super admin passes via canAccess as always.
+  finance: ["FINANCE_ADMIN"],
   // Internal admin project-management tool. Open to all admin roles; not
   // instructors or students. (SUPER_ADMIN passes via canAccess regardless.)
   projects: ["ACADEMY_ADMIN", "MARKETING_ADMIN", "SALES_ADMIN", "FINANCE_ADMIN"],
@@ -62,6 +66,48 @@ const SECTION_ROLES: Record<AdminSection, Role[] | "all"> = {
   notifications: "all",
   users: [],
 };
+
+/** Every admin section, in a stable order. Used to build permission editors. */
+export const ALL_SECTIONS = Object.keys(SECTION_ROLES) as AdminSection[];
+
+/**
+ * The one section that can never be revoked: the dashboard home lives at
+ * `/admin`, which is also where denied guards redirect — locking it would loop.
+ * Every authenticated admin keeps it regardless of role or overrides.
+ */
+export const ALWAYS_ON_SECTION: AdminSection = "dashboard";
+
+/**
+ * Access check that honours per-user overrides.
+ *
+ * `overrides` is a user's explicit allowlist of sections (see
+ * UserSectionPermission). When non-null it is authoritative — it fully replaces
+ * the role defaults, so a super admin can both grant sections beyond the role
+ * and revoke ones the role would normally allow. `null` means "no overrides
+ * set" and we fall back to the role defaults. SUPER_ADMIN and the always-on
+ * dashboard always pass.
+ */
+export function canAccessWith(
+  role: Role,
+  section: AdminSection,
+  overrides: AdminSection[] | null
+): boolean {
+  if (role === "SUPER_ADMIN") return true;
+  if (section === ALWAYS_ON_SECTION) return true;
+  if (overrides) return overrides.includes(section);
+  return canAccess(role, section);
+}
+
+/**
+ * The effective set of sections a user may access, given their role and any
+ * per-user overrides. Always includes the always-on dashboard.
+ */
+export function effectiveSections(
+  role: Role,
+  overrides: AdminSection[] | null
+): AdminSection[] {
+  return ALL_SECTIONS.filter((s) => canAccessWith(role, s, overrides));
+}
 
 /** Roles allowed to broadcast announcements. SUPER_ADMIN always passes. */
 export const BROADCAST_ROLES: Role[] = ["MARKETING_ADMIN"];
@@ -81,7 +127,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   SUPER_ADMIN: "Super Admin",
   ACADEMY_ADMIN: "Academy Admin",
   MARKETING_ADMIN: "Marketing Admin",
-  SALES_ADMIN: "Sales Admin",
+  SALES_ADMIN: "Business Developer",
   FINANCE_ADMIN: "Finance Admin",
   INSTRUCTOR: "Instructor",
   STUDENT: "Student",

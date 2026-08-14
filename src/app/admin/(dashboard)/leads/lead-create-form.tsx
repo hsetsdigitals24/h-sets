@@ -28,6 +28,8 @@ export function LeadCreateForm() {
     if (state.ok) {
       toast.success("Lead added");
       formRef.current?.reset();
+      // Close the dialog once the server action reports success.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(false);
     } else if (state.error) {
       toast.error(state.error);

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Menu, X } from "lucide-react";
-import type { Role } from "@prisma/client";
+import type { AdminSection } from "@/lib/rbac";
 import { SidebarNav } from "./sidebar-nav";
 
 /**
@@ -11,7 +11,7 @@ import { SidebarNav } from "./sidebar-nav";
  * viewports too narrow for the persistent sidebar (below `md`). Closes on
  * navigation via {@link SidebarNav}'s `onNavigate`.
  */
-export function MobileNav({ role }: { role: Role }) {
+export function MobileNav({ sections }: { sections: AdminSection[] }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -41,7 +41,7 @@ export function MobileNav({ role }: { role: Role }) {
               <X className="size-5" />
             </DialogPrimitive.Close>
           </div>
-          <SidebarNav role={role} onNavigate={() => setOpen(false)} />
+          <SidebarNav sections={sections} onNavigate={() => setOpen(false)} />
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

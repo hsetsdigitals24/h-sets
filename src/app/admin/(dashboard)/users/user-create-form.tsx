@@ -20,6 +20,8 @@ export function UserCreateForm() {
     if (state.ok) {
       toast.success("Team member added");
       formRef.current?.reset();
+      // Reset the controlled role after a successful server action completes.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRole(Role.MARKETING_ADMIN);
     } else if (state.error) {
       toast.error(state.error);

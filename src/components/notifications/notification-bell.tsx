@@ -36,6 +36,9 @@ export function NotificationBell({
   }, []);
 
   useEffect(() => {
+    // refresh() only calls setState after `await fetch`, so this is not a
+    // synchronous cascading render (the lint rule can't see through the await).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
     const id = setInterval(refresh, POLL_MS);
     const onFocus = () => refresh();
@@ -48,6 +51,8 @@ export function NotificationBell({
 
   // Refetch whenever the dropdown is opened.
   useEffect(() => {
+    // Async setState (behind await in refresh) — not a synchronous cascade.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (open) refresh();
   }, [open, refresh]);
 

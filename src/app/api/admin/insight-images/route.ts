@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { canAccess } from "@/lib/rbac";
+import { auth, userCanAccessSection } from "@/lib/auth";
 import {
   buildKey,
   presignPublicUpload,
@@ -20,7 +19,7 @@ export async function POST(req: Request) {
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!canAccess(session.user.role, "insights")) {
+  if (!(await userCanAccessSection(session.user, "insights"))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (!isPublicStorageConfigured()) {

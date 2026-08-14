@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { canAccess } from "@/lib/rbac";
+import { auth, userCanAccessSection } from "@/lib/auth";
 import { buildKey, putPublicObject, isPublicStorageConfigured } from "@/lib/storage";
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -16,7 +15,7 @@ export async function POST(req: Request) {
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!canAccess(session.user.role, "portfolio")) {
+  if (!(await userCanAccessSection(session.user, "portfolio"))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (!isPublicStorageConfigured()) {
