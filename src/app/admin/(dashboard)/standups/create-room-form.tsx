@@ -36,8 +36,9 @@ export function CreateRoomForm() {
         <Field label="Name" htmlFor="name">
           <Input id="name" name="name" placeholder="e.g. Design Standup" required />
         </Field>
-        <Field label="Description" htmlFor="description" hint="Optional">
-          <Input id="description" name="description" placeholder="What this room is for" />
+        <Field label="Description" htmlFor="description">
+          <span>Optional</span>
+          <Input id="description" name="description" placeholder="What this room is for?" />
         </Field>
         <SubmitButton>Create room</SubmitButton>
       </div>
