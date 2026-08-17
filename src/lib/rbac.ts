@@ -40,10 +40,10 @@ const SECTION_ROLES: Record<AdminSection, Role[] | "all"> = {
   instructors: ["ACADEMY_ADMIN"],
   jobs: ["ACADEMY_ADMIN"],
   "job-applications": ["ACADEMY_ADMIN"],
-  insights: ["MARKETING_ADMIN"],
-  resources: ["MARKETING_ADMIN"],
-  testimonials: ["MARKETING_ADMIN"],
-  portfolio: ["MARKETING_ADMIN"],
+  insights: ["MARKETING_ADMIN", "SOCIAL_MEDIA_MANAGER"],
+  resources: ["MARKETING_ADMIN", "SOCIAL_MEDIA_MANAGER"],
+  testimonials: ["MARKETING_ADMIN", "SOCIAL_MEDIA_MANAGER"],
+  portfolio: ["MARKETING_ADMIN", "SOCIAL_MEDIA_MANAGER"],
   applications: ["ACADEMY_ADMIN"],
   enrollments: ["ACADEMY_ADMIN"],
   learning: ["ACADEMY_ADMIN", "INSTRUCTOR"],
@@ -56,7 +56,15 @@ const SECTION_ROLES: Record<AdminSection, Role[] | "all"> = {
   finance: ["FINANCE_ADMIN"],
   // Internal admin project-management tool. Open to all admin roles; not
   // instructors or students. (SUPER_ADMIN passes via canAccess regardless.)
-  projects: ["ACADEMY_ADMIN", "MARKETING_ADMIN", "SALES_ADMIN", "FINANCE_ADMIN"],
+  projects: [
+    "ACADEMY_ADMIN",
+    "MARKETING_ADMIN",
+    "SALES_ADMIN",
+    "FINANCE_ADMIN",
+    "SOCIAL_MEDIA_MANAGER",
+    "PROJECT_MANAGER",
+    "STAFF",
+  ],
   // Company-wide standup rooms — internal video calls outside any project or
   // cohort. Open to every staff member (all admin roles + instructors); the
   // join gate in companyMeetingAccess() enforces the same non-student rule.
@@ -129,6 +137,9 @@ export const ROLE_LABELS: Record<Role, string> = {
   MARKETING_ADMIN: "Marketing Admin",
   SALES_ADMIN: "Business Developer",
   FINANCE_ADMIN: "Finance Admin",
+  SOCIAL_MEDIA_MANAGER: "Social Media Manager",
+  PROJECT_MANAGER: "Project Manager",
+  STAFF: "Staff",
   INSTRUCTOR: "Instructor",
   STUDENT: "Student",
 };
