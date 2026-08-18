@@ -12,6 +12,7 @@ import "@livekit/components-styles";
 import { Button } from "@/components/ui/button";
 import { RecordButton } from "@/components/lms/record-button";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
+import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
 
 type TokenResponse = { token: string; url: string; room: string; identity: string };
 
@@ -34,6 +35,10 @@ export function CompanyRoom({
   const [conn, setConn] = useState<TokenResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
+  // Bumped to force a fresh token fetch + LiveKitRoom remount after a transient
+  // drop (e.g. the tab was backgrounded and the connection froze).
+  const [attempt, setAttempt] = useState(0);
+  const [reconnecting, setReconnecting] = useState(false);
 
   const homeHref = "/admin/standups";
 
@@ -46,7 +51,10 @@ export function CompanyRoom({
         );
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Could not join the standup.");
-        if (!cancelled) setConn(data);
+        if (!cancelled) {
+          setConn(data);
+          setReconnecting(false);
+        }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to join.");
       }
@@ -54,7 +62,7 @@ export function CompanyRoom({
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, attempt]);
 
   if (error) {
     return (
@@ -75,7 +83,11 @@ export function CompanyRoom({
       <Centered>
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          {leaving ? "Leaving…" : `Joining ${title}…`}
+          {leaving
+            ? "Leaving…"
+            : reconnecting
+              ? "Reconnecting…"
+              : `Joining ${title}…`}
         </p>
       </Centered>
     );
@@ -89,9 +101,16 @@ export function CompanyRoom({
         connect
         video
         audio
-        onDisconnected={() => {
-          setLeaving(true);
-          window.location.href = homeHref;
+        onDisconnected={(reason) => {
+          if (shouldExitOnDisconnect(reason)) {
+            setLeaving(true);
+            window.location.href = homeHref;
+          } else {
+            // Transient drop — stay in the standup and reconnect in place.
+            setConn(null);
+            setReconnecting(true);
+            setAttempt((n) => n + 1);
+          }
         }}
         style={{ height: "100%" }}
       >

@@ -11,6 +11,7 @@ import {
 import "@livekit/components-styles";
 import { Button } from "@/components/ui/button";
 import { site } from "@/lib/site";
+import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
 
 type TokenResponse = {
   token: string;
@@ -30,6 +31,10 @@ export function GuestRoom({ token, title }: { token: string; title: string }) {
   const [conn, setConn] = useState<TokenResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
+  // Bumped to force a fresh token fetch + LiveKitRoom remount after a transient
+  // drop (e.g. the tab was backgrounded and the connection froze).
+  const [attempt, setAttempt] = useState(0);
+  const [reconnecting, setReconnecting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,7 +45,10 @@ export function GuestRoom({ token, title }: { token: string; title: string }) {
         );
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Could not join the meeting.");
-        if (!cancelled) setConn(data);
+        if (!cancelled) {
+          setConn(data);
+          setReconnecting(false);
+        }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to join.");
       }
@@ -48,7 +56,7 @@ export function GuestRoom({ token, title }: { token: string; title: string }) {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, attempt]);
 
   if (error) {
     return (
@@ -67,7 +75,11 @@ export function GuestRoom({ token, title }: { token: string; title: string }) {
       <Centered>
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          {leaving ? "Leaving…" : `Joining ${title}…`}
+          {leaving
+            ? "Leaving…"
+            : reconnecting
+              ? "Reconnecting…"
+              : `Joining ${title}…`}
         </p>
       </Centered>
     );
@@ -81,9 +93,16 @@ export function GuestRoom({ token, title }: { token: string; title: string }) {
         connect
         video
         audio
-        onDisconnected={() => {
-          setLeaving(true);
-          window.location.href = site.url;
+        onDisconnected={(reason) => {
+          if (shouldExitOnDisconnect(reason)) {
+            setLeaving(true);
+            window.location.href = site.url;
+          } else {
+            // Transient drop — stay in the meeting and reconnect in place.
+            setConn(null);
+            setReconnecting(true);
+            setAttempt((n) => n + 1);
+          }
         }}
         style={{ height: "100%" }}
       >
