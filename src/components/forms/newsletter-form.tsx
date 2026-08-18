@@ -7,10 +7,12 @@ import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { submitForm } from "@/lib/api";
 import { newsletterSchema, type NewsletterInput } from "@/lib/schemas";
+import { useBotGuard } from "./use-bot-guard";
 
 type Values = NewsletterInput;
 
 export function NewsletterForm() {
+  const bot = useBotGuard();
   const {
     register,
     handleSubmit,
@@ -20,7 +22,7 @@ export function NewsletterForm() {
 
   async function onSubmit(values: Values) {
     try {
-      await submitForm("newsletter", values);
+      await submitForm("newsletter", { ...values, ...bot.values() });
       toast.success("You're subscribed!", {
         description: "Watch your inbox for our next insight.",
       });
@@ -34,6 +36,7 @@ export function NewsletterForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
+      {bot.fields}
       <div className="flex gap-2">
         <input
           type="email"

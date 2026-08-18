@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
+import { useBotGuard } from "@/components/forms/use-bot-guard";
 import { registerAction, type AuthState } from "../actions";
 
 function SubmitButton() {
@@ -20,6 +21,7 @@ function SubmitButton() {
 
 export default function RegisterPage() {
   const [state, formAction] = useActionState<AuthState, FormData>(registerAction, {});
+  const bot = useBotGuard();
 
   return (
     <div>
@@ -31,6 +33,7 @@ export default function RegisterPage() {
       </div>
 
       <form action={formAction} className="space-y-4">
+        {bot.fields}
         <div className="space-y-1.5">
           <Label htmlFor="name">Full name</Label>
           <Input id="name" name="name" autoComplete="name" required />

@@ -9,6 +9,7 @@ import { jobApplicationSchema } from "@/lib/schemas";
 import { requestCvUpload } from "@/app/(marketing)/careers/actions";
 import { FileUpload } from "@/components/lms/file-upload";
 import { Field } from "@/components/forms/field";
+import { useBotGuard } from "@/components/forms/use-bot-guard";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export function JobApplyDialog({ job }: { job: Job }) {
   const [open, setOpen] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
+  const bot = useBotGuard();
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,7 +51,7 @@ export function JobApplyDialog({ job }: { job: Job }) {
 
     setSubmitting(true);
     try {
-      await submitForm("job-application", parsed.data);
+      await submitForm("job-application", { ...parsed.data, ...bot.values() });
       setDone(true);
     } catch (err) {
       toast.error("Couldn't submit your application", {
@@ -96,6 +98,7 @@ export function JobApplyDialog({ job }: { job: Job }) {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={onSubmit} className="space-y-4">
+              {bot.fields}
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Full name" htmlFor="name" required>
                   <Input id="name" name="name" placeholder="Ada Lovelace" required />

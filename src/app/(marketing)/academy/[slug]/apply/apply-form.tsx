@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { submitForm } from "@/lib/api";
 import { applicationSchema, type ApplicationInput } from "@/lib/schemas";
+import { useBotGuard } from "@/components/forms/use-bot-guard";
 import { Field } from "@/components/forms/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +24,7 @@ export function ApplyForm({
   defaultCohortId?: string;
 }) {
   const [done, setDone] = React.useState(false);
+  const bot = useBotGuard();
   const {
     register,
     handleSubmit,
@@ -36,7 +38,7 @@ export function ApplyForm({
 
   async function onSubmit(values: ApplicationInput) {
     try {
-      await submitForm("application", values);
+      await submitForm("application", { ...values, ...bot.values() });
       toast.success("Application submitted!", {
         description: "We'll review it and email you with the outcome.",
       });
@@ -64,6 +66,7 @@ export function ApplyForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {bot.fields}
       <Field label="Cohort" htmlFor="cohortId" required error={errors.cohortId?.message}>
         <Select id="cohortId" {...register("cohortId")}>
           {cohorts.map((c) => (

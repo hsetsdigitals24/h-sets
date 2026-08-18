@@ -12,6 +12,7 @@ import {
   type ReadinessLevel,
 } from "@/lib/assessment";
 import { Field } from "@/components/forms/field";
+import { useBotGuard } from "@/components/forms/use-bot-guard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -62,6 +63,7 @@ export function ReadinessAssessment() {
     setPhase("quiz");
   }
 
+  const bot = useBotGuard();
   const {
     register,
     handleSubmit,
@@ -76,6 +78,7 @@ export function ReadinessAssessment() {
         percent,
         level: level.title,
         answers,
+        ...bot.values(),
       });
       setResult({ percent, level });
       setPhase("result");
@@ -153,6 +156,7 @@ export function ReadinessAssessment() {
 
         {phase === "details" && (
           <form onSubmit={handleSubmit(onSubmitDetails)} className="space-y-4">
+            {bot.fields}
             <div>
               <h2 className="text-xl font-semibold sm:text-2xl">
                 Where should we send your result?

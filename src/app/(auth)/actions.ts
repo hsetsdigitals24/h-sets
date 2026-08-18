@@ -8,6 +8,8 @@ import { prisma } from "@/lib/prisma";
 import { signIn } from "@/lib/auth";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { createResetToken, consumeResetToken } from "@/lib/password-reset";
+import { rateLimit } from "@/lib/rate-limit";
+import { checkBotSignals } from "@/lib/bot-guard";
 import {
   loginSchema,
   registerSchema,
@@ -47,6 +49,25 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
 }
 
 export async function registerAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const h = await headers();
+  const ip =
+    h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+
+  // Cap signup attempts per IP so a bot can't mass-create accounts.
+  const rl = rateLimit(`register:${ip}`, { limit: 5, windowMs: 60_000 });
+  if (!rl.ok) {
+    return { error: "Too many attempts. Please wait a minute and try again." };
+  }
+
+  // Reject automated signups (hidden honeypot field was filled).
+  const bot = checkBotSignals((field) => {
+    const v = formData.get(field);
+    return typeof v === "string" ? v : undefined;
+  });
+  if (!bot.ok) {
+    return { error: "Something went wrong. Please try again." };
+  }
+
   const parsed = registerSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),

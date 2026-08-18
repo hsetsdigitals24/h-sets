@@ -9,6 +9,7 @@ import { motion } from "motion/react";
 import { z } from "zod";
 import { submitForm } from "@/lib/api";
 import { consultationSchema } from "@/lib/schemas";
+import { useBotGuard } from "./use-bot-guard";
 import { Field } from "./field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,6 +60,7 @@ export function ConsultationForm() {
   const [day, setDay] = React.useState(days[0].iso);
   const [slot, setSlot] = React.useState<string | null>(null);
   const [done, setDone] = React.useState(false);
+  const bot = useBotGuard();
 
   const {
     register,
@@ -72,7 +74,7 @@ export function ConsultationForm() {
       return;
     }
     try {
-      await submitForm("consultation", { ...values, session, day, slot });
+      await submitForm("consultation", { ...values, session, day, slot, ...bot.values() });
       toast.success("Consultation booked!", {
         description: "A calendar invite is on its way to your inbox.",
       });
@@ -107,6 +109,7 @@ export function ConsultationForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      {bot.fields}
       {/* Session type */}
       <div>
         <p className="mb-3 text-sm font-semibold">1. Choose a session</p>

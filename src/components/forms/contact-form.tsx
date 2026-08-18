@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { submitForm } from "@/lib/api";
 import { contactSchema, type ContactInput } from "@/lib/schemas";
+import { useBotGuard } from "./use-bot-guard";
 import { Field } from "./field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +26,7 @@ const topics = [
 
 export function ContactForm() {
   const [done, setDone] = React.useState(false);
+  const bot = useBotGuard();
   const {
     register,
     handleSubmit,
@@ -33,7 +35,7 @@ export function ContactForm() {
 
   async function onSubmit(values: Values) {
     try {
-      await submitForm("contact", values);
+      await submitForm("contact", { ...values, ...bot.values() });
       toast.success("Message sent!", { description: "We'll reply within one business day." });
       setDone(true);
     } catch (err) {
@@ -58,6 +60,7 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {bot.fields}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Full name" htmlFor="name" required error={errors.name?.message}>
           <Input id="name" placeholder="Ada Lovelace" {...register("name")} />

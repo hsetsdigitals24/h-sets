@@ -13,6 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Field } from "./field";
+import { useBotGuard } from "./use-bot-guard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { gateFields, type ResourceView } from "@/data/resources";
@@ -35,6 +36,7 @@ export function ResourceGateModal({
   onOpenChange: (v: boolean) => void;
 }) {
   const [done, setDone] = React.useState(false);
+  const bot = useBotGuard();
   const {
     register,
     handleSubmit,
@@ -59,6 +61,7 @@ export function ResourceGateModal({
         resourceId: resource!.id,
         resourceTitle: resource!.title,
         ...values,
+        ...bot.values(),
       });
       toast.success("Sent to your inbox!", {
         description: "Your download link is on its way.",
@@ -107,6 +110,7 @@ export function ResourceGateModal({
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {bot.fields}
               {fields.map((f) => {
                 const meta = fieldMeta[f];
                 return (

@@ -2,6 +2,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { ZodError, type ZodSchema } from "zod";
 import { rateLimit, clientIp } from "./rate-limit";
+import { checkBotSignals } from "./bot-guard";
 
 /** Default abuse guard for public form endpoints: 20 submissions/min per IP. */
 const DEFAULT_RATE = { limit: 20, windowMs: 60_000 };
@@ -35,6 +36,18 @@ export function createPostHandler<T>(
       body = await req.json();
     } catch {
       return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
+
+    // Drop automated submissions (honeypot filled / superhumanly fast). We
+    // return a normal-looking success and simply do no work, so a bot can't
+    // tell it was caught and tune its way past the check.
+    const bot = checkBotSignals((field) => {
+      if (!body || typeof body !== "object" || Array.isArray(body)) return undefined;
+      const v = (body as Record<string, unknown>)[field];
+      return typeof v === "string" ? v : undefined;
+    });
+    if (!bot.ok) {
+      return NextResponse.json({ ok: true, message: "Received." }, { status: 201 });
     }
 
     const parsed = schema.safeParse(body);
