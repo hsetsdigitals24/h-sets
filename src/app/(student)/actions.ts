@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { signOut } from "@/lib/auth";
 import { requireRole } from "@/lib/auth";
@@ -13,6 +15,53 @@ import type { PresignResult } from "@/components/lms/file-upload";
 /** Students sign out back to the public login page. */
 export async function signOutStudent() {
   await signOut({ redirectTo: "/login" });
+}
+
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password"),
+    password: z.string().min(8, "New password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your new password"),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+/**
+ * Students change their own password (e.g. the default one an admin issued when
+ * adding them to a cohort). Requires the current password to prevent a hijacked
+ * session from locking the owner out.
+ */
+export async function changePassword(
+  _prev: ContentActionState,
+  formData: FormData
+): Promise<ContentActionState> {
+  const sessionUser = await requireRole("STUDENT");
+  const parsed = changePasswordSchema.safeParse({
+    currentPassword: formData.get("currentPassword"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+
+  const user = await prisma.user.findUnique({
+    where: { id: sessionUser.id },
+    select: { passwordHash: true },
+  });
+  if (!user) return { error: "Account not found." };
+
+  const valid = await bcrypt.compare(parsed.data.currentPassword, user.passwordHash);
+  if (!valid) return { error: "Your current password is incorrect." };
+
+  if (await bcrypt.compare(parsed.data.password, user.passwordHash)) {
+    return { error: "Your new password must be different from your current one." };
+  }
+
+  const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+  await prisma.user.update({ where: { id: sessionUser.id }, data: { passwordHash } });
+
+  return { ok: true };
 }
 
 /** Verify the current student is actively enrolled in the cohort a lesson belongs to. */

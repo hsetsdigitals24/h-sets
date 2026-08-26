@@ -15,6 +15,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { EnrollForm } from "./enroll-form";
+import { AddStudentForm } from "./add-student-form";
 import { withdrawEnrollment } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -58,8 +59,20 @@ export default async function EnrollmentsPage({
       ) : (
         <>
           <div className="mb-8 rounded-2xl border border-border bg-card p-5 shadow-soft">
-            <h2 className="mb-4 text-sm font-semibold">Enroll a student</h2>
+            <h2 className="mb-1 text-sm font-semibold">Enroll a student</h2>
+            <p className="mb-4 text-xs text-muted-foreground">
+              For someone who already has an account.
+            </p>
             <EnrollForm cohortId={cohortId} />
+          </div>
+
+          <div className="mb-8 rounded-2xl border border-border bg-card p-5 shadow-soft">
+            <h2 className="mb-1 text-sm font-semibold">Add a new student</h2>
+            <p className="mb-4 text-xs text-muted-foreground">
+              Creates a brand-new account with login details you can share. They can change their
+              password from their dashboard.
+            </p>
+            <AddStudentForm cohortId={cohortId} />
           </div>
 
           <div className="rounded-2xl border border-border bg-card shadow-soft">

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { BackLink } from "@/components/ui/back-link";
 
@@ -28,6 +29,14 @@ export default async function ProfilePage() {
           <dd className="text-sm font-medium">Student</dd>
         </div>
       </dl>
+
+      <p className="mt-4 text-sm text-muted-foreground">
+        Want to change your password?{" "}
+        <Link href="/account/security" className="font-medium text-primary hover:underline">
+          Go to Security
+        </Link>
+        .
+      </p>
     </div>
   );
 }

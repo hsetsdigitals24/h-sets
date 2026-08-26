@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, BookOpen, ClipboardList, FileCheck2, Award, User, Bell, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, BookOpen, ClipboardList, FileCheck2, Award, User, Bell, ShieldCheck, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Accordion,
@@ -21,6 +21,7 @@ const NAV = [
   { group: "Learning", label: "Certificates", href: "/account/certificates", icon: Award },
   { group: "Account", label: "Notifications", href: "/account/notifications", icon: Bell },
   { group: "Account", label: "Profile", href: "/account/profile", icon: User },
+  { group: "Account", label: "Security", href: "/account/security", icon: ShieldCheck },
 ];
 
 export function StudentSidebar() {
