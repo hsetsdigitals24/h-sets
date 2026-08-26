@@ -50,14 +50,14 @@ export function PortfolioForm({ action, item }: { action: Action; item?: Portfol
         defaultThumbnail={item?.thumbnail}
       />
 
-      <Field label="Summary" htmlFor="summary">
+      <Field label="Project Overview" htmlFor="summary">
         <Textarea id="summary" name="summary" rows={2} defaultValue={item?.summary} required />
       </Field>
-      <Field label="Challenge" htmlFor="challenge">
-        <Textarea id="challenge" name="challenge" rows={4} defaultValue={item?.challenge} required />
+      <Field label="Scope of Work" htmlFor="challenge" hint="One item per line.">
+        <Textarea id="challenge" name="challenge" rows={5} defaultValue={item?.challenge} required />
       </Field>
-      <Field label="Solution" htmlFor="solution">
-        <Textarea id="solution" name="solution" rows={4} defaultValue={item?.solution} required />
+      <Field label="Outcomes and Impact" htmlFor="solution" hint="One item per line.">
+        <Textarea id="solution" name="solution" rows={5} defaultValue={item?.solution} required />
       </Field>
 
       <Field label="Technologies" htmlFor="tech" hint="One per line.">

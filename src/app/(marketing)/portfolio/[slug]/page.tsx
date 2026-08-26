@@ -72,16 +72,34 @@ export default async function PortfolioItemPage({
       <Section className="pt-0">
         <div className="mx-auto max-w-3xl space-y-12">
           <Reveal>
-            <h2 className="text-2xl font-bold tracking-tight">The challenge</h2>
-            <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
-              {study.challenge}
-            </p>
+            <h2 className="text-2xl font-bold tracking-tight">Scope of work</h2>
+            <ul className="mt-3 space-y-2 text-lg leading-relaxed text-muted-foreground">
+              {study.challenge
+                .split("\n")
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span aria-hidden className="mt-2.5 size-1.5 shrink-0 rounded-full bg-primary" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+            </ul>
           </Reveal>
           <Reveal>
-            <h2 className="text-2xl font-bold tracking-tight">Our solution</h2>
-            <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
-              {study.solution}
-            </p>
+            <h2 className="text-2xl font-bold tracking-tight">Outcomes and impact</h2>
+            <ul className="mt-3 space-y-2 text-lg leading-relaxed text-muted-foreground">
+              {study.solution
+                .split("\n")
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span aria-hidden className="mt-2.5 size-1.5 shrink-0 rounded-full bg-primary" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+            </ul>
           </Reveal>
           <Reveal>
             <h3 className="text-sm font-semibold uppercase tracking-widest text-primary">
