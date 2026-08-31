@@ -76,14 +76,16 @@ export function WhyHsets() {
           Trusted by teams across Nigeria and beyond
         </p>
         <div className="relative mt-6 overflow-hidden">
-          <div className="flex w-max animate-marquee gap-12">
+          <div className="flex w-max animate-marquee items-center gap-12">
             {[...clientLogos, ...clientLogos].map((logo, i) => (
-              <span
+              <Image
                 key={i}
-                className="whitespace-nowrap font-display text-xl font-semibold text-white/40"
-              >
-                {logo}
-              </span>
+                src={logo.src}
+                alt={logo.name}
+                width={logo.width}
+                height={logo.height}
+                className="h-10 w-auto object-contain opacity-70 transition hover:opacity-100"
+              />
             ))}
           </div>
         </div>

@@ -65,12 +65,10 @@ export const testimonials: Testimonial[] = [
 ];
 
 export const clientLogos = [
-  "Paystack",
-  "Andela",
-  "Kuda",
-  "Flutterwave",
-  "Interswitch",
-  "MediLogix",
-  "FirstBridge",
-  "Bloom Retail",
+  { name: "Cactus-3 Literature Advancement & Life Coaching Foundation", src: "/partner_logos/cactus-3-logo.png", width: 1483, height: 348 },
+  { name: "Elios Research and Innovations", src: "/partner_logos/Elios_research_and-innovations_logo.png", width: 500, height: 500 },
+  { name: "HMA Medicals", src: "/partner_logos/HMA_medicals_logo.png", width: 290, height: 145 },
+  { name: "Kudi Africa", src: "/partner_logos/Kudi_Africa_logo.png", width: 380, height: 344 },
+  { name: "Livingrite Care", src: "/partner_logos/Livingrite_care_logo.webp", width: 1599, height: 899 },
+  { name: "Medilogix", src: "/partner_logos/medilogix_logo.png", width: 3172, height: 2231 },
 ];
