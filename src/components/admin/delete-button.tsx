@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
@@ -15,11 +16,15 @@ export function DeleteButton({
   action,
   label = "Delete",
   confirmText = "Delete this item? This cannot be undone.",
+  showLabel = false,
+  className,
 }: {
   id: string;
   action: (formData: FormData) => Promise<{ error?: string } | void>;
   label?: string;
   confirmText?: string;
+  showLabel?: boolean;
+  className?: string;
 }) {
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
@@ -41,12 +46,12 @@ export function DeleteButton({
         type="button"
         variant="ghost"
         size="sm"
-        className="text-destructive"
+        className={cn("text-destructive", className)}
         disabled={pending}
         onClick={() => setOpen(true)}
       >
         <Trash2 className="size-4" />
-        <span className="sr-only">{label}</span>
+        <span className={showLabel ? undefined : "sr-only"}>{label}</span>
       </Button>
       <ConfirmDialog
         open={open}

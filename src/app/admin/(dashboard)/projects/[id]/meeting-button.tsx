@@ -1,73 +1,48 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Video } from "lucide-react";
+import { Video, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
 import { CopyMeetingLinkButton } from "@/components/meet/copy-meeting-link-button";
 
-type Presence = { count: number; names: string[] };
-
 /**
- * Meeting entry button with live presence. Polls the project's room so that
- * when a call is already running the button reads "Join meeting" and shows who
- * is on it — instead of every member seeing a static "Start meeting" with no
- * idea a meeting is in progress.
+ * Meeting menu for a project. Groups the three call actions — open the room,
+ * copy the shareable link, and invite a guest — behind a single dropdown so the
+ * page header stays uncluttered. Live presence ("who's in the call") lives with
+ * the members list on the board instead, keeping people-info in one place.
  */
 export function MeetingButton({ projectId }: { projectId: string }) {
-  const [presence, setPresence] = useState<Presence>({ count: 0, names: [] });
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const res = await fetch(
-          `/api/livekit/presence?projectId=${encodeURIComponent(projectId)}`
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled) {
-          setPresence(data.presence?.[projectId] ?? { count: 0, names: [] });
-        }
-      } catch {
-        /* transient — keep last known state */
-      }
-    };
-    load();
-    const t = setInterval(load, 10_000);
-    const onFocus = () => load();
-    window.addEventListener("focus", onFocus);
-    return () => {
-      cancelled = true;
-      clearInterval(t);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, [projectId]);
-
-  const live = presence.count;
-
   return (
-    <div className="flex items-center gap-2">
-      {live > 0 && (
-        <span
-          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600"
-          title={presence.names.join(", ")}
-        >
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-            <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-          </span>
-          {live} in call
-        </span>
-      )}
-      <Button asChild variant="gradient" size="sm">
-        <Link href={`/meet/project/${projectId}`}>
-          <Video className="size-4" /> {live > 0 ? "Join meeting" : "Start meeting"}
-        </Link>
-      </Button>
-      <CopyMeetingLinkButton projectId={projectId} />
-      <InviteGuestButton projectId={projectId} />
-    </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="gradient" size="sm">
+          <Video className="size-4" /> Meeting
+          <ChevronDown className="size-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-56">
+        <Button asChild variant="ghost" size="sm" className="w-full justify-start rounded-lg">
+          <Link href={`/meet/project/${projectId}`}>
+            <Video className="size-4" /> Join meeting
+          </Link>
+        </Button>
+        <CopyMeetingLinkButton
+          projectId={projectId}
+          variant="ghost"
+          className="w-full justify-start rounded-lg"
+        />
+        <InviteGuestButton
+          projectId={projectId}
+          variant="ghost"
+          className="w-full justify-start rounded-lg"
+        />
+      </PopoverContent>
+    </Popover>
   );
 }

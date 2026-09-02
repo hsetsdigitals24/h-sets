@@ -17,6 +17,7 @@ import {
   Trash2,
   UserCircle2,
   UserPlus,
+  Video,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -824,6 +825,40 @@ function MembersBar({
   const memberIds = new Set(members.map((m) => m.id));
   const addable = admins.filter((a) => !memberIds.has(a.id));
 
+  // Live call participants, shown alongside the member chips so all the
+  // people-info for the project sits in one place. Polls the project's room the
+  // same way the meeting menu used to — members can see who's on a call now.
+  const [inCall, setInCall] = useState<{ count: number; names: string[] }>({
+    count: 0,
+    names: [],
+  });
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch(
+          `/api/livekit/presence?projectId=${encodeURIComponent(projectId)}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) {
+          setInCall(data.presence?.[projectId] ?? { count: 0, names: [] });
+        }
+      } catch {
+        /* transient — keep last known state */
+      }
+    };
+    load();
+    const t = setInterval(load, 10_000);
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [projectId]);
+
   function add(userId: string) {
     if (!userId) return;
     const fd = new FormData();
@@ -885,6 +920,27 @@ function MembersBar({
             ))}
           </Select>
         </div>
+      )}
+
+      {inCall.count > 0 && (
+        <>
+          <span className="ml-2 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+            </span>
+            In call:
+          </span>
+          {inCall.names.map((name, i) => (
+            <span
+              key={`${name}-${i}`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-700"
+            >
+              <Video className="size-3" />
+              {name}
+            </span>
+          ))}
+        </>
       )}
     </div>
   );

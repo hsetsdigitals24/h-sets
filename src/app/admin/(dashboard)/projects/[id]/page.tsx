@@ -4,12 +4,11 @@ import { requireSection } from "@/lib/auth";
 import { finalizeInFlightRecordings } from "@/lib/livekit";
 import { isNoteTakerConfigured } from "@/lib/meeting-notes";
 import { PageHeading } from "@/components/admin/page-heading";
-import { DeleteButton } from "@/components/admin/delete-button";
 import { Badge } from "@/components/ui/badge";
 import { RecordingsList } from "@/components/lms/recordings-list";
 import { Board } from "./board";
 import { MeetingButton } from "./meeting-button";
-import { EditProjectDialog } from "./edit-project-dialog";
+import { ProjectActionsMenu } from "./project-actions-menu";
 import { PROJECT_STATUS_META } from "../project-status";
 import { deleteProject } from "../actions";
 
@@ -125,22 +124,15 @@ export default async function ProjectBoardPage({
             <Badge variant={statusMeta.badge}>{statusMeta.label}</Badge>
             <MeetingButton projectId={project.id} />
             {isSuperAdmin && (
-              <>
-                <EditProjectDialog
-                  project={{
-                    id: project.id,
-                    name: project.name,
-                    description: project.description,
-                    status,
-                  }}
-                />
-                <DeleteButton
-                  id={project.id}
-                  action={deleteProject}
-                  label="Delete project"
-                  confirmText="Delete this project and all its tasks? This cannot be undone."
-                />
-              </>
+              <ProjectActionsMenu
+                project={{
+                  id: project.id,
+                  name: project.name,
+                  description: project.description,
+                  status,
+                }}
+                deleteAction={deleteProject}
+              />
             )}
           </div>
         }

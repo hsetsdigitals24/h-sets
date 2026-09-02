@@ -23,6 +23,9 @@ import { PROJECT_STATUS_META, PROJECT_STATUS_ORDER } from "../project-status";
 
 export function EditProjectDialog({
   project,
+  variant = "outline",
+  size = "sm",
+  className,
 }: {
   project: {
     id: string;
@@ -30,6 +33,9 @@ export function EditProjectDialog({
     description: string | null;
     status: ProjectStatus;
   };
+  variant?: React.ComponentProps<typeof Button>["variant"];
+  size?: React.ComponentProps<typeof Button>["size"];
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +59,7 @@ export function EditProjectDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant={variant} size={size} className={className}>
           <Pencil className="size-4" /> Edit
         </Button>
       </DialogTrigger>
