@@ -29,40 +29,20 @@ export default async function AdminOverviewPage() {
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {groups.flatMap((group) => {
+          {groups.map((group) => {
             const meta = NAV_GROUP_META[group];
-
-            // Administration is surfaced as one card per item rather than a
-            // single group tile, so each tool is reachable in a single click.
-            if (group === "Administration") {
-              return itemsForGroup(group, sections).map((item) => {
-                const ItemIcon = item.icon;
-                return (
-                  <Link
-                    key={item.section}
-                    href={item.href}
-                    style={{ backgroundColor: meta.theme.primary }}
-                    className="group flex flex-col rounded-xl p-6 text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lg"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="inline-flex size-11 items-center justify-center rounded-xl bg-white/20 text-white">
-                        <ItemIcon className="size-5" />
-                      </span>
-                      <ArrowRight className="size-4 text-white/70 transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
-                    </div>
-                    <h2 className="mt-6 text-lg font-semibold tracking-tight">
-                      {item.label}
-                    </h2>
-                  </Link>
-                );
-              });
-            }
-
             const Icon = meta.icon;
-            return [
+
+            // Standalone groups are a single page: the card links straight to
+            // that page (not a section overview) and carries its own colour.
+            const href = meta.standalone
+              ? itemsForGroup(group, sections)[0]?.href ?? "/admin"
+              : `/admin/section/${meta.slug}`;
+
+            return (
               <Link
                 key={group}
-                href={`/admin/section/${meta.slug}`}
+                href={href}
                 style={{ backgroundColor: meta.theme.primary }}
                 className="group flex flex-col rounded-xl p-6 text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lg"
               >
@@ -78,8 +58,8 @@ export default async function AdminOverviewPage() {
                 <p className="mt-2 flex-1 text-sm text-white/80">
                   {meta.description}
                 </p>
-              </Link>,
-            ];
+              </Link>
+            );
           })}
         </div>
       )}

@@ -32,7 +32,10 @@ export const NAV_GROUPS = [
   "Marketing",
   "Business Developer",
   "Finance",
-  "Administration",
+  "Project Management",
+  "Standups",
+  "Notifications",
+  "Team & Roles",
 ] as const;
 
 export type NavGroup = (typeof NAV_GROUPS)[number];
@@ -70,10 +73,10 @@ export const NAV_ITEMS: NavItem[] = [
 
   { group: "Finance", section: "finance", label: "Finance", href: "/admin/finance", icon: Wallet },
 
-  { group: "Administration", section: "projects", label: "Project Management", href: "/admin/projects", icon: KanbanSquare },
-  { group: "Administration", section: "standups", label: "Standups", href: "/admin/standups", icon: Video },
-  { group: "Administration", section: "notifications", label: "Notifications", href: "/admin/notifications", icon: Bell },
-  { group: "Administration", section: "users", label: "Team & Roles", href: "/admin/users", icon: Users },
+  { group: "Project Management", section: "projects", label: "Project Management", href: "/admin/projects", icon: KanbanSquare },
+  { group: "Standups", section: "standups", label: "Standups", href: "/admin/standups", icon: Video },
+  { group: "Notifications", section: "notifications", label: "Notifications", href: "/admin/notifications", icon: Bell },
+  { group: "Team & Roles", section: "users", label: "Team & Roles", href: "/admin/users", icon: Users },
 ];
 
 /**
@@ -100,6 +103,12 @@ export type NavGroupMeta = {
   icon: LucideIcon;
   description: string;
   theme: GroupTheme;
+  /**
+   * A standalone group is a single page surfaced directly as its own landing
+   * card (linking straight to the page, not a section overview). It is not
+   * bucketed under a broader section heading.
+   */
+  standalone?: boolean;
 };
 
 export const NAV_GROUP_META: Record<NavGroup, NavGroupMeta> = {
@@ -169,14 +178,51 @@ export const NAV_GROUP_META: Record<NavGroup, NavGroupMeta> = {
       accentForeground: "#0b1020",
     },
   },
-  Administration: {
-    slug: "administration",
-    icon: Users,
-    description: "Projects, standups, notifications & team roles.",
+  "Project Management": {
+    slug: "project-management",
+    icon: KanbanSquare,
+    description: "Track projects and delivery.",
+    standalone: true,
     theme: {
       primary: "#4f46e5",
       primaryForeground: "#ffffff",
       accent: "#818cf8",
+      accentForeground: "#0b1020",
+    },
+  },
+  Standups: {
+    slug: "standups",
+    icon: Video,
+    description: "Daily standups and check-ins.",
+    standalone: true,
+    theme: {
+      primary: "#ca8a04",
+      primaryForeground: "#ffffff",
+      accent: "#fbbf24",
+      accentForeground: "#0b1020",
+    },
+  },
+  Notifications: {
+    slug: "notifications",
+    icon: Bell,
+    description: "Platform notifications.",
+    standalone: true,
+    theme: {
+      primary: "#db2777",
+      primaryForeground: "#ffffff",
+      accent: "#f472b6",
+      accentForeground: "#0b1020",
+    },
+  },
+  "Team & Roles": {
+    slug: "team-roles",
+    icon: Users,
+    description: "Manage team members and access.",
+    standalone: true,
+    theme: {
+      primary: "#0d9488",
+      primaryForeground: "#ffffff",
+      accent: "#2dd4bf",
       accentForeground: "#0b1020",
     },
   },

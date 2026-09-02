@@ -10,8 +10,6 @@ import {
   FileDown,
   Quote,
   Wallet,
-  KanbanSquare,
-  Users,
   ArrowRight,
   type LucideIcon,
 } from "lucide-react";
@@ -87,16 +85,6 @@ async function getGroupStats(group: NavGroup): Promise<Stat[]> {
         { label: "Budgets", value: budgets, icon: Wallet },
       ];
     }
-    case "Administration": {
-      const [projects, team] = await Promise.all([
-        prisma.project.count(),
-        prisma.user.count(),
-      ]);
-      return [
-        { label: "Projects", value: projects, icon: KanbanSquare },
-        { label: "Team members", value: team, icon: Users },
-      ];
-    }
     default:
       return [];
   }
@@ -117,6 +105,9 @@ export default async function SectionOverviewPage({
 
   // No accessible pages in this section for this user — send them home.
   if (items.length === 0) redirect("/admin");
+
+  // Standalone groups have no overview — go straight to the page.
+  if (NAV_GROUP_META[group].standalone) redirect(items[0].href);
 
   const stats = await getGroupStats(group);
 

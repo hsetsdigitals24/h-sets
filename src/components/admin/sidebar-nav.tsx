@@ -50,19 +50,22 @@ export function SectionNav({
           Dashboard
         </Link>
 
-        <Link
-          href={overviewHref}
-          onClick={onNavigate}
-          className={cn(
-            "mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
-            isActive(pathname, overviewHref)
-              ? "bg-primary text-primary-foreground"
-              : "text-foreground hover:bg-secondary"
-          )}
-        >
-          <GroupIcon className="size-4 shrink-0" />
-          {group} overview
-        </Link>
+        {/* Standalone groups are a single page — no section overview link. */}
+        {!meta.standalone && (
+          <Link
+            href={overviewHref}
+            onClick={onNavigate}
+            className={cn(
+              "mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
+              isActive(pathname, overviewHref)
+                ? "bg-primary text-primary-foreground"
+                : "text-foreground hover:bg-secondary"
+            )}
+          >
+            <GroupIcon className="size-4 shrink-0" />
+            {group} overview
+          </Link>
+        )}
 
         <div className="mt-2 space-y-1">
           {items.map((item) => {
@@ -137,10 +140,13 @@ export function SectionListNav({
           {groups.map((group) => {
             const meta = NAV_GROUP_META[group];
             const Icon = meta.icon;
+            const href = meta.standalone
+              ? itemsForGroup(group, sections)[0]?.href ?? "/admin"
+              : `/admin/section/${meta.slug}`;
             return (
               <Link
                 key={group}
-                href={`/admin/section/${meta.slug}`}
+                href={href}
                 onClick={onNavigate}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
