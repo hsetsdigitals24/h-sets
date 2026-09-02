@@ -19,7 +19,7 @@ export default async function AdminLayout({
       <Sidebar sections={sections} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar name={user.name} role={user.role} sections={sections} />
-        <div className="flex-1 overflow-x-hidden p-6">{children}</div>
+        <div className="flex-1 overflow-x-hidden p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );

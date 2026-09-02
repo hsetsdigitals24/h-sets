@@ -23,7 +23,7 @@ export default async function StudentLayout({
       <StudentSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <StudentTopbar name={user.name} />
-        <div className="flex-1 overflow-x-hidden p-6">{children}</div>
+        <div className="flex-1 overflow-x-hidden p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );
