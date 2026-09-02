@@ -1,18 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Menu, X } from "lucide-react";
 import type { AdminSection } from "@/lib/rbac";
-import { SidebarNav } from "./sidebar-nav";
+import { groupForPath } from "./nav";
+import { SectionNav, SectionListNav } from "./sidebar-nav";
 
 /**
  * Hamburger button + slide-in drawer that surfaces the admin navigation on
  * viewports too narrow for the persistent sidebar (below `md`). Closes on
- * navigation via {@link SidebarNav}'s `onNavigate`.
+ * navigation via the nav body's `onNavigate`. Contextual: shows the current
+ * section's pages, or a list of all sections on the landing page.
  */
 export function MobileNav({ sections }: { sections: AdminSection[] }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const group = groupForPath(pathname);
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
@@ -41,7 +46,18 @@ export function MobileNav({ sections }: { sections: AdminSection[] }) {
               <X className="size-5" />
             </DialogPrimitive.Close>
           </div>
-          <SidebarNav sections={sections} onNavigate={() => setOpen(false)} />
+          {group ? (
+            <SectionNav
+              group={group}
+              sections={sections}
+              onNavigate={() => setOpen(false)}
+            />
+          ) : (
+            <SectionListNav
+              sections={sections}
+              onNavigate={() => setOpen(false)}
+            />
+          )}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

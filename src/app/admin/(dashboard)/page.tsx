@@ -1,98 +1,57 @@
 import Link from "next/link";
-import { Inbox, GraduationCap, Briefcase, Newspaper, ClipboardList } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { ArrowRight } from "lucide-react";
+import { requireUser, getAllowedSections } from "@/lib/auth";
 import { PageHeading } from "@/components/admin/page-heading";
-import { StatCard } from "@/components/admin/stat-card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
+import { NAV_GROUP_META, accessibleGroups } from "@/components/admin/nav";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOverviewPage() {
-  const [newLeads, totalLeads, cohorts, jobs, insights, pendingApplications, recentLeads] =
-    await Promise.all([
-      prisma.lead.count({ where: { status: "new" } }),
-      prisma.lead.count(),
-      prisma.cohort.count(),
-      prisma.job.count(),
-      prisma.insight.count(),
-      prisma.application.count({ where: { status: "pending" } }),
-      prisma.lead.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 6,
-      }),
-    ]);
+  const user = await requireUser();
+  const sections = await getAllowedSections(user.id, user.role);
+  const groups = accessibleGroups(sections);
 
   return (
-    <div>
+    <div className="mx-auto w-full lg:w-[70%]">
       <PageHeading
-        title="Overview"
-        description="A snapshot of your platform activity."
+        title={`Welcome${user.name ? `, ${user.name.split(" ")[0]}` : ""}`}
+        description="Choose a section to get started."
       />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="New leads" value={newLeads} icon={Inbox} />
-        <StatCard label="Total leads" value={totalLeads} icon={Inbox} />
-        <StatCard label="Cohorts" value={cohorts} icon={GraduationCap} />
-        <StatCard label="Open jobs" value={jobs} icon={Briefcase} />
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Insights" value={insights} icon={Newspaper} />
-        <Link href="/admin/applications">
-          <StatCard label="Pending applications" value={pendingApplications} icon={ClipboardList} />
-        </Link>
-      </div>
-
-      <div className="mt-8 rounded-2xl border border-border bg-card p-5 shadow-soft">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Recent submissions</h2>
-          <Link href="/admin/leads" className="text-sm font-medium text-primary hover:underline">
-            View all →
-          </Link>
+      {groups.length === 0 ? (
+        <p className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground shadow-soft">
+          You don&apos;t have access to any sections yet. Contact a super admin
+          to be granted access.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {groups.map((group) => {
+            const meta = NAV_GROUP_META[group];
+            const Icon = meta.icon;
+            return (
+              <Link
+                key={group}
+                href={`/admin/section/${meta.slug}`}
+                style={{ backgroundColor: meta.theme.primary }}
+                className="group flex flex-col rounded-xl p-6 text-white shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex size-11 items-center justify-center rounded-xl bg-white/20 text-white">
+                    <Icon className="size-5" />
+                  </span>
+                  <ArrowRight className="size-4 text-white/70 transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
+                </div>
+                <h2 className="mt-6 text-lg font-semibold tracking-tight">
+                  {group}
+                </h2>
+                <p className="mt-2 flex-1 text-sm text-white/80">
+                  {meta.description}
+                </p>
+              </Link>
+            );
+          })}
         </div>
-        {recentLeads.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            No submissions yet.
-          </p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Received</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentLeads.map((lead) => (
-                <TableRow key={lead.id.toString()}>
-                  <TableCell className="font-medium">
-                    <Link href={`/admin/leads/${lead.id}`} className="hover:underline">
-                      {lead.name ?? "—"}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="muted">{lead.type}</Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{lead.email ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {lead.createdAt.toLocaleDateString()}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
+      )}
     </div>
   );
 }
