@@ -65,7 +65,7 @@ async function getGroupStats(group: NavGroup): Promise<Stat[]> {
         { label: "Testimonials", value: testimonials, icon: Quote },
       ];
     }
-    case "Business Developer": {
+    case "Business Development": {
       const [newLeads, totalLeads] = await Promise.all([
         prisma.lead.count({ where: { status: "new" } }),
         prisma.lead.count(),
