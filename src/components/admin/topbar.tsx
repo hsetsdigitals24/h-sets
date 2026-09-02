@@ -4,6 +4,7 @@ import { ROLE_LABELS, type AdminSection } from "@/lib/rbac";
 import { signOutAction } from "@/app/admin/actions";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { MobileNav } from "@/components/admin/mobile-nav";
+import { HeaderBrand } from "@/components/admin/header-brand";
 
 export function Topbar({
   name,
@@ -21,6 +22,7 @@ export function Topbar({
         <div className="text-base font-bold md:hidden">
           H-SETS <span className="text-primary">Admin</span>
         </div>
+        <HeaderBrand />
       </div>
       <div className="flex items-center gap-3 sm:gap-4">
         <NotificationBell viewAllHref="/admin/notifications" />

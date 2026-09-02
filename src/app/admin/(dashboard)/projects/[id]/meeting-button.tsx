@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
+import { CopyMeetingLinkButton } from "@/components/meet/copy-meeting-link-button";
 
 type Presence = { count: number; names: string[] };
 
@@ -65,6 +66,7 @@ export function MeetingButton({ projectId }: { projectId: string }) {
           <Video className="size-4" /> {live > 0 ? "Join meeting" : "Start meeting"}
         </Link>
       </Button>
+      <CopyMeetingLinkButton projectId={projectId} />
       <InviteGuestButton projectId={projectId} />
     </div>
   );

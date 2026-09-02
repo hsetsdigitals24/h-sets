@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/utils";
 import { PageHeading } from "@/components/admin/page-heading";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { CohortPicker } from "@/components/lms/cohort-picker";
+import { CopyMeetingLinkButton } from "@/components/meet/copy-meeting-link-button";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -105,6 +106,7 @@ export default async function AttendancePage({
                               <Video className="size-4" /> Start call
                             </Link>
                           </Button>
+                          <CopyMeetingLinkButton sessionId={s.id} variant="ghost" />
                           <DeleteButton id={s.id} action={deleteSession} confirmText={`Delete "${s.title}"?`} />
                         </div>
                       </TableCell>
