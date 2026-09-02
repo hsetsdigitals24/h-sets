@@ -30,7 +30,7 @@ export const NAV_GROUPS = [
   "Academy",
   "Careers",
   "Marketing",
-  "Sales",
+  "Business Developer",
   "Finance",
   "Administration",
 ] as const;
@@ -66,11 +66,11 @@ export const NAV_ITEMS: NavItem[] = [
   { group: "Marketing", section: "testimonials", label: "Testimonials", href: "/admin/testimonials", icon: Quote },
   { group: "Marketing", section: "portfolio", label: "Portfolio", href: "/admin/portfolio", icon: FolderKanban },
 
-  { group: "Sales", section: "leads", label: "Leads / CRM", href: "/admin/leads", icon: Inbox },
+  { group: "Business Developer", section: "leads", label: "Leads / CRM", href: "/admin/leads", icon: Inbox },
 
   { group: "Finance", section: "finance", label: "Finance", href: "/admin/finance", icon: Wallet },
 
-  { group: "Administration", section: "projects", label: "Projects", href: "/admin/projects", icon: KanbanSquare },
+  { group: "Administration", section: "projects", label: "Project Management", href: "/admin/projects", icon: KanbanSquare },
   { group: "Administration", section: "standups", label: "Standups", href: "/admin/standups", icon: Video },
   { group: "Administration", section: "notifications", label: "Notifications", href: "/admin/notifications", icon: Bell },
   { group: "Administration", section: "users", label: "Team & Roles", href: "/admin/users", icon: Users },
@@ -147,7 +147,7 @@ export const NAV_GROUP_META: Record<NavGroup, NavGroupMeta> = {
       accentForeground: "#0b1020",
     },
   },
-  Sales: {
+  "Business Developer": {
     slug: "sales",
     icon: Inbox,
     description: "Leads and CRM pipeline.",
