@@ -12,6 +12,7 @@ import {
 import { isNoteTakerConfigured } from "@/lib/meeting-notes";
 import { RecordingsList } from "@/components/lms/recordings-list";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
+import { CopyMeetingLinkButton } from "@/components/meet/copy-meeting-link-button";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,7 @@ export default async function StandupRoomPage({
             <Video className="size-4" /> Start call
           </Link>
         </Button>
+        <CopyMeetingLinkButton company={room.slug} />
         <InviteGuestButton company={room.slug} />
       </div>
 

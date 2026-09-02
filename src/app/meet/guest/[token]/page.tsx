@@ -35,7 +35,7 @@ export default async function GuestMeetPage({
   // mint (and its own re-validation) happens in /api/livekit/guest-token.
   const invite = await prisma.meetingInvite.findUnique({
     where: { token },
-    select: { label: true, expiresAt: true, revokedAt: true },
+    select: { label: true, expiresAt: true, revokedAt: true, shareable: true },
   });
 
   const problem = inviteProblem(invite);
@@ -52,5 +52,7 @@ export default async function GuestMeetPage({
     );
   }
 
-  return <GuestRoom token={token} title={invite.label} />;
+  return (
+    <GuestRoom token={token} title={invite.label} promptName={invite.shareable} />
+  );
 }

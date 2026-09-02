@@ -6,6 +6,7 @@ import { site } from "@/lib/site";
 import { sendMeetingInvite } from "@/lib/email";
 import {
   resolveInviteTarget,
+  getOrCreateShareLink,
   inviteTtlHours,
   companySlugFromRoom,
   projectIdFromRoom,
@@ -17,7 +18,9 @@ import {
  * Manage external-guest invites for a video meeting.
  *
  * POST   /api/livekit/invite   { email, guestName?, sessionId?|projectId?|company? }
- *          → creates an invite, emails the guest a login-free join link
+ *          → creates a personal invite, emails the guest a login-free join link
+ * POST   /api/livekit/invite   { shareable: true, sessionId?|projectId?|company? }
+ *          → returns the reusable "room link" for that meeting (no email sent)
  * GET    /api/livekit/invite?sessionId=…|projectId=…|company=…
  *          → lists this meeting's invites (for the host to review / revoke)
  * DELETE /api/livekit/invite?id=…
@@ -51,6 +54,7 @@ export async function POST(req: Request) {
   let body: {
     email?: string;
     guestName?: string;
+    shareable?: boolean;
     sessionId?: string;
     projectId?: string;
     company?: string;
@@ -61,17 +65,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const email = body.email?.trim().toLowerCase();
-  if (!email || !EMAIL_RE.test(email)) {
-    return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
-  }
-
   const target = targetFrom(body);
   if (!target) {
     return NextResponse.json(
       { error: "Missing sessionId, projectId or company." },
       { status: 400 }
     );
+  }
+
+  // Shareable "room link" mode: no email, no send — just hand back the reusable
+  // link for this meeting (find-or-create), which the host copies and shares.
+  if (body.shareable) {
+    const link = await getOrCreateShareLink(session.user, target);
+    if (!link.ok) {
+      return NextResponse.json({ error: link.error }, { status: link.status });
+    }
+    return NextResponse.json({
+      shareable: true,
+      joinUrl: `${site.url}/meet/guest/${link.token}`,
+      label: link.label,
+      expiresAt: link.expiresAt,
+    });
+  }
+
+  const email = body.email?.trim().toLowerCase();
+  if (!email || !EMAIL_RE.test(email)) {
+    return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
   }
 
   const resolved = await resolveInviteTarget(session.user, target);

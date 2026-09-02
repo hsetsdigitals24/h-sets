@@ -5,6 +5,7 @@ import { PageHeading } from "@/components/admin/page-heading";
 import { Button } from "@/components/ui/button";
 import { listCompanyRooms, companyLivePresence } from "@/lib/livekit";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
+import { CopyMeetingLinkButton } from "@/components/meet/copy-meeting-link-button";
 import { CreateRoomForm } from "./create-room-form";
 import { DeleteRoomButton } from "./delete-room-button";
 
@@ -101,6 +102,7 @@ export default async function StandupsPage() {
                   <Button asChild variant="outline">
                     <Link href={`/admin/standups/${room.slug}`}>Recordings</Link>
                   </Button>
+                  <CopyMeetingLinkButton company={room.slug} />
                   <InviteGuestButton company={room.slug} />
                 </div>
               </div>

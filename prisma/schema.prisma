@@ -1088,12 +1088,19 @@ enum RecordingStatus {
 }
 
 /// An invitation for an external guest (someone with no platform account) to
-/// join a single video room by email. The `token` is an unguessable secret that
-/// gates a public, login-free join page (/meet/guest/<token>); a guest that opens
-/// it gets a restricted LiveKit token (publish/subscribe, no recording) scoped to
+/// join a video room. The `token` is an unguessable secret that gates a public,
+/// login-free join page (/meet/guest/<token>); a guest that opens it gets a
+/// restricted LiveKit token (publish/subscribe, no recording) scoped to
 /// `roomName` only. `roomName` is the resolved LiveKit room (e.g. company-all-hands,
 /// project-<id>, class-<id>), so invites are room-type agnostic. Revocable and
 /// time-limited; the LiveKit webhook ignores guest identities (no real User row).
+///
+/// Two flavours share this model:
+///  - Personal (shareable = false): sent to one `email`, one guest, identity
+///    `guest-<id>`. This is the default.
+///  - Shareable (shareable = true): a single reusable "room link" with no email,
+///    handed out freely. Every opener types their own name and joins under a
+///    unique identity `guest-<id>-<rand>` so they don't evict one another.
 model MeetingInvite {
   id            String    @id @default(cuid())
   // Unguessable secret in the join URL — the only thing gating guest access.
@@ -1102,9 +1109,11 @@ model MeetingInvite {
   roomName      String
   // Human-readable meeting name, shown in the email + guest join page.
   label         String
-  // Who was invited; the email the link was sent to.
-  email         String
+  // Who was invited; the email the link was sent to. Null for shareable links.
+  email         String?
   guestName     String?
+  // A reusable multi-use "room link" (no single addressee) vs a personal invite.
+  shareable     Boolean   @default(false)
   // Access window — guests can only join before this instant.
   expiresAt     DateTime
   // Set when a host revokes the invite; a revoked invite can never join.

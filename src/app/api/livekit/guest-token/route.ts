@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { AccessToken } from "livekit-server-sdk";
 import { prisma } from "@/lib/prisma";
 import { livekitConfig } from "@/lib/livekit";
@@ -7,14 +8,20 @@ import { livekitConfig } from "@/lib/livekit";
  * Mints a LiveKit token for an external guest from their invite token. This is
  * the ONLY login-free path into a room: the invite token is the secret, so no
  * session is required. The grant is deliberately minimal — publish + subscribe
- * to the invite's room, no recording — and the LiveKit identity is
- * `guest-<inviteId>`, which is not a real User.id, so the attendance/participation
- * webhook (which resolves identities to User rows) safely ignores guests.
+ * to the invite's room, no recording — and the LiveKit identity is never a real
+ * User.id, so the attendance/participation webhook (which resolves identities to
+ * User rows) safely ignores guests.
  *
- * GET /api/livekit/guest-token?token=<inviteToken>
+ * Personal invites map to a fixed identity `guest-<inviteId>`. A shareable "room
+ * link" is reused by many people, so each joiner gets a unique identity
+ * `guest-<inviteId>-<rand>` (a shared identity would make LiveKit evict all but
+ * one) and supplies their own display `name`.
+ *
+ * GET /api/livekit/guest-token?token=<inviteToken>&name=<displayName>
  */
 export async function GET(req: Request) {
-  const token = new URL(req.url).searchParams.get("token");
+  const url = new URL(req.url);
+  const token = url.searchParams.get("token");
   if (!token) {
     return NextResponse.json({ error: "Missing invite token" }, { status: 400 });
   }
@@ -27,6 +34,7 @@ export async function GET(req: Request) {
       label: true,
       email: true,
       guestName: true,
+      shareable: true,
       expiresAt: true,
       revokedAt: true,
     },
@@ -49,9 +57,21 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Video is not configured yet." }, { status: 503 });
   }
 
+  // A shareable link is used by many people at once, so each joiner needs a
+  // distinct identity (LiveKit evicts a second participant sharing an identity)
+  // and brings their own display name via ?name=. Personal invites keep the
+  // fixed identity + stored name.
+  const displayName = url.searchParams.get("name")?.trim().slice(0, 60);
+  const identity = invite.shareable
+    ? `guest-${invite.id}-${randomBytes(6).toString("base64url")}`
+    : `guest-${invite.id}`;
+  const name = invite.shareable
+    ? displayName || "Guest"
+    : invite.guestName || invite.email || "Guest";
+
   const at = new AccessToken(cfg.apiKey, cfg.apiSecret, {
-    identity: `guest-${invite.id}`,
-    name: invite.guestName || invite.email,
+    identity,
+    name,
     ttl: "2h",
   });
   at.addGrant({
@@ -78,6 +98,6 @@ export async function GET(req: Request) {
     url: cfg.url,
     room: invite.roomName,
     label: invite.label,
-    identity: `guest-${invite.id}`,
+    identity,
   });
 }

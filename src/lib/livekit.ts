@@ -8,7 +8,7 @@ import {
   S3Upload,
 } from "livekit-server-sdk";
 import type { EgressInfo } from "livekit-server-sdk";
-import { randomUUID } from "crypto";
+import { randomUUID, randomBytes } from "crypto";
 import type { Role, RecordingStatus } from "@prisma/client";
 import { prisma } from "./prisma";
 
@@ -537,6 +537,16 @@ export function inviteTtlHours(): number {
 }
 
 /**
+ * How long a shareable "room link" stays valid, in hours (default 720 = 30
+ * days). Longer than a personal invite because the same link is reused across
+ * recurring standups rather than sent for one call.
+ */
+export function shareLinkTtlHours(): number {
+  const n = Number(process.env.GUEST_SHARE_TTL_HOURS);
+  return Number.isFinite(n) && n > 0 ? n : 720;
+}
+
+/**
  * Resolve an InviteTarget to a concrete LiveKit room + display label, enforcing
  * that `user` is allowed to invite a guest to it. Inviting is a staff action, so
  * students are refused even for a class they're enrolled in; otherwise the same
@@ -567,6 +577,57 @@ export async function resolveInviteTarget(
   const access = await classSessionAccess(user, target.id);
   if (!access.ok) return { ok: false, status: 403, error: "No access to this class." };
   return { ok: true, roomName: roomForClassSession(target.id), label: access.title ?? "Class session" };
+}
+
+export type ResolvedShareLink =
+  | { ok: true; token: string; label: string; expiresAt: Date }
+  | { ok: false; status: number; error: string };
+
+/**
+ * Find — or lazily create — the reusable shareable room link for a target,
+ * enforcing the same staff access gate as {@link resolveInviteTarget}. The link
+ * is stable: re-invoking returns the existing active link so the URL you copy
+ * doesn't change between calls; a fresh one is only minted once the previous has
+ * expired or been revoked. Unlike a personal invite it has no `email` and its
+ * token is reused by many guests (each joins under a unique identity — see the
+ * guest-token route).
+ */
+export async function getOrCreateShareLink(
+  user: Actor,
+  target: InviteTarget
+): Promise<ResolvedShareLink> {
+  const resolved = await resolveInviteTarget(user, target);
+  if (!resolved.ok) return resolved;
+
+  const existing = await prisma.meetingInvite.findFirst({
+    where: {
+      roomName: resolved.roomName,
+      shareable: true,
+      revokedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { token: true, expiresAt: true },
+  });
+  if (existing) {
+    return { ok: true, token: existing.token, label: resolved.label, expiresAt: existing.expiresAt };
+  }
+
+  const token = randomBytes(24).toString("base64url");
+  const expiresAt = new Date(Date.now() + shareLinkTtlHours() * 60 * 60 * 1000);
+  await prisma.meetingInvite.create({
+    data: {
+      token,
+      roomName: resolved.roomName,
+      label: resolved.label,
+      shareable: true,
+      email: null,
+      guestName: null,
+      expiresAt,
+      createdById: user.id,
+    },
+  });
+  return { ok: true, token, label: resolved.label, expiresAt };
 }
 
 /**
