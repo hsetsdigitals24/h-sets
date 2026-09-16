@@ -21,6 +21,7 @@ export type AdminSection =
   | "portfolio"
   | "applications"
   | "enrollments"
+  | "students"
   | "learning"
   | "grading"
   | "exams"
@@ -46,6 +47,9 @@ const SECTION_ROLES: Record<AdminSection, Role[] | "all"> = {
   portfolio: ["MARKETING_ADMIN", "SOCIAL_MEDIA_MANAGER"],
   applications: ["ACADEMY_ADMIN"],
   enrollments: ["ACADEMY_ADMIN"],
+  // Read-only roster of academy students, grouped by programme and cohort.
+  // Instructors see it too, scoped to the cohorts they are assigned to.
+  students: ["ACADEMY_ADMIN", "INSTRUCTOR"],
   learning: ["ACADEMY_ADMIN", "INSTRUCTOR"],
   grading: ["ACADEMY_ADMIN", "INSTRUCTOR"],
   exams: ["ACADEMY_ADMIN", "INSTRUCTOR"],

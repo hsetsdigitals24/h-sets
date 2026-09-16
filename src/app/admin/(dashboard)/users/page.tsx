@@ -26,7 +26,11 @@ const MANAGEABLE = (r: Role) => r !== Role.SUPER_ADMIN && r !== Role.STUDENT;
 
 export default async function UsersPage() {
   const current = await requireSection("users");
-  const users = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
+  // Students are academy users, not team members — keep them out of this list.
+  const users = await prisma.user.findMany({
+    where: { role: { not: Role.STUDENT } },
+    orderBy: { createdAt: "asc" },
+  });
 
   // Batch-load per-user overrides so each row can prefill the access editor with
   // the member's current effective sections (role defaults when no overrides).
@@ -76,11 +80,13 @@ export default async function UsersPage() {
                   <form action={updateUserRole} className="flex items-center gap-2">
                     <input type="hidden" name="id" value={u.id} />
                     <Select name="role" defaultValue={u.role} className="min-w-[170px]">
-                      {Object.values(Role).map((r) => (
-                        <option key={r} value={r}>
-                          {ROLE_LABELS[r]}
-                        </option>
-                      ))}
+                      {Object.values(Role)
+                        .filter((r) => r !== Role.STUDENT)
+                        .map((r) => (
+                          <option key={r} value={r}>
+                            {ROLE_LABELS[r]}
+                          </option>
+                        ))}
                     </Select>
                     <Button type="submit" variant="outline" size="sm">
                       Update

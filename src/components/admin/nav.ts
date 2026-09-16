@@ -55,6 +55,7 @@ export const NAV_ITEMS: NavItem[] = [
   { group: "Academy", section: "instructors", label: "Instructors", href: "/admin/instructors", icon: UserCog },
   { group: "Academy", section: "applications", label: "Applications", href: "/admin/applications", icon: ClipboardList },
   { group: "Academy", section: "enrollments", label: "Enrollments", href: "/admin/enrollments", icon: UserPlus },
+  { group: "Academy", section: "students", label: "Students", href: "/admin/students", icon: GraduationCap },
   { group: "Academy", section: "learning", label: "Learning Content", href: "/admin/learning", icon: BookOpen },
   { group: "Academy", section: "grading", label: "Assignments", href: "/admin/grading", icon: ClipboardCheck },
   { group: "Academy", section: "exams", label: "Exams (CBT)", href: "/admin/exams", icon: FileCheck2 },
