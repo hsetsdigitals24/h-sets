@@ -4,6 +4,7 @@ import { requireSection } from "@/lib/auth";
 import { ROLE_LABELS, effectiveSections, type AdminSection } from "@/lib/rbac";
 import { PageHeading } from "@/components/admin/page-heading";
 import { DeleteButton } from "@/components/admin/delete-button";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import {
@@ -70,10 +71,20 @@ export default async function UsersPage() {
             {users.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="font-medium">
-                  {u.name}
-                  {u.id === current.id && (
-                    <span className="ml-2 text-xs text-muted-foreground">(you)</span>
-                  )}
+                  <div className="flex items-center gap-3">
+                    <Avatar src={u.image} name={u.name} size={32} />
+                    <span>
+                      {u.name}
+                      {u.jobTitle && (
+                        <span className="block text-xs font-normal text-muted-foreground">
+                          {u.jobTitle}
+                        </span>
+                      )}
+                    </span>
+                    {u.id === current.id && (
+                      <span className="text-xs text-muted-foreground">(you)</span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground">{u.email}</TableCell>
                 <TableCell>

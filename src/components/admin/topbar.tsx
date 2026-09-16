@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LogOut } from "lucide-react";
 import type { Role } from "@prisma/client";
 import { ROLE_LABELS, type AdminSection } from "@/lib/rbac";
@@ -5,13 +6,16 @@ import { signOutAction } from "@/app/admin/actions";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { MobileNav } from "@/components/admin/mobile-nav";
 import { HeaderBrand } from "@/components/admin/header-brand";
+import { Avatar } from "@/components/ui/avatar";
 
 export function Topbar({
   name,
+  image,
   role,
   sections,
 }: {
   name?: string | null;
+  image?: string | null;
   role: Role;
   sections: AdminSection[];
 }) {
@@ -26,10 +30,20 @@ export function Topbar({
       </div>
       <div className="flex items-center gap-3 sm:gap-4">
         <NotificationBell viewAllHref="/admin/notifications" />
-        <div className="hidden text-right leading-tight sm:block">
-          <div className="text-sm font-semibold">{name ?? "Admin"}</div>
-          <div className="text-xs text-muted-foreground">{ROLE_LABELS[role]}</div>
-        </div>
+        <Link
+          href="/admin/profile"
+          title="My profile"
+          className="flex items-center gap-2.5 rounded-full p-0.5 pr-1 transition-colors hover:bg-secondary sm:pr-3"
+        >
+          <Avatar src={image} name={name} size={36} />
+          <span className="hidden text-right leading-tight sm:block">
+            <span className="block text-sm font-semibold">{name ?? "Admin"}</span>
+            <span className="block text-xs text-muted-foreground">
+              {ROLE_LABELS[role]}
+            </span>
+          </span>
+          <span className="sr-only sm:hidden">My profile</span>
+        </Link>
         <form action={signOutAction}>
           <button
             type="submit"

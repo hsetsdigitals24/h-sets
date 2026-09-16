@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { AccessToken } from "livekit-server-sdk";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { encodeParticipantMetadata } from "@/lib/meeting-identity";
 import {
   classSessionAccess,
   projectMeetingAccess,
@@ -71,9 +73,18 @@ export async function GET(req: Request) {
     );
   }
 
+  // Read the display name + profile picture from the database rather than the
+  // JWT so a member who just updated their profile appears with it right away.
+  const profile = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { name: true, image: true },
+  });
+
   const at = new AccessToken(cfg.apiKey, cfg.apiSecret, {
     identity: session.user.id,
-    name: session.user.name ?? undefined,
+    name: profile?.name ?? session.user.name ?? undefined,
+    // Carries the avatar to every other participant's tile.
+    metadata: encodeParticipantMetadata(profile?.image),
     // Short TTL: the client refetches if it needs to reconnect.
     ttl: "2h",
   });

@@ -5,10 +5,10 @@ import Link from "next/link";
 import { Loader2, VideoOff } from "lucide-react";
 import {
   LiveKitRoom,
-  VideoConference,
   formatChatMessageLinks,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
+import { MeetingStage } from "@/components/meet/meeting-stage";
 import { Button } from "@/components/ui/button";
 import { RecordButton } from "@/components/lms/record-button";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
@@ -113,7 +113,7 @@ export function ClassRoom({
         }}
         style={{ height: "100%" }}
       >
-        <VideoConference chatMessageFormatter={formatChatMessageLinks} />
+        <MeetingStage chatMessageFormatter={formatChatMessageLinks} />
       </LiveKitRoom>
       {!isStudent && (
         <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center gap-2 [&>*]:pointer-events-auto">

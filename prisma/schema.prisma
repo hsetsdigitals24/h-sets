@@ -39,6 +39,14 @@ model User {
   passwordHash  String
   role          Role      @default(STUDENT)
   createdAt     DateTime  @default(now())
+
+  // Staff profile. `image` (above) is the permanent public URL of the member's
+  // profile picture in the public R2 bucket; it is shown in the admin header and
+  // as their avatar in video calls. The rest is free-text detail a staff member
+  // maintains themselves under /admin/profile.
+  jobTitle      String?
+  phone         String?
+  bio           String?
   accounts      Account[]
   sessions      Session[]
 
