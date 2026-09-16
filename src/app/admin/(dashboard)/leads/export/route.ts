@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireSection } from "@/lib/auth";
+import { requireLeadsAccess } from "@/lib/lead-access";
 import {
   LEAD_STATUSES,
   LEAD_TYPES,
@@ -24,7 +24,7 @@ function csvCell(value: unknown): string {
 }
 
 export async function GET(req: Request) {
-  await requireSection("leads");
+  const { user, seesAll } = await requireLeadsAccess();
 
   const url = new URL(req.url);
   const q = url.searchParams.get("q") ?? undefined;
@@ -33,7 +33,8 @@ export async function GET(req: Request) {
   const tier = url.searchParams.get("tier") ?? undefined;
   const owner = url.searchParams.get("owner") ?? undefined;
 
-  const where: Prisma.LeadWhereInput = {};
+  // Non-super-admins can only export their own book.
+  const where: Prisma.LeadWhereInput = seesAll ? {} : { ownerId: user.id };
   if (type && LEAD_TYPES.includes(type as (typeof LEAD_TYPES)[number])) {
     where.type = type;
   }
@@ -43,7 +44,7 @@ export async function GET(req: Request) {
   if (tier && TIERS.includes(tier as LeadTier)) {
     where.tier = tier;
   }
-  if (owner) {
+  if (seesAll && owner) {
     where.ownerId = owner === "unassigned" ? null : owner;
   }
   if (q) {

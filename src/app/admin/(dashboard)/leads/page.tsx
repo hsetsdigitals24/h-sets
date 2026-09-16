@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireSection } from "@/lib/auth";
+import { requireLeadsAccess } from "@/lib/lead-access";
 import { PageHeading } from "@/components/admin/page-heading";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -57,11 +57,13 @@ export default async function LeadsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  await requireSection("leads");
+  const { user, seesAll } = await requireLeadsAccess();
   const sp = await searchParams;
 
   const page = Math.max(1, Number(sp.page) || 1);
-  const where: Prisma.LeadWhereInput = {};
+  // Non-super-admins only ever see their own book of leads; the owner filter
+  // and column are pointless for them, so they are hidden below.
+  const where: Prisma.LeadWhereInput = seesAll ? {} : { ownerId: user.id };
   if (sp.type && LEAD_TYPES.includes(sp.type as (typeof LEAD_TYPES)[number])) {
     where.type = sp.type;
   }
@@ -71,7 +73,7 @@ export default async function LeadsPage({
   if (sp.tier && TIERS.includes(sp.tier as LeadTier)) {
     where.tier = sp.tier;
   }
-  if (sp.owner) {
+  if (seesAll && sp.owner) {
     where.ownerId = sp.owner === "unassigned" ? null : sp.owner;
   }
   if (sp.q) {
@@ -91,11 +93,13 @@ export default async function LeadsPage({
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
-    prisma.user.findMany({
-      where: { role: { in: ["SALES_ADMIN", "SUPER_ADMIN"] } },
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    }),
+    seesAll
+      ? prisma.user.findMany({
+          where: { role: { in: ["SALES_ADMIN", "SUPER_ADMIN"] } },
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        })
+      : Promise.resolve([] as { id: string; name: string }[]),
   ]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -106,7 +110,11 @@ export default async function LeadsPage({
       <PageHeading
         back={{ href: "/admin", label: "Back to dashboard" }}
         title="Leads / CRM"
-        description={`${total} submission${total === 1 ? "" : "s"} captured.`}
+        description={
+          seesAll
+            ? `${total} submission${total === 1 ? "" : "s"} captured.`
+            : `${total} lead${total === 1 ? "" : "s"} assigned to you.`
+        }
         action={
           <div className="flex gap-2">
             <LeadCreateForm />
@@ -152,15 +160,17 @@ export default async function LeadsPage({
             </option>
           ))}
         </Select>
-        <Select name="owner" defaultValue={sp.owner ?? ""} className="w-auto min-w-[150px]">
-          <option value="">All owners</option>
-          <option value="unassigned">Unassigned</option>
-          {owners.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name}
-            </option>
-          ))}
-        </Select>
+        {seesAll && (
+          <Select name="owner" defaultValue={sp.owner ?? ""} className="w-auto min-w-[150px]">
+            <option value="">All owners</option>
+            <option value="unassigned">Unassigned</option>
+            {owners.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </Select>
+        )}
         <Button type="submit" variant="outline" size="sm">
           Filter
         </Button>
@@ -179,7 +189,7 @@ export default async function LeadsPage({
                 <TableHead>Type</TableHead>
                 <TableHead>Tier</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Owner</TableHead>
+                {seesAll && <TableHead>Owner</TableHead>}
                 <TableHead>Status</TableHead>
                 <TableHead>Score</TableHead>
                 <TableHead>Received</TableHead>
@@ -202,9 +212,11 @@ export default async function LeadsPage({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{lead.email ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {lead.owner?.name ?? "—"}
-                  </TableCell>
+                  {seesAll && (
+                    <TableCell className="text-muted-foreground">
+                      {lead.owner?.name ?? "—"}
+                    </TableCell>
+                  )}
                   <TableCell>
                     <Badge variant={STATUS_VARIANT[lead.status as LeadStatus] ?? "muted"}>
                       {STATUS_LABELS[lead.status as LeadStatus] ?? lead.status}

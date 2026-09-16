@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Role } from "@prisma/client";
 import {
   Inbox,
   CalendarDays,
@@ -14,6 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { requireUser, getAllowedSections } from "@/lib/auth";
+import { leadScopeWhere } from "@/lib/lead-access";
 import { prisma } from "@/lib/prisma";
 import { PageHeading } from "@/components/admin/page-heading";
 import { StatCard } from "@/components/admin/stat-card";
@@ -29,7 +31,10 @@ export const dynamic = "force-dynamic";
 type Stat = { label: string; value: number; icon: LucideIcon };
 
 /** Quick counters relevant to a section, shown at the top of its overview. */
-async function getGroupStats(group: NavGroup): Promise<Stat[]> {
+async function getGroupStats(
+  group: NavGroup,
+  user: { id: string; role: Role }
+): Promise<Stat[]> {
   switch (group) {
     case "Academy": {
       const [cohorts, pendingApplications, enrollments] = await Promise.all([
@@ -66,9 +71,11 @@ async function getGroupStats(group: NavGroup): Promise<Stat[]> {
       ];
     }
     case "Business Development": {
+      // Counters respect lead visibility: only super admins see the whole CRM.
+      const scope = leadScopeWhere(user);
       const [newLeads, totalLeads] = await Promise.all([
-        prisma.lead.count({ where: { status: "new" } }),
-        prisma.lead.count(),
+        prisma.lead.count({ where: { ...scope, status: "new" } }),
+        prisma.lead.count({ where: scope }),
       ]);
       return [
         { label: "New leads", value: newLeads, icon: Inbox },
@@ -109,7 +116,7 @@ export default async function SectionOverviewPage({
   // Standalone groups have no overview — go straight to the page.
   if (NAV_GROUP_META[group].standalone) redirect(items[0].href);
 
-  const stats = await getGroupStats(group);
+  const stats = await getGroupStats(group, user);
 
   return (
     <div>

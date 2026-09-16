@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { requireSection } from "@/lib/auth";
+import { requireLeadsAccess } from "@/lib/lead-access";
 import { PageHeading } from "@/components/admin/page-heading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   type LeadTier,
 } from "@/lib/leads";
 import { LeadEditForm } from "../lead-edit-form";
+import { LeadDetailsForm } from "../lead-details-form";
 import { LeadAssignForm } from "../lead-assign-form";
 import { deleteLead } from "../actions";
 
@@ -22,6 +23,7 @@ const EVENT_LABELS: Record<string, string> = {
   assigned: "Assignment",
   score_changed: "Score change",
   note_added: "Note",
+  details_updated: "Details updated",
   nurture_sent: "Nurture email",
 };
 
@@ -41,13 +43,14 @@ export default async function LeadDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireSection("leads");
+  const { where: scope, seesAll } = await requireLeadsAccess();
   const { id } = await params;
 
   let lead;
   try {
-    lead = await prisma.lead.findUnique({
-      where: { id: BigInt(id) },
+    // Scoped so a lead outside the user's book reads as missing, not forbidden.
+    lead = await prisma.lead.findFirst({
+      where: { id: BigInt(id), ...scope },
       include: { owner: { select: { id: true, name: true } } },
     });
   } catch {
@@ -56,11 +59,13 @@ export default async function LeadDetailPage({
   if (!lead) notFound();
 
   const [owners, events] = await Promise.all([
-    prisma.user.findMany({
-      where: { role: { in: ["SALES_ADMIN", "SUPER_ADMIN"] } },
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    }),
+    seesAll
+      ? prisma.user.findMany({
+          where: { role: { in: ["SALES_ADMIN", "SUPER_ADMIN"] } },
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        })
+      : Promise.resolve([] as { id: string; name: string }[]),
     prisma.leadEvent.findMany({
       where: { leadId: BigInt(id) },
       orderBy: { createdAt: "desc" },
@@ -90,7 +95,20 @@ export default async function LeadDetailPage({
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-            <h2 className="mb-3 text-sm font-semibold">Contact details</h2>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold">Contact details</h2>
+              <LeadDetailsForm
+                lead={{
+                  id: lead.id.toString(),
+                  type: lead.type,
+                  name: lead.name,
+                  email: lead.email,
+                  phone: lead.phone,
+                  company: lead.company,
+                  source: lead.source,
+                }}
+              />
+            </div>
             <dl>
               <Field label="Name" value={lead.name} />
               <Field
@@ -154,14 +172,16 @@ export default async function LeadDetailPage({
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-            <h2 className="mb-4 text-sm font-semibold">Assignment</h2>
-            <LeadAssignForm
-              id={lead.id.toString()}
-              ownerId={lead.ownerId}
-              owners={owners}
-            />
-          </div>
+          {seesAll && (
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+              <h2 className="mb-4 text-sm font-semibold">Assignment</h2>
+              <LeadAssignForm
+                id={lead.id.toString()}
+                ownerId={lead.ownerId}
+                owners={owners}
+              />
+            </div>
+          )}
 
           <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
             <h2 className="mb-4 text-sm font-semibold">Manage lead</h2>
@@ -173,18 +193,20 @@ export default async function LeadDetailPage({
             />
           </div>
 
-          <div className="rounded-2xl border border-destructive/30 bg-card p-5 shadow-soft">
-            <h2 className="text-sm font-semibold text-destructive">Danger zone</h2>
-            <p className="mt-1 mb-3 text-sm text-muted-foreground">
-              Permanently delete this lead. This cannot be undone.
-            </p>
-            <form action={deleteLead}>
-              <input type="hidden" name="id" value={lead.id.toString()} />
-              <Button type="submit" variant="outline" size="sm" className="text-destructive">
-                <Trash2 className="size-4" /> Delete lead
-              </Button>
-            </form>
-          </div>
+          {seesAll && (
+            <div className="rounded-2xl border border-destructive/30 bg-card p-5 shadow-soft">
+              <h2 className="text-sm font-semibold text-destructive">Danger zone</h2>
+              <p className="mt-1 mb-3 text-sm text-muted-foreground">
+                Permanently delete this lead. This cannot be undone.
+              </p>
+              <form action={deleteLead}>
+                <input type="hidden" name="id" value={lead.id.toString()} />
+                <Button type="submit" variant="outline" size="sm" className="text-destructive">
+                  <Trash2 className="size-4" /> Delete lead
+                </Button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </div>

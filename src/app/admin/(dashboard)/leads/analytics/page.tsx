@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireSection } from "@/lib/auth";
+import { requireLeadsAccess } from "@/lib/lead-access";
 import { PageHeading } from "@/components/admin/page-heading";
 import {
   LEAD_STATUSES,
@@ -42,14 +42,16 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 }
 
 export default async function LeadAnalyticsPage() {
-  await requireSection("leads");
+  // Scoped like the leads table: everyone but super admins sees only their own
+  // assigned leads in these breakdowns.
+  const { where } = await requireLeadsAccess();
 
   const [total, bySource, byTier, byStatus, wonCount] = await Promise.all([
-    prisma.lead.count(),
-    prisma.lead.groupBy({ by: ["source"], _count: { _all: true } }),
-    prisma.lead.groupBy({ by: ["tier"], _count: { _all: true } }),
-    prisma.lead.groupBy({ by: ["status"], _count: { _all: true } }),
-    prisma.lead.count({ where: { status: "won" } }),
+    prisma.lead.count({ where }),
+    prisma.lead.groupBy({ by: ["source"], where, _count: { _all: true } }),
+    prisma.lead.groupBy({ by: ["tier"], where, _count: { _all: true } }),
+    prisma.lead.groupBy({ by: ["status"], where, _count: { _all: true } }),
+    prisma.lead.count({ where: { ...where, status: "won" } }),
   ]);
 
   const sourceRows = bySource

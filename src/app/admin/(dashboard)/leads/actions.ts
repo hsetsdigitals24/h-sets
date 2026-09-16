@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
+import { assertOwnedLead, canSeeAllLeads } from "@/lib/lead-access";
 import { LEAD_STATUSES, LEAD_TYPES, STATUS_LABELS } from "@/lib/leads";
 import { tierForScore } from "@/lib/lead-scoring";
 import { logLeadEvent } from "@/lib/lead-events";
@@ -48,6 +49,10 @@ export async function createLead(
   const { type, name, email, phone, company, source, status, score, notes } = parsed.data;
   const tier = tierForScore(score);
   const sourceValue = source || "manual";
+  // Business developers only see leads assigned to them, so a lead they add is
+  // auto-assigned to them — otherwise it would vanish the moment it is saved.
+  // Super admins see everything and pick an owner via the assignment panel.
+  const ownerId = canSeeAllLeads(admin.role) ? null : admin.id;
 
   const lead = await prisma.lead.create({
     data: {
@@ -61,6 +66,8 @@ export async function createLead(
       score,
       tier,
       notes: notes || null,
+      ownerId,
+      assignedAt: ownerId ? new Date() : null,
     },
     select: { id: true },
   });
@@ -72,6 +79,16 @@ export async function createLead(
     meta: { score, tier, source: sourceValue, manual: true },
     actorId: admin.id,
   });
+
+  // Record the auto-assignment so ownership is visible on the timeline too.
+  if (ownerId) {
+    await logLeadEvent(lead.id, {
+      type: "assigned",
+      message: `Auto-assigned to ${admin.name} as the creator.`,
+      meta: { ownerId, auto: true },
+      actorId: admin.id,
+    });
+  }
 
   revalidatePath("/admin/leads");
   revalidatePath("/admin");
@@ -102,6 +119,7 @@ export async function updateLead(
   }
 
   const { id, status, score, notes } = parsed.data;
+  if (!(await assertOwnedLead(admin, BigInt(id)))) return { error: "Lead not found." };
   const notesValue = notes || null;
 
   const before = await prisma.lead.findUnique({
@@ -147,6 +165,80 @@ export async function updateLead(
   return { ok: true };
 }
 
+const detailsSchema = z.object({
+  id: z.string().min(1),
+  type: z.enum(LEAD_TYPES),
+  name: z.string().min(1).max(200),
+  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().max(50).optional(),
+  company: z.string().max(200).optional(),
+  source: z.string().max(200).optional(),
+});
+
+/** Edit the lead's contact details. Pipeline fields live in updateLead(). */
+export async function updateLeadDetails(
+  _prev: LeadActionState,
+  formData: FormData
+): Promise<LeadActionState> {
+  const admin = await requireSection("leads");
+
+  const parsed = detailsSchema.safeParse({
+    id: formData.get("id"),
+    type: formData.get("type"),
+    name: formData.get("name"),
+    email: formData.get("email") ?? "",
+    phone: formData.get("phone") ?? "",
+    company: formData.get("company") ?? "",
+    source: formData.get("source") ?? "",
+  });
+  if (!parsed.success) {
+    return { error: "Please check the values and try again." };
+  }
+
+  const { id, type, name, email, phone, company, source } = parsed.data;
+  if (!(await assertOwnedLead(admin, BigInt(id)))) return { error: "Lead not found." };
+  const next = {
+    type,
+    name,
+    email: email || null,
+    phone: phone || null,
+    company: company || null,
+    source: source || null,
+  };
+
+  const before = await prisma.lead.findUnique({
+    where: { id: BigInt(id) },
+    select: {
+      type: true,
+      name: true,
+      email: true,
+      phone: true,
+      company: true,
+      source: true,
+    },
+  });
+  if (!before) return { error: "Lead not found." };
+
+  await prisma.lead.update({ where: { id: BigInt(id) }, data: next });
+
+  // Only log when something actually changed, and record which fields moved.
+  const changed = (Object.keys(next) as (keyof typeof next)[]).filter(
+    (key) => (before[key] ?? null) !== next[key]
+  );
+  if (changed.length > 0) {
+    await logLeadEvent(BigInt(id), {
+      type: "details_updated",
+      message: `Contact details updated (${changed.join(", ")}).`,
+      meta: { fields: changed },
+      actorId: admin.id,
+    });
+  }
+
+  revalidatePath(`/admin/leads/${id}`);
+  revalidatePath("/admin/leads");
+  return { ok: true };
+}
+
 const assignSchema = z.object({
   id: z.string().min(1),
   ownerId: z.string(), // "" clears the assignment
@@ -157,6 +249,10 @@ export async function assignLead(
   formData: FormData
 ): Promise<LeadActionState> {
   const admin = await requireSection("leads");
+  // Reassigning a lead moves it out of someone's book — super admins only.
+  if (!canSeeAllLeads(admin.role)) {
+    return { error: "You are not allowed to reassign leads." };
+  }
 
   const parsed = assignSchema.safeParse({
     id: formData.get("id"),
@@ -204,7 +300,10 @@ export async function assignLead(
 }
 
 export async function deleteLead(formData: FormData) {
-  await requireSection("leads");
+  const admin = await requireSection("leads");
+  // Deleting a lead is destructive and unrecoverable — super admins only.
+  // The button is hidden for everyone else; this is the server-side backstop.
+  if (!canSeeAllLeads(admin.role)) redirect("/admin/leads");
   const id = formData.get("id");
   if (typeof id !== "string") return;
   await prisma.lead.delete({ where: { id: BigInt(id) } });

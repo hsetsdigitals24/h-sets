@@ -13,6 +13,7 @@ export type LeadEventType =
   | "assigned"
   | "score_changed"
   | "note_added"
+  | "details_updated"
   | "nurture_sent";
 
 export type LeadEventInput = {
