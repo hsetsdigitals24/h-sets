@@ -19,6 +19,7 @@ import {
   type MessageFormatter,
 } from "@livekit/components-react";
 import { AvatarParticipantTile } from "@/components/meet/participant-tile";
+import { CallTimer } from "@/components/meet/call-timer";
 import {
   ReactionButton,
   ReactionOverlay,
@@ -118,9 +119,12 @@ export function MeetingStage({
                 <CarouselLayout tracks={carouselTracks}>
                   <AvatarParticipantTile />
                 </CarouselLayout>
-                <div className="lk-focus-layout">
-                  <AvatarParticipantTile trackRef={focusTrack} />
-                </div>
+                {/* The focused tile is a direct child of the container: the
+                    container itself is `.lk-focus-layout` (a `1fr 5fr` grid of
+                    carousel + focus), so wrapping the tile in a second element
+                    of that class nests a grid and pins the share into the
+                    narrow first column. */}
+                <AvatarParticipantTile trackRef={focusTrack} />
               </FocusLayoutContainer>
             </div>
           ) : (
@@ -130,6 +134,7 @@ export function MeetingStage({
               </GridLayout>
             </div>
           )}
+          <CallTimer />
           <ReactionOverlay reactions={reactions} />
           {/* The stage above is sized as `100% - --lk-control-bar-height`, so
               the reaction button shares the control bar's row rather than
