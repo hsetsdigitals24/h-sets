@@ -6,6 +6,7 @@ import {
   EncodedFileOutput,
   EncodedFileType,
   S3Upload,
+  TrackSource,
 } from "livekit-server-sdk";
 import type { EgressInfo } from "livekit-server-sdk";
 import { randomUUID, randomBytes } from "crypto";
@@ -513,6 +514,81 @@ export async function companyLivePresence(slug: string): Promise<LivePresence> {
     };
   } catch {
     return { count: 0, names: [] };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Moderation (muting another participant's microphone)
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether `user` may mute other people in `roomName`.
+ *
+ * Deliberately the same bar as recording the call — whoever is trusted to
+ * record a room is trusted to quiet a forgotten hot mic in it:
+ *   class    → the assigned instructor / academy admin (never a student),
+ *   project  → the project OWNER or a SUPER_ADMIN,
+ *   company  → any internal staff member (standups have no owner).
+ * An unknown room name is not moderatable by anyone.
+ */
+export async function canModerateRoom(
+  user: Actor,
+  roomName: string
+): Promise<boolean> {
+  const classId = classSessionIdFromRoom(roomName);
+  if (classId) {
+    const access = await classSessionAccess(user, classId);
+    return access.ok && !access.isStudent;
+  }
+
+  const projectId = projectIdFromRoom(roomName);
+  if (projectId) {
+    const access = await projectMeetingAccess(user, projectId);
+    return access.ok && (await canRecordProject(user, projectId));
+  }
+
+  const slug = companySlugFromRoom(roomName);
+  if (slug) {
+    const access = await companyMeetingAccess(user, slug);
+    return access.ok;
+  }
+
+  return false;
+}
+
+/**
+ * Server-side mute of one participant's microphone.
+ *
+ * Only the LiveKit server can mute someone else's track, so this runs through
+ * the admin API rather than the caller's own room connection — which also means
+ * the target's client cannot ignore it. Muting only: LiveKit does not allow a
+ * server to *unmute* a published track, by design, so a muted participant stays
+ * in control of when their mic comes back.
+ *
+ * Returns false when LiveKit is unconfigured, the participant has left, or they
+ * have no microphone published (an already-muted mic is still published, so a
+ * repeat mute is a harmless no-op and returns true).
+ */
+export async function muteParticipantMic(
+  roomName: string,
+  identity: string
+): Promise<boolean> {
+  const svc = roomServiceClient();
+  if (!svc) return false;
+  try {
+    const participant = await svc.getParticipant(roomName, identity);
+    const mics = participant.tracks.filter(
+      (track) => track.source === TrackSource.MICROPHONE
+    );
+    if (mics.length === 0) return false;
+    // A participant can technically publish more than one mic track; mute all of
+    // them so "muted" means silent, not "mostly silent".
+    await Promise.all(
+      mics.map((track) => svc.mutePublishedTrack(roomName, identity, track.sid, true))
+    );
+    return true;
+  } catch {
+    return false;
   }
 }
 

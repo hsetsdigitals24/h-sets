@@ -93,6 +93,13 @@ export async function GET(req: Request) {
     roomJoin: true,
     canPublish: true,
     canSubscribe: true,
+    // Lets a participant set their own attributes — how a raised hand is
+    // published to the room (see lib/meeting-hands). LiveKit bundles name and
+    // metadata into the same permission, so this also lets someone change their
+    // own display name and avatar mid-call; nothing downstream (attendance,
+    // participation, moderation) reads either — they all key off the token
+    // identity, which a participant cannot change.
+    canUpdateOwnMetadata: true,
   });
 
   return NextResponse.json({

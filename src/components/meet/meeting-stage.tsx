@@ -2,7 +2,10 @@
 
 import * as React from "react";
 import { RoomEvent, Track } from "livekit-client";
-import type { TrackReferenceOrPlaceholder, WidgetState } from "@livekit/components-core";
+import type {
+  TrackReferenceOrPlaceholder,
+  WidgetState,
+} from "@livekit/components-core";
 import {
   isTrackReference,
   useCreateLayoutContext,
@@ -20,6 +23,11 @@ import {
 } from "@livekit/components-react";
 import { AvatarParticipantTile } from "@/components/meet/participant-tile";
 import { CallTimer } from "@/components/meet/call-timer";
+import { ModerationProvider } from "@/components/meet/moderation";
+import {
+  RaiseHandButton,
+  RaisedHandsAnnouncer,
+} from "@/components/meet/raise-hand";
 import {
   ReactionButton,
   ReactionOverlay,
@@ -47,16 +55,15 @@ export function MeetingStage({
     unreadMessages: 0,
     showSettings: false,
   });
-  const lastAutoFocusedScreenShareTrack = React.useRef<TrackReferenceOrPlaceholder | null>(
-    null
-  );
+  const lastAutoFocusedScreenShareTrack =
+    React.useRef<TrackReferenceOrPlaceholder | null>(null);
 
   const tracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },
       { source: Track.Source.ScreenShare, withPlaceholder: false },
     ],
-    { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged], onlySubscribed: false }
+    { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged], onlySubscribed: false },
   );
 
   const { reactions, sendReaction } = useReactions();
@@ -65,12 +72,17 @@ export function MeetingStage({
     .filter(isTrackReference)
     .filter((track) => track.publication.source === Track.Source.ScreenShare);
   const focusTrack = usePinnedTracks(layoutContext)?.[0];
-  const carouselTracks = tracks.filter((track) => !isEqualTrackRef(track, focusTrack));
+  const carouselTracks = tracks.filter(
+    (track) => !isEqualTrackRef(track, focusTrack),
+  );
 
   // A stable key for the current screen-share state, so the effect below re-runs
   // when one starts, stops, or finishes subscribing (and not on every render).
   const screenShareKey = screenShareTracks
-    .map((track) => `${track.publication.trackSid}_${track.publication.isSubscribed}`)
+    .map(
+      (track) =>
+        `${track.publication.trackSid}_${track.publication.isSubscribed}`,
+    )
     .join();
 
   // Auto-pin a screen share as soon as one starts, and release the pin when it
@@ -80,14 +92,17 @@ export function MeetingStage({
       screenShareTracks.some((track) => track.publication.isSubscribed) &&
       lastAutoFocusedScreenShareTrack.current === null
     ) {
-      layoutContext.pin.dispatch?.({ msg: "set_pin", trackReference: screenShareTracks[0] });
+      layoutContext.pin.dispatch?.({
+        msg: "set_pin",
+        trackReference: screenShareTracks[0],
+      });
       lastAutoFocusedScreenShareTrack.current = screenShareTracks[0];
     } else if (
       lastAutoFocusedScreenShareTrack.current &&
       !screenShareTracks.some(
         (track) =>
           track.publication.trackSid ===
-          lastAutoFocusedScreenShareTrack.current?.publication?.trackSid
+          lastAutoFocusedScreenShareTrack.current?.publication?.trackSid,
       )
     ) {
       layoutContext.pin.dispatch?.({ msg: "clear_pin" });
@@ -100,10 +115,13 @@ export function MeetingStage({
       const updated = tracks.find(
         (track) =>
           track.participant.identity === focusTrack.participant.identity &&
-          track.source === focusTrack.source
+          track.source === focusTrack.source,
       );
       if (updated && updated !== focusTrack && isTrackReference(updated)) {
-        layoutContext.pin.dispatch?.({ msg: "set_pin", trackReference: updated });
+        layoutContext.pin.dispatch?.({
+          msg: "set_pin",
+          trackReference: updated,
+        });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -111,55 +129,65 @@ export function MeetingStage({
 
   return (
     <div className="lk-video-conference">
-      <LayoutContextProvider value={layoutContext} onWidgetChange={setWidgetState}>
-        <div className="lk-video-conference-inner" style={{ position: "relative" }}>
-          {focusTrack ? (
-            <div className="lk-focus-layout-wrapper">
-              <FocusLayoutContainer>
-                <CarouselLayout tracks={carouselTracks}>
-                  <AvatarParticipantTile />
-                </CarouselLayout>
-                {/* The focused tile is a direct child of the container: the
+      <ModerationProvider>
+        <LayoutContextProvider
+          value={layoutContext}
+          onWidgetChange={setWidgetState}
+        >
+          <div
+            className="lk-video-conference-inner"
+            style={{ position: "relative" }}
+          >
+            {focusTrack ? (
+              <div className="lk-focus-layout-wrapper">
+                <FocusLayoutContainer>
+                  <CarouselLayout tracks={carouselTracks}>
+                    <AvatarParticipantTile />
+                  </CarouselLayout>
+                  {/* The focused tile is a direct child of the container: the
                     container itself is `.lk-focus-layout` (a `1fr 5fr` grid of
                     carousel + focus), so wrapping the tile in a second element
                     of that class nests a grid and pins the share into the
                     narrow first column. */}
-                <AvatarParticipantTile trackRef={focusTrack} />
-              </FocusLayoutContainer>
-            </div>
-          ) : (
-            <div className="lk-grid-layout-wrapper">
-              <GridLayout tracks={tracks}>
-                <AvatarParticipantTile />
-              </GridLayout>
-            </div>
-          )}
-          <CallTimer />
-          <ReactionOverlay reactions={reactions} />
-          {/* The stage above is sized as `100% - --lk-control-bar-height`, so
+                  <AvatarParticipantTile trackRef={focusTrack} />
+                </FocusLayoutContainer>
+              </div>
+            ) : (
+              <div className="lk-grid-layout-wrapper">
+                <GridLayout tracks={tracks}>
+                  <AvatarParticipantTile />
+                </GridLayout>
+              </div>
+            )}
+            <CallTimer />
+            <RaisedHandsAnnouncer />
+            <ReactionOverlay reactions={reactions} />
+            {/* The stage above is sized as `100% - --lk-control-bar-height`, so
               the reaction button shares the control bar's row rather than
               adding one of its own. */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              maxHeight: "var(--lk-control-bar-height)",
-              borderTop: "1px solid var(--lk-border-color)",
-            }}
-          >
-            <ReactionButton onSelect={sendReaction} />
-            <ControlBar
-              controls={{ chat: true, settings: false }}
-              style={{ borderTop: "none" }}
-            />
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                maxHeight: "var(--lk-control-bar-height)",
+                borderTop: "1px solid var(--lk-border-color)",
+              }}
+            >
+              <RaiseHandButton />
+              <ReactionButton onSelect={sendReaction} />
+              <ControlBar
+                controls={{ chat: true, settings: false }}
+                style={{ borderTop: "none" }}
+              />
+            </div>
           </div>
-        </div>
-        <Chat
-          style={{ display: widgetState.showChat ? "grid" : "none" }}
-          messageFormatter={chatMessageFormatter}
-        />
-      </LayoutContextProvider>
+          <Chat
+            style={{ display: widgetState.showChat ? "grid" : "none" }}
+            messageFormatter={chatMessageFormatter}
+          />
+        </LayoutContextProvider>
+      </ModerationProvider>
       <RoomAudioRenderer />
       <ConnectionStateToast />
     </div>
@@ -169,11 +197,13 @@ export function MeetingStage({
 /** Whether two track references point at the same participant track. */
 function isEqualTrackRef(
   a?: TrackReferenceOrPlaceholder,
-  b?: TrackReferenceOrPlaceholder
+  b?: TrackReferenceOrPlaceholder,
 ): boolean {
   if (!a || !b) return false;
   if (isTrackReference(a) && isTrackReference(b)) {
     return a.publication.trackSid === b.publication.trackSid;
   }
-  return a.participant.identity === b.participant.identity && a.source === b.source;
+  return (
+    a.participant.identity === b.participant.identity && a.source === b.source
+  );
 }

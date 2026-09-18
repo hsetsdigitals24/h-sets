@@ -79,6 +79,11 @@ export async function GET(req: Request) {
     roomJoin: true,
     canPublish: true,
     canSubscribe: true,
+    // Lets a guest set their own attributes — how a raised hand is published to
+    // the room (see lib/meeting-hands). It also covers name and metadata, which
+    // costs nothing here: a guest on a shareable link already types their own
+    // display name at the door.
+    canUpdateOwnMetadata: true,
   });
 
   // Light usage trail: always bump lastJoinedAt; set firstJoinedAt only on the

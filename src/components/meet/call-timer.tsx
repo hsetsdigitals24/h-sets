@@ -20,11 +20,14 @@ export function CallTimer() {
   const startRef = React.useRef<number | null>(null);
   const [elapsed, setElapsed] = React.useState<number | null>(null);
 
-  const earliestJoin = participants.reduce<number | null>((earliest, participant) => {
-    const joined = participant.joinedAt?.getTime();
-    if (!joined) return earliest;
-    return earliest === null || joined < earliest ? joined : earliest;
-  }, null);
+  const earliestJoin = participants.reduce<number | null>(
+    (earliest, participant) => {
+      const joined = participant.joinedAt?.getTime();
+      if (!joined) return earliest;
+      return earliest === null || joined < earliest ? joined : earliest;
+    },
+    null,
+  );
 
   React.useEffect(() => {
     if (earliestJoin === null) return;

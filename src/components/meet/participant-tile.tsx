@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { Track } from "livekit-client";
+import { Loader2, MicOff } from "lucide-react";
 import {
   isTrackReference,
   useEnsureTrackRef,
+  useIsMuted,
   ParticipantTile,
   ParticipantName,
   TrackMutedIndicator,
@@ -17,6 +19,9 @@ import {
 } from "@livekit/components-react";
 import { avatarFromMetadata } from "@/lib/meeting-identity";
 import { initialsOf } from "@/components/ui/avatar";
+import { useModeration } from "@/components/meet/moderation";
+import { RaisedHandBadge } from "@/components/meet/raise-hand";
+import { cn } from "@/lib/utils";
 
 /**
  * A `ParticipantTile` that shows the participant's profile picture instead of
@@ -31,7 +36,9 @@ import { initialsOf } from "@/components/ui/avatar";
  */
 export function AvatarParticipantTile(props: ParticipantTileProps) {
   return (
-    <ParticipantTile {...props}>
+    // `group` lets the hover-revealed mute button below follow the same
+    // show-on-hover behaviour LiveKit's own CSS gives the focus toggle.
+    <ParticipantTile {...props} className={cn("group", props.className)}>
       <TileBody />
     </ParticipantTile>
   );
@@ -83,8 +90,54 @@ function TileBody() {
         <ConnectionQualityIndicator className="lk-participant-metadata-item" />
       </div>
 
+      {/* Only on the camera tile: a raised hand belongs to the person, not to
+          each track they publish, so it would otherwise double up next to a
+          screen share. */}
+      {isCamera && <RaisedHandBadge />}
+      {isCamera && <MuteParticipantButton />}
       <FocusToggle trackRef={trackRef} />
     </>
+  );
+}
+
+/**
+ * Mutes the participant on this tile — offered only to hosts (see
+ * `ModerationProvider`), and only for someone else's live microphone.
+ *
+ * There is no unmute counterpart: the server can silence a mic but cannot turn
+ * one back on, so the person muted stays in control of their own audio.
+ */
+function MuteParticipantButton() {
+  const { participant } = useEnsureTrackRef();
+  const { canModerate, muteParticipant, pending } = useModeration();
+  const micMuted = useIsMuted({ participant, source: Track.Source.Microphone });
+
+  if (!canModerate || participant.isLocal || micMuted) return null;
+
+  const name = participant.name || participant.identity;
+  const busy = pending.has(participant.identity);
+
+  return (
+    <button
+      type="button"
+      onClick={() => void muteParticipant(participant.identity, name)}
+      disabled={busy}
+      // Sits just left of LiveKit's focus toggle, which is pinned at right:
+      // 0.25rem and is roughly 1.5rem wide.
+      className={cn(
+        "absolute right-8 top-1 z-10 rounded p-1 text-white opacity-0 transition",
+        "bg-black/50 hover:bg-black/70 focus-visible:opacity-100 group-hover:opacity-100",
+        "disabled:opacity-60",
+      )}
+      title={`Mute ${name}`}
+      aria-label={`Mute ${name}`}
+    >
+      {busy ? (
+        <Loader2 className="size-4 animate-spin" />
+      ) : (
+        <MicOff className="size-4" />
+      )}
+    </button>
   );
 }
 
