@@ -176,3 +176,22 @@
   }
   html { scroll-behavior: auto; }
 }
+
+/* Emoji reactions drifting up the video call stage */
+@keyframes meet-reaction-float {
+  0% { opacity: 0; transform: translate3d(-50%, 0, 0) scale(0.5); }
+  12% { opacity: 1; transform: translate3d(-50%, -3rem, 0) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(-50%, -45vh, 0) scale(1); }
+}
+.animate-meet-reaction {
+  animation: meet-reaction-float 4s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* The blanket reduced-motion rule above collapses every animation to ~0ms,
+   which would land a reaction on its final frame — invisible — the instant it
+   appeared. Drop the animation entirely instead, so a reaction simply sits in
+   place until its timer removes it. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-meet-reaction { animation: none !important; }
+}

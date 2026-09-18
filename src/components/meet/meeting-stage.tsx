@@ -19,6 +19,11 @@ import {
   type MessageFormatter,
 } from "@livekit/components-react";
 import { AvatarParticipantTile } from "@/components/meet/participant-tile";
+import {
+  ReactionButton,
+  ReactionOverlay,
+  useReactions,
+} from "@/components/meet/reactions";
 
 /**
  * The in-call stage: grid of participants, screen-share focus view, control bar
@@ -29,7 +34,7 @@ import { AvatarParticipantTile } from "@/components/meet/participant-tile";
  * internally with no way to swap it, and we need tiles that show a participant's
  * profile picture when their camera is off. Everything else — pinning a screen
  * share, the carousel of other participants, chat — behaves exactly as the
- * prefab does.
+ * prefab does, plus an emoji reaction button the prefab has no equivalent for.
  */
 export function MeetingStage({
   chatMessageFormatter,
@@ -53,6 +58,7 @@ export function MeetingStage({
     { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged], onlySubscribed: false }
   );
 
+  const { reactions, sendReaction } = useReactions();
   const layoutContext = useCreateLayoutContext();
   const screenShareTracks = tracks
     .filter(isTrackReference)
@@ -105,7 +111,7 @@ export function MeetingStage({
   return (
     <div className="lk-video-conference">
       <LayoutContextProvider value={layoutContext} onWidgetChange={setWidgetState}>
-        <div className="lk-video-conference-inner">
+        <div className="lk-video-conference-inner" style={{ position: "relative" }}>
           {focusTrack ? (
             <div className="lk-focus-layout-wrapper">
               <FocusLayoutContainer>
@@ -124,7 +130,25 @@ export function MeetingStage({
               </GridLayout>
             </div>
           )}
-          <ControlBar controls={{ chat: true, settings: false }} />
+          <ReactionOverlay reactions={reactions} />
+          {/* The stage above is sized as `100% - --lk-control-bar-height`, so
+              the reaction button shares the control bar's row rather than
+              adding one of its own. */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              maxHeight: "var(--lk-control-bar-height)",
+              borderTop: "1px solid var(--lk-border-color)",
+            }}
+          >
+            <ReactionButton onSelect={sendReaction} />
+            <ControlBar
+              controls={{ chat: true, settings: false }}
+              style={{ borderTop: "none" }}
+            />
+          </div>
         </div>
         <Chat
           style={{ display: widgetState.showChat ? "grid" : "none" }}

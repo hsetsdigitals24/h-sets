@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, VideoOff, Video } from "lucide-react";
+import { Loader2, VideoOff } from "lucide-react";
 import {
   LiveKitRoom,
   formatChatMessageLinks,
@@ -10,10 +10,9 @@ import {
 import "@livekit/components-styles";
 import { MeetingStage } from "@/components/meet/meeting-stage";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { site } from "@/lib/site";
 import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
+import { MeetingPreJoin, type JoinChoices } from "@/components/meet/prejoin";
 
 type TokenResponse = {
   token: string;
@@ -29,9 +28,10 @@ type TokenResponse = {
  * control. On leave the guest is returned to the marketing site rather than any
  * authenticated area.
  *
- * A shareable "room link" (`promptName`) is opened by many different people, so
- * it first asks the joiner for a display name; a personal invite already knows
- * who the guest is and joins straight away.
+ * Everyone passes through the pre-join screen to set their mic and camera. A
+ * shareable "room link" (`promptName`) is opened by many different people, so
+ * that screen also asks for a display name; a personal invite already knows who
+ * the guest is.
  */
 export function GuestRoom({
   token,
@@ -45,22 +45,24 @@ export function GuestRoom({
   const [conn, setConn] = useState<TokenResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
-  // For a shareable link the joiner supplies their own name; null until they do,
-  // which gates the token fetch below. Personal invites skip straight past this.
-  const [name, setName] = useState<string | null>(promptName ? null : "");
+  // Mic/camera choices from the pre-join screen; null until the joiner submits
+  // it, which gates the token fetch below. For a shareable link the same screen
+  // also collects a display name — personal invites already know who the guest
+  // is.
+  const [choices, setChoices] = useState<JoinChoices | null>(null);
   // Bumped to force a fresh token fetch + LiveKitRoom remount after a transient
   // drop (e.g. the tab was backgrounded and the connection froze).
   const [attempt, setAttempt] = useState(0);
   const [reconnecting, setReconnecting] = useState(false);
 
   useEffect(() => {
-    // Wait for the name step (shareable links) before minting a token.
-    if (name === null) return;
+    // Wait for the pre-join step before minting a token.
+    if (!choices) return;
     let cancelled = false;
     (async () => {
       try {
         const qs = new URLSearchParams({ token });
-        if (name) qs.set("name", name);
+        if (choices.name) qs.set("name", choices.name);
         const res = await fetch(`/api/livekit/guest-token?${qs.toString()}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Could not join the meeting.");
@@ -75,7 +77,7 @@ export function GuestRoom({
     return () => {
       cancelled = true;
     };
-  }, [token, attempt, name]);
+  }, [token, attempt, choices]);
 
   if (error) {
     return (
@@ -89,46 +91,16 @@ export function GuestRoom({
     );
   }
 
-  // Shareable link: ask for a display name before joining.
-  if (name === null) {
+  // Pre-join: pick mic/camera state (and a display name for shareable links)
+  // before connecting to the meeting.
+  if (!choices) {
     return (
-      <Centered>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const value = new FormData(e.currentTarget).get("name");
-            const trimmed = String(value ?? "").trim();
-            if (trimmed) setName(trimmed);
-          }}
-          className="w-full max-w-xs space-y-4 rounded-2xl border border-border bg-card p-6 text-left shadow-soft"
-        >
-          <div className="flex flex-col items-center gap-2 text-center">
-            <span className="flex size-11 items-center justify-center rounded-xl bg-muted">
-              <Video className="size-5 text-muted-foreground" />
-            </span>
-            <div>
-              <h1 className="text-base font-semibold tracking-tight">{title}</h1>
-              <p className="text-sm text-muted-foreground">
-                Enter your name to join the call.
-              </p>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="guest-display-name">Your name</Label>
-            <Input
-              id="guest-display-name"
-              name="name"
-              placeholder="e.g. Ada Obi"
-              maxLength={60}
-              autoFocus
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full">
-            Join call
-          </Button>
-        </form>
-      </Centered>
+      <MeetingPreJoin
+        title={title}
+        askName={promptName}
+        joinLabel="Join call"
+        onJoin={setChoices}
+      />
     );
   }
 
@@ -153,8 +125,16 @@ export function GuestRoom({
         token={conn.token}
         serverUrl={conn.url}
         connect
-        video
-        audio
+        video={choices.videoEnabled}
+        audio={choices.audioEnabled}
+        options={{
+          videoCaptureDefaults: choices.videoDeviceId
+            ? { deviceId: choices.videoDeviceId }
+            : undefined,
+          audioCaptureDefaults: choices.audioDeviceId
+            ? { deviceId: choices.audioDeviceId }
+            : undefined,
+        }}
         onDisconnected={(reason) => {
           if (shouldExitOnDisconnect(reason)) {
             setLeaving(true);

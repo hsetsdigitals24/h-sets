@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { RecordButton } from "@/components/lms/record-button";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
 import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
+import { MeetingPreJoin, type JoinChoices } from "@/components/meet/prejoin";
 
 type TokenResponse = { token: string; url: string; room: string; identity: string };
 
@@ -40,8 +41,12 @@ export function ClassRoom({
   // drop (e.g. the tab was backgrounded and the connection froze).
   const [attempt, setAttempt] = useState(0);
   const [reconnecting, setReconnecting] = useState(false);
+  // Mic/camera choices from the pre-join screen; null until the user joins,
+  // which gates the token fetch below.
+  const [choices, setChoices] = useState<JoinChoices | null>(null);
 
   useEffect(() => {
+    if (!choices) return;
     let cancelled = false;
     (async () => {
       try {
@@ -61,7 +66,7 @@ export function ClassRoom({
     return () => {
       cancelled = true;
     };
-  }, [sessionId, attempt]);
+  }, [sessionId, attempt, choices]);
 
   const homeHref = isStudent ? "/account" : "/admin";
 
@@ -74,6 +79,13 @@ export function ClassRoom({
           <Link href={homeHref}>Back</Link>
         </Button>
       </Centered>
+    );
+  }
+
+  // Pre-join: pick mic/camera state before connecting to the room.
+  if (!choices) {
+    return (
+      <MeetingPreJoin title={title} joinLabel="Join class" onJoin={setChoices} />
     );
   }
 
@@ -98,8 +110,16 @@ export function ClassRoom({
         token={conn.token}
         serverUrl={conn.url}
         connect
-        video
-        audio
+        video={choices.videoEnabled}
+        audio={choices.audioEnabled}
+        options={{
+          videoCaptureDefaults: choices.videoDeviceId
+            ? { deviceId: choices.videoDeviceId }
+            : undefined,
+          audioCaptureDefaults: choices.audioDeviceId
+            ? { deviceId: choices.audioDeviceId }
+            : undefined,
+        }}
         onDisconnected={(reason) => {
           if (shouldExitOnDisconnect(reason)) {
             setLeaving(true);

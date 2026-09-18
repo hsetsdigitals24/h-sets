@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { RecordButton } from "@/components/lms/record-button";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
 import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
+import { MeetingPreJoin, type JoinChoices } from "@/components/meet/prejoin";
 
 type TokenResponse = { token: string; url: string; room: string; identity: string };
 
@@ -37,10 +38,14 @@ export function ProjectRoom({
   // drop (e.g. the tab was backgrounded and the connection froze).
   const [attempt, setAttempt] = useState(0);
   const [reconnecting, setReconnecting] = useState(false);
+  // Mic/camera choices from the pre-join screen; null until the user joins,
+  // which gates the token fetch below.
+  const [choices, setChoices] = useState<JoinChoices | null>(null);
 
   const homeHref = `/admin/projects/${projectId}`;
 
   useEffect(() => {
+    if (!choices) return;
     let cancelled = false;
     (async () => {
       try {
@@ -60,7 +65,7 @@ export function ProjectRoom({
     return () => {
       cancelled = true;
     };
-  }, [projectId, attempt]);
+  }, [projectId, attempt, choices]);
 
   if (error) {
     return (
@@ -71,6 +76,13 @@ export function ProjectRoom({
           <Link href={homeHref}>Back to project</Link>
         </Button>
       </Centered>
+    );
+  }
+
+  // Pre-join: pick mic/camera state before connecting to the room.
+  if (!choices) {
+    return (
+      <MeetingPreJoin title={title} joinLabel="Join meeting" onJoin={setChoices} />
     );
   }
 
@@ -98,8 +110,16 @@ export function ProjectRoom({
         token={conn.token}
         serverUrl={conn.url}
         connect
-        video
-        audio
+        video={choices.videoEnabled}
+        audio={choices.audioEnabled}
+        options={{
+          videoCaptureDefaults: choices.videoDeviceId
+            ? { deviceId: choices.videoDeviceId }
+            : undefined,
+          audioCaptureDefaults: choices.audioDeviceId
+            ? { deviceId: choices.audioDeviceId }
+            : undefined,
+        }}
         onDisconnected={(reason) => {
           if (shouldExitOnDisconnect(reason)) {
             setLeaving(true);
