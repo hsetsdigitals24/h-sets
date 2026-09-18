@@ -14,9 +14,13 @@ export const AVATAR_URL_PREFIX = "/api/users/";
 /**
  * The URL that serves a user's stored picture. `updatedAt` rides along as a
  * version so a replaced picture never shows through a cache.
+ *
+ * The version is a path segment, not a query string: next/image rejects a local
+ * URL with a search string ("url" parameter is not allowed), which would break
+ * every avatar the app renders through it.
  */
 export function avatarUrlFor(userId: string, updatedAt: Date): string {
-  return `${AVATAR_URL_PREFIX}${userId}/avatar?v=${updatedAt.getTime()}`;
+  return `${AVATAR_URL_PREFIX}${userId}/avatar/${updatedAt.getTime()}`;
 }
 
 /**
@@ -26,5 +30,5 @@ export function avatarUrlFor(userId: string, updatedAt: Date): string {
  * avatars moved into the database).
  */
 export function isAvatarUrl(value: string): boolean {
-  return /^\/api\/users\/[A-Za-z0-9_-]+\/avatar(\?v=\d+)?$/.test(value);
+  return /^\/api\/users\/[A-Za-z0-9_-]+\/avatar\/\d+$/.test(value);
 }
