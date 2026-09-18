@@ -1,3 +1,5 @@
+import { isAvatarUrl } from "@/lib/avatar";
+
 /**
  * How a participant's profile picture travels into a video call.
  *
@@ -12,8 +14,9 @@
 export type MeetingParticipantMeta = {
   /**
    * The participant's profile picture, if they have one: a path on this app
-   * (/api/users/[id]/avatar, for a picture stored in the database) or an
-   * absolute https URL (pictures uploaded to R2 before avatars moved there).
+   * (/api/users/[id]/avatar/[version], for a picture stored in the database)
+   * or an absolute https URL (pictures uploaded to R2 before avatars moved
+   * there).
    */
   image?: string | null;
 };
@@ -38,7 +41,9 @@ export function avatarFromMetadata(metadata?: string | null): string | null {
     // Only ever render an https URL or one of our own avatar paths — never a
     // javascript:/data: payload, and never a protocol-relative "//host" path.
     if (image.startsWith("https://")) return image;
-    return /^\/api\/users\/[A-Za-z0-9_-]+\/avatar(\?v=\d+)?$/.test(image) ? image : null;
+    // isAvatarUrl rather than a pattern of our own: the two drifted apart once
+    // already, and a tile then silently fell back to initials.
+    return isAvatarUrl(image) ? image : null;
   } catch {
     return null;
   }
