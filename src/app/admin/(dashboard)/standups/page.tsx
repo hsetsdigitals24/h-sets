@@ -93,17 +93,19 @@ export default async function StandupsPage() {
                       }`}
                 </div>
 
-                <div className="mt-4 flex items-center gap-2">
-                  <Button asChild className="flex-1">
+                <div className="mt-auto flex flex-col gap-2 pt-4">
+                  <Button asChild className="w-full">
                     <Link href={`/meet/company/${room.slug}`}>
                       {live ? "Join call" : "Start call"}
                     </Link>
                   </Button>
-                  <Button asChild variant="outline">
-                    <Link href={`/admin/standups/${room.slug}`}>Recordings</Link>
-                  </Button>
-                  <CopyMeetingLinkButton company={room.slug} />
-                  <InviteGuestButton company={room.slug} />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/admin/standups/${room.slug}`}>Recordings</Link>
+                    </Button>
+                    <CopyMeetingLinkButton company={room.slug} />
+                    <InviteGuestButton company={room.slug} />
+                  </div>
                 </div>
               </div>
             );
