@@ -4,16 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import {
-  buildKey,
-  presignPublicUpload,
-  publicUrl,
-  isPublicStorageConfigured,
-} from "@/lib/storage";
+import { isAvatarUrl } from "@/lib/avatar";
 import type { ContentActionState } from "@/lib/content-forms";
-
-/** Profile pictures are small by design — anything larger is a mistake. */
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB
 
 /**
  * The signed-in staff member, for actions that edit their *own* profile.
@@ -26,45 +18,20 @@ async function requireStaff() {
   return user;
 }
 
-export type AvatarPresign = { uploadUrl: string; url: string } | { error: string };
-
-/**
- * Presign a direct-to-R2 upload for the caller's own profile picture. The key is
- * namespaced by user id so a member's uploads stay grouped, and the returned
- * `url` is the permanent public URL the form persists on save.
- */
-export async function presignAvatarUpload(
-  filename: string,
-  contentType: string,
-  size: number
-): Promise<AvatarPresign> {
-  const user = await requireStaff();
-
-  if (!contentType.startsWith("image/")) {
-    return { error: "Choose an image file." };
-  }
-  if (size > MAX_AVATAR_BYTES) {
-    return { error: "Profile picture must be 5 MB or smaller." };
-  }
-  if (!isPublicStorageConfigured()) {
-    return { error: "Image uploads are not configured yet." };
-  }
-
-  try {
-    const key = buildKey(`avatars/${user.id}`, filename);
-    return { uploadUrl: await presignPublicUpload(key, contentType), url: publicUrl(key) };
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : "Could not start the upload." };
-  }
-}
-
 const profileSchema = z.object({
   name: z.string().min(2, "Name is required"),
   jobTitle: z.string().max(120, "Job title is too long").optional(),
   phone: z.string().max(40, "Phone number is too long").optional(),
   bio: z.string().max(1000, "Bio must be 1000 characters or fewer").optional(),
   // Empty string = "no picture"; the field is cleared by the Remove button.
-  image: z.string().url("Profile picture upload failed — try again").or(z.literal("")),
+  // Either one of our own avatar URLs (a picture stored in the database) or an
+  // absolute https URL (a picture uploaded to R2 before avatars moved here).
+  image: z
+    .string()
+    .refine(
+      (v) => v === "" || isAvatarUrl(v) || /^https:\/\//.test(v),
+      "Profile picture upload failed — try again"
+    ),
 });
 
 /** Trim a form value to a string, collapsing blanks to undefined. */
@@ -96,6 +63,13 @@ export async function updateProfile(
   }
 
   const { name, jobTitle, phone, bio, image } = parsed.data;
+
+  // "Remove" clears the field — drop the stored bytes too rather than leaving
+  // an orphaned blob behind.
+  if (!image) {
+    await prisma.userAvatar.deleteMany({ where: { userId: user.id } });
+  }
+
   const updated = await prisma.user.update({
     where: { id: user.id },
     data: {

@@ -5,51 +5,45 @@ import { Loader2, Trash2, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import type { AvatarPresign } from "@/app/admin/(dashboard)/profile/actions";
+import { MAX_AVATAR_BYTES } from "@/lib/avatar";
 
 /**
- * Picks a profile picture, uploads it straight to the public R2 bucket via a
- * presigned PUT URL, and exposes the resulting permanent URL as a hidden input
- * so the surrounding <form> persists it on save. The preview updates as soon as
- * the upload finishes; nothing is written to the account until the form is
- * submitted, and "Remove" simply clears the field.
+ * Picks a profile picture, posts it to /api/admin/profile/avatar where it is
+ * stored as a blob in Postgres, and exposes the URL that serves it back as a
+ * hidden input so the surrounding <form> persists it on save. The preview
+ * updates as soon as the upload finishes; nothing is written to the account
+ * until the form is submitted, and "Remove" simply clears the field.
  */
 export function AvatarUpload({
   name,
   defaultUrl,
-  getUploadUrl,
 }: {
   name: string;
   defaultUrl?: string | null;
-  getUploadUrl: (
-    filename: string,
-    contentType: string,
-    size: number
-  ) => Promise<AvatarPresign>;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState<string>(defaultUrl ?? "");
   const [uploading, setUploading] = useState(false);
 
   async function onPick(file: File) {
+    // Checked again on the server; catching it here saves sending the bytes.
+    if (file.size > MAX_AVATAR_BYTES) {
+      toast.error("Profile picture must be 5 MB or smaller.");
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     setUploading(true);
     try {
-      const presigned = await getUploadUrl(
-        file.name,
-        file.type || "application/octet-stream",
-        file.size
-      );
-      if ("error" in presigned) {
-        toast.error(presigned.error);
-        return;
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/admin/profile/avatar", { method: "POST", body });
+      const data = (await res.json().catch(() => null)) as
+        | { url?: string; error?: string }
+        | null;
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error ?? `Upload failed (${res.status})`);
       }
-      const res = await fetch(presigned.uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type || "application/octet-stream" },
-      });
-      if (!res.ok) throw new Error(`Upload failed (${res.status})`);
-      setUrl(presigned.url);
+      setUrl(data.url);
       toast.success("Picture uploaded — save to apply it");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");

@@ -10,7 +10,11 @@
  * stays free of server-only imports.
  */
 export type MeetingParticipantMeta = {
-  /** Permanent public URL of the participant's profile picture, if they have one. */
+  /**
+   * The participant's profile picture, if they have one: a path on this app
+   * (/api/users/[id]/avatar, for a picture stored in the database) or an
+   * absolute https URL (pictures uploaded to R2 before avatars moved there).
+   */
   image?: string | null;
 };
 
@@ -31,8 +35,10 @@ export function avatarFromMetadata(metadata?: string | null): string | null {
     if (!parsed || typeof parsed !== "object") return null;
     const image = (parsed as MeetingParticipantMeta).image;
     if (typeof image !== "string" || !image) return null;
-    // Only ever render an https image URL — never a javascript:/data: payload.
-    return image.startsWith("https://") ? image : null;
+    // Only ever render an https URL or one of our own avatar paths — never a
+    // javascript:/data: payload, and never a protocol-relative "//host" path.
+    if (image.startsWith("https://")) return image;
+    return /^\/api\/users\/[A-Za-z0-9_-]+\/avatar(\?v=\d+)?$/.test(image) ? image : null;
   } catch {
     return null;
   }

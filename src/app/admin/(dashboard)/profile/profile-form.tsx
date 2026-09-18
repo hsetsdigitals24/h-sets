@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Field, SubmitButton, FormError } from "@/components/admin/form-kit";
 import { AvatarUpload } from "@/components/admin/avatar-upload";
 import type { ContentActionState } from "@/lib/content-forms";
-import { updateProfile, presignAvatarUpload } from "./actions";
+import { updateProfile } from "./actions";
 
 export type StaffProfile = {
   name: string;
@@ -30,11 +30,7 @@ export function ProfileForm({ profile }: { profile: StaffProfile }) {
 
   return (
     <form action={formAction} className="space-y-6">
-      <AvatarUpload
-        name={profile.name}
-        defaultUrl={profile.image}
-        getUploadUrl={presignAvatarUpload}
-      />
+      <AvatarUpload name={profile.name} defaultUrl={profile.image} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Full name" htmlFor="name">

@@ -90,6 +90,27 @@ model User {
 
   // Finance ledger entries this user recorded (role FINANCE_ADMIN / SUPER_ADMIN).
   financeEntries FinanceTransaction[] @relation("FinanceEntryAuthor")
+
+  // The bytes behind `image` when the picture was uploaded to the database.
+  avatar UserAvatar?
+}
+
+// A staff member's profile picture stored as a blob in Postgres rather than in
+// object storage. Kept in its own table, not as a column on User, so the bytes
+// are never dragged along by the many queries that read a whole User row — they
+// are loaded only by the route that serves them.
+//
+// `User.image` stays the URL the app renders; for a database-backed picture it
+// points at /api/users/[id]/avatar?v=[updatedAt], so a new upload busts every
+// cached copy. Pictures uploaded before this change keep their public R2 URL and
+// keep working; only new uploads land here.
+model UserAvatar {
+  userId      String   @id
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data        Bytes
+  contentType String
+  sizeBytes   Int
+  updatedAt   DateTime @updatedAt
 }
 
 // Per-user override of which admin dashboard sections a member can access.
