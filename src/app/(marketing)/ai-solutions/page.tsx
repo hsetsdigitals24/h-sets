@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import { ArrowRight, Bot, Sparkles, Brain, Workflow, ShieldCheck, Gauge } from "lucide-react";
 import { getService } from "@/lib/content";
@@ -11,11 +12,12 @@ import { FaqSection } from "@/components/common/faq";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbSchema, FaqSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "AI Solutions",
   description:
     "Practical AI for real business outcomes — automation, agents, strategy and readiness assessments from H-SETS.",
-};
+  path: "/ai-solutions",
+});
 
 const capabilities = [
   { icon: Workflow, title: "AI Automation", description: "Remove repetitive manual work and reclaim hours every week." },

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Mail, MapPin, Phone, ArrowUpRight } from "lucide-react";
-import { footerNav, site, location } from "@/lib/site";
+import { footerNav, site, location, fullAddress } from "@/lib/site";
 import { Logo } from "./logo";
 import { NewsletterForm } from "@/components/forms/newsletter-form";
 import { LinkedInIcon, XIcon, InstagramIcon, YouTubeIcon } from "./social-icons";
@@ -82,13 +82,15 @@ export function Footer() {
                 <Phone className="mt-0.5 size-4 shrink-0 text-accent" />
                 <span>{site.phone}</span>
               </a>
-              <p className="flex items-start gap-2">
+              <a
+                href={location.gbpUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-2 hover:text-accent"
+              >
                 <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
-                <span>
-                  {location.addressLocality}, {location.addressRegion} State,
-                  Nigeria
-                </span>
-              </p>
+                <span>{fullAddress}</span>
+              </a>
             </address>
             <Link
               href="/contact#consultation"

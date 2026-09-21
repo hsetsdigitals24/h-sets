@@ -12,7 +12,9 @@ export const site = {
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://h-sets.com",
   email: "info@h-sets.com",
   phone: "+234 707 819 8353 / +234 816 369 9882",
-  // Human-readable one-liner (footer). Structured NAP lives in `location` below.
+  // Human-readable one-liner. Structured NAP lives in `location` below; prefer
+  // `fullAddress` (derived from it) anywhere the address is shown to users, so
+  // the site, the schema and the Google Business Profile cannot drift apart.
   address: "Along Royal Valley Way, Beside CAC Olorunsogo Zonal H/Q, Kulende Estate, Sango, Ilorin, Kwara State, Nigeria",
   // Absolute path to the brand logo used in Organization/LocalBusiness schema + OG.
   logo: "/logo.png",
@@ -36,7 +38,7 @@ export const site = {
  * geo coordinates and gbpUrl with the verified GBP values before launch.
  */
 export const location = {
-  streetAddress: "Along Royal Valley Way, Beside CAC Olorunsogo Zonal H/Q, Kulende Estate, Sango.",
+  streetAddress: "Along Royal Valley Way, Beside CAC Olorunsogo Zonal H/Q, Kulende Estate, Sango",
   addressLocality: "Ilorin",
   addressRegion: "Kwara",
   postalCode: "240101",
@@ -48,6 +50,15 @@ export const location = {
   /** Opening hours in schema.org format. */
   openingHours: "Mo-Fr 09:00-17:00",
 } as const;
+
+/**
+ * The single NAP string rendered to users — footer, /contact, legal pages.
+ * Local ranking depends on this matching the LocalBusiness schema and the
+ * Google Business Profile character for character, so all three read from
+ * `location` rather than repeating the address as prose. The footer previously
+ * showed only "Ilorin, Kwara State, Nigeria", omitting the street entirely.
+ */
+export const fullAddress = `${location.streetAddress}, ${location.addressLocality}, ${location.addressRegion} State, Nigeria`;
 
 /** Geographic markets served, most-specific first (used in areaServed schema). */
 export const areasServed = [

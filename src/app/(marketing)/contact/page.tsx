@@ -1,23 +1,25 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { Mail, MapPin, Phone, Clock } from "lucide-react";
 import { PageHero } from "@/components/common/page-hero";
 import { Section, SectionHeading } from "@/components/common/section";
 import { Reveal } from "@/components/common/reveal";
 import { ContactForm } from "@/components/forms/contact-form";
 import { ConsultationForm } from "@/components/forms/consultation-form";
-import { site } from "@/lib/site";
+import { site, fullAddress } from "@/lib/site";
 import { BreadcrumbSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Contact",
   description:
     "Get in touch with H-SETS. Book a free consultation, send an enquiry, or explore partnership opportunities.",
-};
+  path: "/contact",
+});
 
 const details = [
   { icon: Mail, label: "Email", value: site.email, href: `mailto:${site.email}` },
   { icon: Phone, label: "Phone", value: site.phone, href: `tel:${site.phone}` },
-  { icon: MapPin, label: "Location", value: site.address },
+  { icon: MapPin, label: "Location", value: fullAddress },
   { icon: Clock, label: "Hours", value: "Mon–Fri, 9am–6pm WAT" },
 ];
 

@@ -164,16 +164,11 @@ export function MeetingStage({
             <ReactionOverlay reactions={reactions} />
             {/* The stage above is sized as `100% - --lk-control-bar-height`, so
               the reaction button shares the control bar's row rather than
-              adding one of its own. */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                maxHeight: "var(--lk-control-bar-height)",
-                borderTop: "1px solid var(--lk-border-color)",
-              }}
-            >
+              adding one of its own. `meet-control-row` (globals.css) lays the
+              row out, and tightens its spacing on phone-width screens where
+              these two extra buttons would otherwise push the leave button off
+              the edge of the viewport. */}
+            <div className="meet-control-row">
               <RaiseHandButton />
               <ReactionButton onSelect={sendReaction} />
               <ControlBar

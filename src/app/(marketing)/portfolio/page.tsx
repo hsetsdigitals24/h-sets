@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { getPortfolio } from "@/lib/content";
 import { PageHero } from "@/components/common/page-hero";
 import { Section } from "@/components/common/section";
@@ -7,11 +8,12 @@ import { PortfolioCard } from "@/components/cards/portfolio-card";
 import { CtaStrip } from "@/components/common/cta-strip";
 import { BreadcrumbSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Portfolio & Case Studies",
   description:
     "Real results for real businesses. Explore H-SETS case studies across healthcare, fintech, retail and more.",
-};
+  path: "/portfolio",
+});
 
 export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 

@@ -120,7 +120,7 @@ export function GuestRoom({
   }
 
   return (
-    <div className="relative h-screen w-screen" data-lk-theme="default">
+    <div className="relative h-[100dvh] w-full" data-lk-theme="default">
       <LiveKitRoom
         token={conn.token}
         serverUrl={conn.url}
@@ -156,7 +156,7 @@ export function GuestRoom({
 
 function Centered({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center gap-3 bg-background">
+    <div className="flex h-[100dvh] w-full flex-col items-center justify-center gap-3 bg-background">
       {children}
     </div>
   );

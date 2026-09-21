@@ -213,15 +213,15 @@ export function MeetingPreJoin({
   // can safely reflect remembered preferences from here on.
   if (!mounted) {
     return (
-      <div className="flex min-h-screen w-screen items-center justify-center bg-background">
+      <div className="flex min-h-[100dvh] w-full items-center justify-center bg-background">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen w-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-4xl space-y-6 rounded-2xl border border-border bg-card p-6 shadow-soft">
+    <div className="flex min-h-[100dvh] w-full items-center justify-center bg-background p-4">
+      <div className="w-full max-w-4xl space-y-6 rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-6">
         <div className="text-center">
           <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
           <p className="text-sm text-muted-foreground">

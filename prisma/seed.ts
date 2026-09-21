@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient, Prisma, Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 import { programmes } from "../src/data/programmes.ts";
@@ -297,6 +297,9 @@ async function seedServices() {
         process: s.process,
         faqs: s.faqs,
         related: s.related,
+        metaTitle: s.metaTitle ?? null,
+        metaDescription: s.metaDescription ?? null,
+        sections: s.sections ?? Prisma.DbNull,
         sortOrder: i,
       },
       create: {
@@ -312,6 +315,9 @@ async function seedServices() {
         process: s.process,
         faqs: s.faqs,
         related: s.related,
+        metaTitle: s.metaTitle ?? null,
+        metaDescription: s.metaDescription ?? null,
+        sections: s.sections ?? Prisma.DbNull,
         sortOrder: i,
       },
     });

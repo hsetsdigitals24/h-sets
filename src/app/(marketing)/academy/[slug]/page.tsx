@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Check, Clock, CalendarDays, Wallet, Users } from "lucide-react";
@@ -24,7 +25,11 @@ export async function generateMetadata({
   const { slug } = await params;
   const p = await getProgramme(slug);
   if (!p) return {};
-  return { title: `${p.name} Programme`, description: p.short };
+  return buildMetadata({
+    title: `${p.name} Programme`,
+    description: p.short,
+    path: `/academy/${slug}`,
+  });
 }
 
 export default async function ProgrammeDetailPage({

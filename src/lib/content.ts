@@ -270,6 +270,9 @@ function mapService(s: {
   process: unknown;
   faqs: unknown;
   related: unknown;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  sections?: unknown;
 }): Service {
   return {
     slug: s.slug,
@@ -279,6 +282,9 @@ function mapService(s: {
     short: s.short,
     hero: s.hero,
     problem: s.problem,
+    ...(s.metaTitle ? { metaTitle: s.metaTitle } : {}),
+    ...(s.metaDescription ? { metaDescription: s.metaDescription } : {}),
+    ...(s.sections ? { sections: s.sections as Service["sections"] } : {}),
     outcomes: s.outcomes as string[],
     features: s.features as Service["features"],
     process: s.process as Service["process"],

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Check, X } from "lucide-react";
@@ -21,7 +22,11 @@ export async function generateMetadata({
   const { slug } = await params;
   const industry = await getIndustry(slug);
   if (!industry) return {};
-  return { title: `${industry.name} Solutions`, description: industry.short };
+  return buildMetadata({
+    title: `${industry.name} Solutions`,
+    description: industry.short,
+    path: `/industries/${slug}`,
+  });
 }
 
 export default async function IndustryDetailPage({

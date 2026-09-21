@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
-    "db:seed:admin": "node --experimental-strip-types prisma/seed-admin.ts"
+    "db:seed:admin": "node --experimental-strip-types prisma/seed-admin.ts",
+    "db:seed:services": "node --experimental-strip-types prisma/seed-services.ts"
   },
   "prisma": {
     "seed": "node --experimental-strip-types prisma/seed.ts"

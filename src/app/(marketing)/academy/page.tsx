@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import { Award, Briefcase, Users, Calendar } from "lucide-react";
 import { getProgrammes } from "@/lib/content";
@@ -10,11 +11,12 @@ import { CtaStrip } from "@/components/common/cta-strip";
 import { Button } from "@/components/ui/button";
 import { BreadcrumbSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Academy",
   description:
     "Cohort-based, instructor-led tech training from the H-SETS Academy. Software, AI, design, data and more — with real projects and a path to employment.",
-};
+  path: "/academy",
+});
 
 const perks = [
   { icon: Users, title: "Cohort-based", description: "Learn alongside a community, with live instructors and accountability." },

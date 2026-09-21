@@ -44,11 +44,11 @@ model User {
   // profile picture in the public R2 bucket; it is shown in the admin header and
   // as their avatar in video calls. The rest is free-text detail a staff member
   // maintains themselves under /admin/profile.
-  jobTitle      String?
-  phone         String?
-  bio           String?
-  accounts      Account[]
-  sessions      Session[]
+  jobTitle String?
+  phone    String?
+  bio      String?
+  accounts Account[]
+  sessions Session[]
 
   // Student portal (LMS)
   enrollments      Enrollment[]
@@ -847,23 +847,32 @@ model Portfolio {
 // ---------------------------------------------------------------------------
 
 model Service {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  name      String
-  icon      String
-  tagline   String
-  short     String
-  hero      String
-  problem   String
-  outcomes  Json // string[]
-  features  Json // { title, description }[]
-  process   Json // { step, title, description }[]
-  faqs      Json // { q, a }[]
-  related   Json // string[]
-  published Boolean  @default(true)
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  icon            String
+  tagline         String
+  short           String
+  hero            String
+  problem         String
+  // Search-facing overrides. `name` stays the short label used in navigation and
+  // cards; metaTitle/metaDescription carry the keyword- and geography-bearing
+  // strings that go in <title> and <meta name="description">.
+  metaTitle       String?
+  metaDescription String?
+  outcomes        Json // string[]
+  features        Json // { title, description }[]
+  process         Json // { step, title, description }[]
+  faqs            Json // { q, a }[]
+  related         Json // string[]
+  // Long-form body: { heading, body: string[] }[]. Renders between the features
+  // and process sections. Service pages were ~200 words, too thin for Google to
+  // assess topical relevance at all (Sept 2026 audit).
+  sections        Json?
+  published       Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Industry {
@@ -1057,32 +1066,32 @@ model ProjectMeetingLog {
 // instructor/admin starts recording and finalised by the LiveKit egress webhook
 // (status → READY with storageKey/duration/size, or FAILED).
 model Recording {
-  id             String          @id @default(cuid())
+  id       String          @id @default(cuid())
   // LiveKit egress job id — the handle used to stop it and to match webhooks.
-  egressId       String          @unique
-  roomName       String
-  status         RecordingStatus @default(STARTING)
+  egressId String          @unique
+  roomName String
+  status   RecordingStatus @default(STARTING)
 
   // Owning room — exactly one is set.
-  classSession   ClassSession?   @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
+  classSession   ClassSession? @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
   classSessionId String?
-  project        Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project        Project?      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId      String?
-  companyRoom    CompanyRoom?    @relation(fields: [companyRoomId], references: [id], onDelete: Cascade)
+  companyRoom    CompanyRoom?  @relation(fields: [companyRoomId], references: [id], onDelete: Cascade)
   companyRoomId  String?
 
   // Object key in the private R2 bucket; null until egress reports the file.
-  storageKey     String?
-  durationSec    Int?
-  sizeBytes      BigInt?
+  storageKey  String?
+  durationSec Int?
+  sizeBytes   BigInt?
 
-  startedBy      User?           @relation("RecordingStarter", fields: [startedById], references: [id], onDelete: SetNull)
-  startedById    String?
-  startedAt      DateTime        @default(now())
-  endedAt        DateTime?
+  startedBy   User?     @relation("RecordingStarter", fields: [startedById], references: [id], onDelete: SetNull)
+  startedById String?
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
 
   // AI note-taker output for this recording (transcript + summary), if generated.
-  notes          MeetingNotes?
+  notes MeetingNotes?
 
   @@index([classSessionId, startedAt])
   @@index([projectId, startedAt])
@@ -1094,8 +1103,8 @@ model Recording {
 /// cohorts, there's no per-room membership: every internal, non-student user can
 /// join any room). The LiveKit room name is `company-<slug>`.
 model CompanyRoom {
-  id          String   @id @default(cuid())
-  slug        String   @unique
+  id          String  @id @default(cuid())
+  slug        String  @unique
   name        String
   description String?
 
@@ -1103,7 +1112,7 @@ model CompanyRoom {
   createdById String?
   createdAt   DateTime @default(now())
 
-  recordings  Recording[]
+  recordings Recording[]
 
   @@index([createdAt])
 }

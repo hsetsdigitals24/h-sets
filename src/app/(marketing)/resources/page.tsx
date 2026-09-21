@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import { PageHero } from "@/components/common/page-hero";
 import { Section } from "@/components/common/section";
@@ -8,11 +9,12 @@ import { BreadcrumbSchema } from "@/lib/seo";
 import { getResources } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Resource Hub",
   description:
     "Free e-books, templates, checklists, playbooks and reports to help you grow your business and skills — from H-SETS.",
-};
+  path: "/resources",
+});
 
 export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 

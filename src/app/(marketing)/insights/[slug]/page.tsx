@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { notFound } from "next/navigation";
 import { getPublishedInsights, getInsight } from "@/lib/content";
 import { PageHero } from "@/components/common/page-hero";
@@ -19,7 +20,15 @@ export async function generateMetadata({
   const { slug } = await params;
   const insight = await getInsight(slug);
   if (!insight) return {};
-  return { title: insight.title, description: insight.excerpt };
+  return buildMetadata({
+    title: insight.title,
+    description: insight.excerpt,
+    path: `/insights/${slug}`,
+    type: "article",
+    publishedTime: insight.date,
+    authors: [insight.author],
+    ...(insight.coverImage ? { image: insight.coverImage } : {}),
+  });
 }
 
 export default async function InsightPage({

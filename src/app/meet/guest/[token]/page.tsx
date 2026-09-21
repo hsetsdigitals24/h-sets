@@ -42,7 +42,7 @@ export default async function GuestMeetPage({
 
   if (problem || !invite) {
     return (
-      <div className="flex h-screen w-screen flex-col items-center justify-center gap-3 bg-background px-6 text-center">
+      <div className="flex h-[100dvh] w-full flex-col items-center justify-center gap-3 bg-background px-6 text-center">
         <VideoOff className="size-8 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">{problem}</p>
         <Button asChild variant="outline" size="sm">

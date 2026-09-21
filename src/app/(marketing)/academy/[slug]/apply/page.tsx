@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { notFound } from "next/navigation";
 import { getProgramme } from "@/lib/content";
 import { PageHero } from "@/components/common/page-hero";
@@ -17,7 +18,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const p = await getProgramme(slug);
   if (!p) return {};
-  return { title: `Apply — ${p.name}`, description: `Apply for the ${p.name} programme.` };
+  // Application forms carry no standalone search value and would compete with
+  // the programme page they belong to — canonical is set, indexing is not.
+  return buildMetadata({
+    title: `Apply — ${p.name}`,
+    description: `Apply for the ${p.name} programme.`,
+    path: `/academy/${slug}/apply`,
+    noindex: true,
+  });
 }
 
 export default async function ApplyPage({

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { PageHero } from "@/components/common/page-hero";
 import { Section, SectionHeading } from "@/components/common/section";
 import { Reveal, RevealGroup, RevealItem } from "@/components/common/reveal";
@@ -7,11 +8,12 @@ import { CtaStrip } from "@/components/common/cta-strip";
 import { aboutStats, values, team, milestones } from "@/data/company";
 import { BreadcrumbSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "About Us",
   description:
     "H-SETS is a Nigerian technology company bridging world-class technology and local businesses — and training the next generation of tech talent.",
-};
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (

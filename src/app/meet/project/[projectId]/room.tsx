@@ -105,7 +105,7 @@ export function ProjectRoom({
   }
 
   return (
-    <div className="relative h-screen w-screen" data-lk-theme="default">
+    <div className="relative h-[100dvh] w-full" data-lk-theme="default">
       <LiveKitRoom
         token={conn.token}
         serverUrl={conn.url}
@@ -135,7 +135,7 @@ export function ProjectRoom({
       >
         <MeetingStage chatMessageFormatter={formatChatMessageLinks} />
       </LiveKitRoom>
-      <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center gap-2 [&>*]:pointer-events-auto">
+      <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex flex-wrap justify-center gap-2 px-20 sm:px-4 [&>*]:pointer-events-auto">
         {canRecord && <RecordButton projectId={projectId} />}
         <InviteGuestButton projectId={projectId} />
       </div>
@@ -145,7 +145,7 @@ export function ProjectRoom({
 
 function Centered({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center gap-3 bg-background">
+    <div className="flex h-[100dvh] w-full flex-col items-center justify-center gap-3 bg-background">
       {children}
     </div>
   );

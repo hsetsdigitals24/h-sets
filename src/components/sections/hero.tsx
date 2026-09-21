@@ -25,15 +25,18 @@ const slides = [
   {
     src: "/hero/slide-1.png",
     alt: "H-SETS team building software",
-    headline: ["Technology", "that grows", "your business"],
-    gradientFrom: 2,
+    // Slide 1 is the H1 the crawler sees (only the active slide is mounted, and
+    // SSR renders index 0), so it has to carry the category + geography the old
+    // "Technology that grows your business" headline was missing entirely.
+    headline: ["Nigeria's software,", "AI & digital", "growth partner"],
+    gradientFrom: 1,
     subheadline:
       "We build software, deploy AI and drive growth for ambitious businesses across Nigeria and beyond.",
   },
   {
     src: "/hero/slide-2.jpeg",
     alt: "H-SETS Academy learners at work",
-    headline: ["Skills that", "launch your", "tech career"],
+    headline: ["Tech skills that", "launch careers", "in Nigeria"],
     gradientFrom: 2,
     subheadline:
       "Learn from senior engineers through hands-on, cohort-based training at the H-SETS Academy — and get hired.",

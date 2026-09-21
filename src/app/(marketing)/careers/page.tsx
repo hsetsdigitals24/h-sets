@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import { Users, Briefcase, GraduationCap } from "lucide-react";
 import { PageHero } from "@/components/common/page-hero";
@@ -10,11 +11,12 @@ import { Button } from "@/components/ui/button";
 import { BreadcrumbSchema } from "@/lib/seo";
 import { getJobs } from "@/lib/content";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Careers & Job Board",
   description:
     "Find tech roles, internships and graduate opportunities — or hire pre-vetted talent from the H-SETS talent pool.",
-};
+  path: "/careers",
+});
 
 const tracks = [
   { icon: Briefcase, title: "Job Board", description: "Roles from employer partners — searchable and open to all." },

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { notFound } from "next/navigation";
 import { Quote } from "lucide-react";
 import { getPortfolioItem } from "@/lib/content";
@@ -20,7 +21,12 @@ export async function generateMetadata({
   const { slug } = await params;
   const study = await getPortfolioItem(slug);
   if (!study) return {};
-  return { title: study.title, description: study.summary };
+  return buildMetadata({
+    title: study.title,
+    description: study.summary,
+    path: `/portfolio/${slug}`,
+    ...(study.thumbnail ? { image: study.thumbnail } : {}),
+  });
 }
 
 export default async function PortfolioItemPage({

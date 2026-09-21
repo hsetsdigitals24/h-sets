@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { getIndustries } from "@/lib/content";
 import { PageHero } from "@/components/common/page-hero";
 import { Section } from "@/components/common/section";
@@ -7,11 +8,12 @@ import { IndustryTile } from "@/components/cards/industry-tile";
 import { CtaStrip } from "@/components/common/cta-strip";
 import { BreadcrumbSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Industries",
   description:
     "H-SETS delivers technology solutions across healthcare, fintech, education, manufacturing, government, NGOs and real estate.",
-};
+  path: "/industries",
+});
 
 export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 

@@ -20,7 +20,14 @@ type BuildMetaInput = {
   authors?: string[];
 };
 
-const DEFAULT_OG_IMAGE = "/og-default.png";
+/**
+ * Default social card. `/og` renders a branded 1200×630 image per page (see
+ * app/og/route.tsx) — pass `image` explicitly to override it with real artwork,
+ * e.g. an article cover.
+ */
+function defaultOgImage(title: string) {
+  return `/og?title=${encodeURIComponent(title)}`;
+}
 
 /**
  * Single source of truth for per-page metadata. Guarantees every page gets a
@@ -31,7 +38,7 @@ export function buildMetadata({
   title,
   description,
   path,
-  image = DEFAULT_OG_IMAGE,
+  image,
   type = "website",
   noindex = false,
   keywords,
@@ -39,7 +46,8 @@ export function buildMetadata({
   authors,
 }: BuildMetaInput): Metadata {
   const url = `${site.url}${path === "/" ? "" : path}`;
-  const ogImage = image.startsWith("http") ? image : `${site.url}${image}`;
+  const card = image ?? defaultOgImage(title);
+  const ogImage = card.startsWith("http") ? card : `${site.url}${card}`;
 
   return {
     title,

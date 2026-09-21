@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { PageHero } from "@/components/common/page-hero";
 import { Section } from "@/components/common/section";
 import { BreadcrumbSchema } from "@/lib/seo";
-import { site } from "@/lib/site";
+import { site, fullAddress } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Privacy Policy",
   description:
     "How H-SETS collects, uses and protects your personal data across our website, academy and services.",
-};
+  path: "/privacy",
+});
 
 const LAST_UPDATED = "August 2026";
 
@@ -119,7 +121,7 @@ export default function PrivacyPage() {
           <p>
             Questions about this policy or your data? Email{" "}
             <a href={`mailto:${site.email}`}>{site.email}</a> or write to us at{" "}
-            {site.address}.
+            {fullAddress}.
           </p>
         </div>
       </Section>

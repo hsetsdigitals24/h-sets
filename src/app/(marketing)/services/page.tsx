@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { getServices } from "@/lib/content";
 import { PageHero } from "@/components/common/page-hero";
 import { Section } from "@/components/common/section";
@@ -7,11 +8,12 @@ import { ServiceCard } from "@/components/cards/service-card";
 import { CtaStrip } from "@/components/common/cta-strip";
 import { BreadcrumbSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Services",
   description:
     "From websites and software to AI automation and digital marketing — explore the full range of H-SETS technology services.",
-};
+  path: "/services",
+});
 
 export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 

@@ -195,3 +195,38 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-meet-reaction { animation: none !important; }
 }
+
+/* The call's bottom row: raise hand + reactions sitting alongside LiveKit's
+   own control bar. It keeps the control bar's height so the stage above it,
+   sized as `100% - --lk-control-bar-height`, still fits exactly. */
+.meet-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: var(--lk-control-bar-height);
+  border-top: 1px solid var(--lk-border-color);
+}
+
+/* Phone-width screens. LiveKit's own control bar already drops its button
+   labels below 760px, but with our two extra buttons in the same row its
+   default 0.5rem gaps and 0.75rem padding still overflow a ~360px viewport —
+   silently pushing the leave button past the right edge, with no way to scroll
+   to it. Tightening the spacing brings the whole row back on screen. */
+@media (max-width: 640px) {
+  [data-lk-theme] .meet-control-row .lk-control-bar {
+    gap: 0.25rem;
+    padding: 0.5rem 0.25rem;
+  }
+  [data-lk-theme] .meet-control-row .lk-button {
+    padding: 0.5rem;
+  }
+  /* The device-picker menus stay: on a phone that chevron is how a participant
+     switches between the front and back camera. */
+  /* LiveKit fixes the chat panel to the viewport below 600px but keeps its
+     `clamp(200px, 55ch, 60ch)` width, which leaves the stage partly visible
+     behind it on a narrow screen. Full width reads as a proper panel. */
+  [data-lk-theme] .lk-chat {
+    width: 100%;
+    border-left: none;
+  }
+}

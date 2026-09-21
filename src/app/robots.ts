@@ -7,6 +7,13 @@ import { site } from "@/lib/site";
  * blocked to protect crawl budget and keep non-indexable surfaces out of search.
  */
 export default function robots(): MetadataRoute.Robots {
+  // Preview/staging deployments (h-sets.vercel.app and every preview URL) must
+  // never be indexed — the audit found staging publicly crawlable alongside
+  // production, which risks duplicate-content dilution of the real domain.
+  if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") {
+    return { rules: { userAgent: "*", disallow: "/" } };
+  }
+
   return {
     rules: {
       userAgent: "*",

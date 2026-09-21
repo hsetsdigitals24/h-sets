@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
@@ -22,10 +23,13 @@ export async function generateMetadata({
   const { slug } = await params;
   const service = await getService(slug);
   if (!service) return {};
-  return {
-    title: service.name,
-    description: service.short,
-  };
+  return buildMetadata({
+    // metaTitle/metaDescription carry the keyword + geography; `name`/`short`
+    // stay the short labels used in nav and cards.
+    title: service.metaTitle ?? service.name,
+    description: service.metaDescription ?? service.short,
+    path: `/services/${slug}`,
+  });
 }
 
 export default async function ServiceDetailPage({
@@ -50,7 +54,10 @@ export default async function ServiceDetailPage({
   return (
     <>
       <BreadcrumbSchema items={crumbs} />
-      <ServiceSchema name={service.name} description={service.short} />
+      <ServiceSchema
+        name={service.name}
+        description={service.metaDescription ?? service.short}
+      />
       <FaqSchema faqs={service.faqs} />
 
       <PageHero
@@ -123,6 +130,30 @@ export default async function ServiceDetailPage({
           ))}
         </RevealGroup>
       </Section>
+
+      {/* Long-form body. Optional per service — see `sections` in the Service
+          model. This is the depth Google needs to judge topical relevance. */}
+      {service.sections && service.sections.length > 0 && (
+        <Section>
+          <div className="mx-auto max-w-3xl">
+            {service.sections.map((sec) => (
+              <Reveal key={sec.heading} className="mt-12 first:mt-0">
+                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                  {sec.heading}
+                </h2>
+                {sec.body.map((p, i) => (
+                  <p
+                    key={i}
+                    className="mt-4 text-lg leading-relaxed text-muted-foreground"
+                  >
+                    {p}
+                  </p>
+                ))}
+              </Reveal>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* Process */}
       <Section>

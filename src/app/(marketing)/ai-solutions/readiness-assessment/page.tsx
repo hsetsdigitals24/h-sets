@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { PageHero } from "@/components/common/page-hero";
 import { Section } from "@/components/common/section";
 import { ReadinessAssessment } from "@/components/assessment/readiness-assessment";
 import { BreadcrumbSchema } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "AI Readiness Assessment",
   description:
     "Take the free H-SETS AI Readiness Self-Assessment. Answer 6 quick questions and get a tailored view of where AI can cut costs and unlock growth in your business.",
-};
+  path: "/ai-solutions/readiness-assessment",
+});
 
 export default function ReadinessAssessmentPage() {
   return (

@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { PageHero } from "@/components/common/page-hero";
 import { Section } from "@/components/common/section";
 import { BreadcrumbSchema } from "@/lib/seo";
-import { site } from "@/lib/site";
+import { site, fullAddress } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Terms & Conditions",
   description:
     "The terms that govern your use of the H-SETS website, academy and services.",
-};
+  path: "/terms",
+});
 
 const LAST_UPDATED = "August 2026";
 
@@ -120,7 +122,7 @@ export default function TermsPage() {
           <p>
             Questions about these terms? Email{" "}
             <a href={`mailto:${site.email}`}>{site.email}</a> or write to us at{" "}
-            {site.address}.
+            {fullAddress}.
           </p>
         </div>
       </Section>

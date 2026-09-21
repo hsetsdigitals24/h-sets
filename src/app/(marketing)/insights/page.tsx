@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Clock } from "lucide-react";
 import { getPublishedInsights } from "@/lib/content";
@@ -85,11 +86,12 @@ function PaginationLink({
   );
 }
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Insights",
   description:
     "Practical perspectives on technology, AI, design and building a career in tech — from the H-SETS team.",
-};
+  path: "/insights",
+});
 
 // Reading searchParams opts this route into dynamic rendering, so ISR no longer
 // applies. Admin edits already trigger revalidatePath, so freshness is preserved.

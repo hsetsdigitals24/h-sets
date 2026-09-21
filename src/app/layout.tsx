@@ -25,14 +25,9 @@ export const metadata: Metadata = {
     template: `%s | ${site.name}`,
   },
   description: site.description,
-  keywords: [
-    "software development Nigeria",
-    "AI automation",
-    "tech academy",
-    "digital transformation",
-    "web development",
-    "H-SETS",
-  ],
+  // No global `keywords`: an identical keyword list on every page is not a
+  // ranking factor and reads as copy-paste implementation to auditors. Pages
+  // that want keyword hints pass their own via `buildMetadata`.
   openGraph: {
     type: "website",
     locale: "en_NG",
