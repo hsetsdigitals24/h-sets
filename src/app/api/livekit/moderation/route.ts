@@ -7,17 +7,18 @@ import { canModerateRoom, muteParticipantMic } from "@/lib/livekit";
  *
  * GET  /api/livekit/moderation?room=<roomName>
  *        → { canModerate }  — drives whether the mute control is offered at all
- * POST /api/livekit/moderation  { room, identity }
- *        → { muted: true }
+ * POST /api/livekit/moderation  { room, identity, muted }
+ *        → { muted }
  *
  * The room is identified by its LiveKit room name (`class-…`, `project-…`,
  * `company-…`), which the client already holds; canModerateRoom() maps that back
  * to the underlying class/project/standup and applies the same bar as recording.
  * External guests join without a session, so they can never moderate.
  *
- * Mute only — there is no unmute action here. LiveKit does not let a server
- * unmute a published track, and that is the behaviour we want: a host can quiet
- * a hot mic, but only its owner can switch it back on.
+ * `muted` defaults to true, so an older client that posts only { room, identity }
+ * still mutes. Unmuting is attempted but may come back 409 `unmute-blocked`:
+ * LiveKit refuses a server-side unmute unless the deployment opts into it, and
+ * the client then asks the participant to unmute themselves instead.
  */
 export async function GET(req: Request) {
   const session = await auth();
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  let body: { room?: unknown; identity?: unknown };
+  let body: { room?: unknown; identity?: unknown; muted?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
 
   const room = typeof body.room === "string" ? body.room : null;
   const identity = typeof body.identity === "string" ? body.identity : null;
+  const muted = body.muted === undefined ? true : body.muted === true;
   if (!room || !identity) {
     return NextResponse.json(
       { error: "room and identity are required." },
@@ -64,22 +66,37 @@ export async function POST(req: Request) {
     );
   }
 
-  // Muting yourself is the mic button's job, and routing it through the admin
-  // API would leave you unable to unmute from the server's point of view.
+  // Your own mic is the control bar's job: it owns the local track directly,
+  // where this route can only ask the server to act on a published one.
   if (identity === session.user.id) {
     return NextResponse.json(
-      { error: "Use your own mic button to mute yourself." },
+      { error: "Use your own mic button for your microphone." },
       { status: 400 }
     );
   }
 
-  const muted = await muteParticipantMic(room, identity);
-  if (!muted) {
+  const result = await muteParticipantMic(room, identity, muted);
+  if (result === "gone") {
     return NextResponse.json(
       { error: "They're no longer in the call, or have no mic on." },
       { status: 409 }
     );
   }
+  if (result === "unmute-blocked") {
+    return NextResponse.json(
+      {
+        code: "unmute-blocked",
+        error: "Only they can turn their own mic back on.",
+      },
+      { status: 409 }
+    );
+  }
+  if (result === "failed") {
+    return NextResponse.json(
+      { error: "Could not reach the call server." },
+      { status: 502 }
+    );
+  }
 
-  return NextResponse.json({ muted: true });
+  return NextResponse.json({ muted });
 }

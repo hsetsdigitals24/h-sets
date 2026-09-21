@@ -557,38 +557,63 @@ export async function canModerateRoom(
 }
 
 /**
- * Server-side mute of one participant's microphone.
+ * What happened to a requested microphone change.
  *
- * Only the LiveKit server can mute someone else's track, so this runs through
- * the admin API rather than the caller's own room connection — which also means
- * the target's client cannot ignore it. Muting only: LiveKit does not allow a
- * server to *unmute* a published track, by design, so a muted participant stays
- * in control of when their mic comes back.
+ * `unmute-blocked` is its own outcome rather than a plain failure: it is the
+ * expected answer on a deployment that has not opted into server-side unmute,
+ * and the caller turns it into "ask them to unmute" rather than an error.
+ */
+export type MicChangeResult = "ok" | "gone" | "unmute-blocked" | "failed";
+
+/**
+ * Server-side mute — or unmute — of one participant's microphone.
  *
- * Returns false when LiveKit is unconfigured, the participant has left, or they
- * have no microphone published (an already-muted mic is still published, so a
- * repeat mute is a harmless no-op and returns true).
+ * Only the LiveKit server can change someone else's track, so this runs through
+ * the admin API rather than the caller's own room connection, which also means
+ * the target's client cannot ignore it.
+ *
+ * The two directions are not symmetric. Muting always works. Unmuting is
+ * refused by LiveKit unless the deployment enables `enable_remote_unmute` — off
+ * by default, and not exposed on LiveKit Cloud — so `unmute-blocked` is the
+ * ordinary outcome there, not a bug. The client falls back to asking the
+ * participant to unmute themselves.
+ *
+ * Returns `gone` when the participant has left or has no microphone published
+ * (an already-muted mic is still published, so re-muting is a harmless no-op
+ * and returns `ok`), and `failed` when LiveKit is unconfigured or unreachable.
  */
 export async function muteParticipantMic(
   roomName: string,
-  identity: string
-): Promise<boolean> {
+  identity: string,
+  muted = true
+): Promise<MicChangeResult> {
   const svc = roomServiceClient();
-  if (!svc) return false;
+  if (!svc) return "failed";
+
+  let mics: string[];
   try {
     const participant = await svc.getParticipant(roomName, identity);
-    const mics = participant.tracks.filter(
-      (track) => track.source === TrackSource.MICROPHONE
-    );
-    if (mics.length === 0) return false;
-    // A participant can technically publish more than one mic track; mute all of
-    // them so "muted" means silent, not "mostly silent".
-    await Promise.all(
-      mics.map((track) => svc.mutePublishedTrack(roomName, identity, track.sid, true))
-    );
-    return true;
+    mics = participant.tracks
+      .filter((track) => track.source === TrackSource.MICROPHONE)
+      .map((track) => track.sid);
   } catch {
-    return false;
+    return "gone";
+  }
+  if (mics.length === 0) return "gone";
+
+  try {
+    // A participant can technically publish more than one mic track; change all
+    // of them so "muted" means silent, not "mostly silent".
+    await Promise.all(
+      mics.map((sid) => svc.mutePublishedTrack(roomName, identity, sid, muted))
+    );
+    return "ok";
+  } catch {
+    // An unmute that LiveKit refuses is indistinguishable from any other
+    // failure at the wire level, so attribute it to the known restriction —
+    // the caller's fallback (ask them to unmute) is the right response either
+    // way, and is strictly better than a dead-end error.
+    return muted ? "failed" : "unmute-blocked";
   }
 }
 
