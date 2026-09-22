@@ -131,6 +131,23 @@ function roomServiceClient(): RoomServiceClient | null {
 export type LivePresence = { count: number; names: string[] };
 
 /**
+ * An idle room is the normal case — LiveKit's listParticipants 404s for a room
+ * nobody has opened — so that answer stays silent. Anything else (notably 429
+ * when LiveKit's REST API throttles us) is logged, because presence is polled
+ * in the background and a swallowed throttle would otherwise look identical to
+ * "nobody is in the call".
+ */
+function logPresenceFailure(room: string, err: unknown) {
+  const status = (err as { status?: number } | null)?.status;
+  if (status === 404) return;
+  console.error(
+    `[livekit] presence lookup failed for ${room}`,
+    status ?? "",
+    err instanceof Error ? err.message : err
+  );
+}
+
+/**
  * Who is *currently* connected to a project's meeting room, read straight from
  * LiveKit — the ground truth, unlike the webhook log which can lag if an event
  * is missed. Returns empty presence when LiveKit is unconfigured or the room is
@@ -147,7 +164,8 @@ export async function projectLivePresence(
       count: parts.length,
       names: parts.map((p) => p.name || p.identity).filter(Boolean),
     };
-  } catch {
+  } catch (err) {
+    logPresenceFailure(roomForProject(projectId), err);
     return { count: 0, names: [] };
   }
 }
@@ -512,7 +530,8 @@ export async function companyLivePresence(slug: string): Promise<LivePresence> {
       count: parts.length,
       names: parts.map((p) => p.name || p.identity).filter(Boolean),
     };
-  } catch {
+  } catch (err) {
+    logPresenceFailure(roomForCompany(slug), err);
     return { count: 0, names: [] };
   }
 }

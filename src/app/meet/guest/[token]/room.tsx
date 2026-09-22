@@ -12,15 +12,12 @@ import { MeetingStage } from "@/components/meet/meeting-stage";
 import { Button } from "@/components/ui/button";
 import { site } from "@/lib/site";
 import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
+import { fetchMeetingToken, type MeetingConnection } from "@/lib/meeting-token";
 import { MeetingPreJoin, type JoinChoices } from "@/components/meet/prejoin";
 
-type TokenResponse = {
-  token: string;
-  url: string;
-  room: string;
-  label: string;
-  identity: string;
-};
+// The invite label is only present on the guest-token response, and the shared
+// fetcher types it as optional; nothing here reads it today.
+type TokenResponse = MeetingConnection;
 
 /**
  * Login-free video room for an invited external guest. Identical UX to the staff
@@ -63,9 +60,10 @@ export function GuestRoom({
       try {
         const qs = new URLSearchParams({ token });
         if (choices.name) qs.set("name", choices.name);
-        const res = await fetch(`/api/livekit/guest-token?${qs.toString()}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Could not join the meeting.");
+        const data = await fetchMeetingToken(
+          `/api/livekit/guest-token?${qs.toString()}`,
+          "Could not join the meeting."
+        );
         if (!cancelled) {
           setConn(data);
           setReconnecting(false);

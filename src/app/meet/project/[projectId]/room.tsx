@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { RecordButton } from "@/components/lms/record-button";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
 import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
+import { fetchMeetingToken } from "@/lib/meeting-token";
 import { MeetingPreJoin, type JoinChoices } from "@/components/meet/prejoin";
 
 type TokenResponse = { token: string; url: string; room: string; identity: string };
@@ -49,11 +50,10 @@ export function ProjectRoom({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(
-          `/api/livekit/token?projectId=${encodeURIComponent(projectId)}`
+        const data = await fetchMeetingToken(
+          `/api/livekit/token?projectId=${encodeURIComponent(projectId)}`,
+          "Could not join the meeting."
         );
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Could not join the meeting.");
         if (!cancelled) {
           setConn(data);
           setReconnecting(false);
