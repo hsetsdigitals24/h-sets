@@ -1,0 +1,67 @@
+# Caddy (layer4) — terminates TLS on 443 for two different protocols and routes
+# by SNI:
+#   meet.h-sets.com  → the LiveKit signalling WebSocket (wss://)
+#   turn.h-sets.com  → TURN/TLS, for participants behind restrictive firewalls
+#
+# Both certificates are provisioned automatically via Let's Encrypt, so ports 80
+# and 443 must be open to the internet before first boot or issuance fails.
+#
+# If you would rather not hand-maintain this file, generate it for your domains:
+#   docker run --rm -it -v$PWD:/output livekit/generate
+logging:
+  logs:
+    default:
+      level: INFO
+
+storage:
+  module: file_system
+  root: /data
+
+apps:
+  layer4:
+    servers:
+      main:
+        listen:
+          - ":443"
+        routes:
+          # TURN/TLS. The stun.turn ALPN is how a TURN client signals itself;
+          # this route must come first so it wins over the WebSocket match.
+          - match:
+              - tls:
+                  sni:
+                    - "CHANGE_ME_turn.h-sets.com"
+                  alpn:
+                    - stun.turn
+            handle:
+              - handler: tls
+                connection_policies:
+                  - alpn:
+                      - stun.turn
+              - handler: proxy
+                upstreams:
+                  - dial:
+                      - "127.0.0.1:5349"
+          # Signalling WebSocket — this is what LIVEKIT_URL points at.
+          - match:
+              - tls:
+                  sni:
+                    - "CHANGE_ME_meet.h-sets.com"
+            handle:
+              - handler: tls
+                connection_policies:
+                  - alpn:
+                      - http/1.1
+              - handler: proxy
+                upstreams:
+                  - dial:
+                      - "127.0.0.1:7880"
+  http:
+    servers:
+      # Port 80 exists solely so Let's Encrypt can complete HTTP-01 challenges.
+      acme:
+        listen:
+          - ":80"
+        routes:
+          - handle:
+              - handler: static_response
+                status_code: 200

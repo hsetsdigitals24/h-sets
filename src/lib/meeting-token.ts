@@ -1,6 +1,7 @@
 /**
- * Shared token fetch for every meeting room client (class, project, company
- * standup, guest invite).
+ * Shared join plumbing for every meeting room client (class, project, company
+ * standup, guest invite): fetching the LiveKit token, and turning a failed room
+ * connection into something the joiner can act on.
  *
  * Exists because all four rooms previously did `await res.json()` *before*
  * checking `res.ok`. A throttled or interrupted request upstream — Prisma
@@ -13,6 +14,8 @@
  * HTTP status always survives into the message the user sees and into the
  * console for diagnosis.
  */
+
+import { ConnectionError, ConnectionErrorReason } from "livekit-client";
 
 export type MeetingConnection = {
   token: string;
@@ -80,4 +83,49 @@ export async function fetchMeetingToken(
   }
 
   return parsed as MeetingConnection;
+}
+
+/**
+ * Turns an error raised by `<LiveKitRoom>`'s `onError` into a message for the
+ * joiner, or null when the error must NOT tear down the call.
+ *
+ * `onError` is called for two very different things: a failed `room.connect()`
+ * — fatal, nothing is running — and a failed local track publish, which is what
+ * a denied camera or a missing microphone looks like. The second kind must stay
+ * non-fatal: the call is connected and usable, and the LiveKit controls already
+ * show the device as off, so replacing the whole room with an error screen
+ * would throw the user out of a working meeting.
+ *
+ * Only a ConnectionError means the room never came up, so only that returns a
+ * message. Everything else is logged and returns null.
+ */
+export function joinErrorMessage(err: unknown): string | null {
+  if (!(err instanceof ConnectionError)) {
+    console.warn("[meet] non-fatal room error (call continues):", err);
+    return null;
+  }
+
+  console.error(
+    `[meet] connection failed: ${err.reasonName} status=${err.status ?? "n/a"}`,
+    err.message
+  );
+
+  // 429 at the signalling endpoint is a LiveKit Cloud project quota, not
+  // anything the joiner can fix — say so plainly instead of "failed to join".
+  if (err.status === 429) {
+    return (
+      "The video service is over its usage limit, so the call could not start " +
+      "(429). This needs attention from an administrator — please report it."
+    );
+  }
+  if (err.status === 401 || err.status === 403) {
+    return "Your access to this call was rejected. Try rejoining; if it keeps failing, your invite or session may have expired.";
+  }
+  if (err.reason === ConnectionErrorReason.ServerUnreachable) {
+    return "Could not reach the video service. Check your connection and try again.";
+  }
+  if (err.reason === ConnectionErrorReason.Timeout) {
+    return "Timed out connecting to the call. Check your connection and try again.";
+  }
+  return `Could not connect to the call${err.status ? ` (HTTP ${err.status})` : ""}. Please try again.`;
 }

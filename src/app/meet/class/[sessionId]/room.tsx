@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { RecordButton } from "@/components/lms/record-button";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
 import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
-import { fetchMeetingToken } from "@/lib/meeting-token";
+import { fetchMeetingToken, joinErrorMessage } from "@/lib/meeting-token";
 import { MeetingPreJoin, type JoinChoices } from "@/components/meet/prejoin";
 
 type TokenResponse = { token: string; url: string; room: string; identity: string };
@@ -119,6 +119,13 @@ export function ClassRoom({
           audioCaptureDefaults: choices.audioDeviceId
             ? { deviceId: choices.audioDeviceId }
             : undefined,
+        }}
+        onError={(e) => {
+          // A failed connect is fatal (nothing is running); a failed track
+          // publish — denied camera, missing mic — is not, and must leave the
+          // call standing. joinErrorMessage() returns null for the latter.
+          const message = joinErrorMessage(e);
+          if (message) setError(message);
         }}
         onDisconnected={(reason) => {
           if (shouldExitOnDisconnect(reason)) {

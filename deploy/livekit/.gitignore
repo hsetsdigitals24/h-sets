@@ -1,0 +1,6 @@
+# Never commit real keys — livekit.yaml and egress.yaml carry the API secret
+# once filled in. Commit the CHANGE_ME templates only.
+*.local.yaml
+
+# Filled-in configs and template backups hold the API secret.
+*.orig

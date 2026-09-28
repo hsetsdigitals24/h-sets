@@ -1,0 +1,65 @@
+# H-SETS self-hosted LiveKit — SFU + Redis + Egress (recording) behind Caddy.
+#
+# Replaces LiveKit Cloud with no application code changes: the app only needs
+# LIVEKIT_URL / LIVEKIT_API_KEY / LIVEKIT_API_SECRET repointed here.
+#
+# Caddy terminates TLS for both the signalling WebSocket (wss://) and TURN/TLS
+# on 443, so participants on locked-down corporate networks can still connect.
+#
+# Egress writes finished MP4s straight to the same private R2 bucket the app
+# already reads from — recordings never transit this box's disk beyond /tmp.
+
+services:
+  caddy:
+    # caddyl4 = Caddy + the layer4 module, needed to multiplex TURN/TLS and the
+    # signalling WebSocket onto port 443. Plain caddy cannot do this.
+    image: livekit/caddyl4
+    container_name: caddy
+    command: run --config /etc/caddy.yaml --adapter yaml
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./caddy.yaml:/etc/caddy.yaml:ro
+      - caddy_data:/data
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: livekit
+    command: --config /etc/livekit.yaml
+    restart: unless-stopped
+    # Host networking: the SFU needs the real UDP port range reachable, and
+    # Docker's userland proxy mangles WebRTC traffic at volume.
+    network_mode: host
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml:ro
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    command: redis-server --bind 127.0.0.1 --save ""
+    network_mode: host
+
+  egress:
+    image: livekit/egress:latest
+    container_name: egress
+    restart: unless-stopped
+    environment:
+      - EGRESS_CONFIG_FILE=/etc/egress.yaml
+    # Chrome's sandbox needs SYS_ADMIN — required for ALL egress deployments,
+    # including local ones. Without it recordings fail to start.
+    cap_add:
+      - SYS_ADMIN
+    # Chrome will crash compositing a multi-participant grid on the 64MB default.
+    shm_size: 1gb
+    network_mode: host
+    volumes:
+      - ./egress.yaml:/etc/egress.yaml:ro
+    depends_on:
+      - redis
+      - livekit
+
+volumes:
+  caddy_data:

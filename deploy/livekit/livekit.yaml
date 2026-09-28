@@ -1,0 +1,57 @@
+# LiveKit SFU config for H-SETS.
+#
+# Every value marked CHANGE_ME must be set before first boot. Generate the key
+# pair with:  docker run --rm livekit/generate --keys
+port: 7880
+bind_addresses:
+  - "" # all interfaces (host networking)
+
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 60000
+  # Required on a cloud VM: the box sees a private IP, participants need the
+  # public one in ICE candidates.
+  use_external_ip: true
+
+turn:
+  enabled: true
+  domain: CHANGE_ME_turn.h-sets.com
+  # Caddy terminates TLS on 443 and proxies here, so TURN itself runs plaintext
+  # behind it — external_tls tells LiveKit to advertise turns:443 to clients.
+  tls_port: 5349
+  udp_port: 3478
+  external_tls: true
+
+keys:
+  # CHANGE_ME: <api_key>: <api_secret>
+  # These become LIVEKIT_API_KEY / LIVEKIT_API_SECRET in the app's env.
+  APIchangeme: changemechangemechangemechangemechangeme
+
+redis:
+  address: 127.0.0.1:6379
+
+webhook:
+  # Must match a key above. LiveKit signs webhook bodies with this pair, and
+  # /api/livekit/webhook verifies with WebhookReceiver(apiKey, apiSecret).
+  api_key: APIchangeme
+  urls:
+    # CHANGE_ME to the production app URL. Attendance depends on this: without
+    # it, participant_joined / participant_left never reach the app and no
+    # student is ever marked present.
+    - https://CHANGE_ME.h-sets.com/api/livekit/webhook
+
+room:
+  # Close an empty room after 5 minutes. This is also what stops a forgotten
+  # room-composite egress from recording an empty grid indefinitely.
+  empty_timeout: 300
+  # Grace period after the last participant leaves before the room is torn down;
+  # keeps a brief network drop from ending the meeting.
+  departure_timeout: 20
+  # Not available on LiveKit Cloud. Enabling it makes the app's
+  # muteParticipantMic(..., muted=false) path actually work, so the
+  # "unmute-blocked" fallback in lib/livekit.ts becomes unreachable.
+  enable_remote_unmute: true
+
+logging:
+  level: info

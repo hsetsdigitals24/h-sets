@@ -12,7 +12,7 @@ import { MeetingStage } from "@/components/meet/meeting-stage";
 import { Button } from "@/components/ui/button";
 import { site } from "@/lib/site";
 import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
-import { fetchMeetingToken, type MeetingConnection } from "@/lib/meeting-token";
+import { fetchMeetingToken, joinErrorMessage, type MeetingConnection } from "@/lib/meeting-token";
 import { MeetingPreJoin, type JoinChoices } from "@/components/meet/prejoin";
 
 // The invite label is only present on the guest-token response, and the shared
@@ -132,6 +132,13 @@ export function GuestRoom({
           audioCaptureDefaults: choices.audioDeviceId
             ? { deviceId: choices.audioDeviceId }
             : undefined,
+        }}
+        onError={(e) => {
+          // A failed connect is fatal (nothing is running); a failed track
+          // publish — denied camera, missing mic — is not, and must leave the
+          // call standing. joinErrorMessage() returns null for the latter.
+          const message = joinErrorMessage(e);
+          if (message) setError(message);
         }}
         onDisconnected={(reason) => {
           if (shouldExitOnDisconnect(reason)) {
