@@ -18,6 +18,23 @@ storage:
   root: /data
 
 apps:
+  # Certificate automation. This block is REQUIRED and easy to omit: Caddy
+  # normally infers which hostnames to get certificates for from the site
+  # addresses of an http server. layer4 routes give it nothing to infer from,
+  # so without these explicit subjects Caddy requests no certificate at all and
+  # every TLS handshake on 443 fails with "internal error" — while port 80 keeps
+  # answering 200, which makes the box look healthy.
+  tls:
+    automation:
+      policies:
+        - subjects:
+            - "CHANGE_ME_meet.h-sets.com"
+            - "CHANGE_ME_turn.h-sets.com"
+          issuers:
+            - module: acme
+              # Optional: an address Let's Encrypt uses for expiry warnings.
+              # email: ops@h-sets.com
+
   layer4:
     servers:
       main:
