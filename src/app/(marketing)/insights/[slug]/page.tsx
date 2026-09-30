@@ -8,7 +8,9 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/common/reveal";
 import { InsightCard } from "@/components/cards/insight-card";
 import { CtaStrip } from "@/components/common/cta-strip";
 import { formatDate } from "@/lib/utils";
-import { ArticleSchema, BreadcrumbSchema } from "@/lib/seo";
+import { ArticleSchema, BreadcrumbSchema, PersonSchema } from "@/lib/seo";
+import { AuthorBio } from "@/components/cards/author-bio";
+import { getTeamMemberByName } from "@/data/company";
 
 export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
@@ -40,6 +42,10 @@ export default async function InsightPage({
   const insight = await getInsight(slug);
   if (!insight) notFound();
 
+  // Bylines are team members — resolve one so the Article's author, the bio box
+  // and the Person node all describe the same entity instead of three strings.
+  const author = getTeamMemberByName(insight.author);
+
   const all = await getPublishedInsights();
   const related = all.filter((i) => i.slug !== insight.slug).slice(0, 3);
 
@@ -57,7 +63,22 @@ export default async function InsightPage({
         description={insight.excerpt}
         author={insight.author}
         date={insight.date}
+        section={insight.category}
+        url={`/insights/${insight.slug}`}
+        {...(insight.coverImage ? { image: insight.coverImage } : {})}
+        {...(author ? { authorUrl: `/about#${author.slug}` } : {})}
+        {...(author?.linkedin ? { authorSameAs: [author.linkedin] } : {})}
       />
+      {author && (
+        <PersonSchema
+          name={author.name}
+          jobTitle={author.role}
+          description={author.bio}
+          url={`/about#${author.slug}`}
+          {...(author.photo ? { image: author.photo } : {})}
+          {...(author.linkedin ? { sameAs: [author.linkedin] } : {})}
+        />
+      )}
 
       <PageHero eyebrow={insight.category} title={insight.title} breadcrumbs={crumbs}>
         <div className="flex items-center gap-4 text-sm text-white/70">
@@ -81,7 +102,7 @@ export default async function InsightPage({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={insight.coverImage}
-                alt={insight.title}
+                alt={`Cover image for the article “${insight.title}”`}
                 className="mb-10 aspect-video w-full rounded-2xl object-cover shadow-soft"
               />
             </Reveal>
@@ -91,6 +112,9 @@ export default async function InsightPage({
               className="prose prose-lg max-w-none text-foreground/90 prose-headings:text-foreground prose-a:text-primary prose-img:rounded-xl"
               dangerouslySetInnerHTML={{ __html: insight.body }}
             />
+          </Reveal>
+          <Reveal>
+            <AuthorBio name={insight.author} role={insight.authorRole} />
           </Reveal>
         </article>
       </Section>

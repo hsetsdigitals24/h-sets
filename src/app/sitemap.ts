@@ -5,6 +5,8 @@ import { industries } from "@/data/industries";
 import { programmes } from "@/data/programmes";
 import { portfolioItems } from "@/data/portfolio";
 import { insights } from "@/data/insights";
+import { locations } from "@/data/locations";
+import { serviceLocations } from "@/data/service-locations";
 
 type Entry = MetadataRoute.Sitemap[number];
 
@@ -43,6 +45,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/about", 0.6],
     ["/careers", 0.6],
     ["/contact", 0.7],
+    ["/locations", 0.7],
   ].map(([path, p]) => entry(path as string, p as number, "weekly"));
 
   // Low-priority but indexable legal pages.
@@ -50,6 +53,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/privacy", 0.3],
     ["/terms", 0.3],
   ].map(([path, p]) => entry(path as string, p as number, "yearly"));
+
+  // Local clusters. Location pages carry high commercial intent with very low
+  // competition in our markets, so they are priced above generic detail pages.
+  const locationPages = locations.map((l) =>
+    entry(`/locations/${l.slug}`, 0.8, "monthly")
+  );
+  const serviceLocationPages = serviceLocations.map((sl) =>
+    entry(`/services/${sl.service}/${sl.city}`, 0.7, "monthly")
+  );
 
   const servicePages = services.map((s) =>
     entry(`/services/${s.slug}`, 0.8, "monthly")
@@ -77,6 +89,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...hubs,
     ...legal,
     ...servicePages,
+    ...locationPages,
+    ...serviceLocationPages,
     ...industryPages,
     ...programmePages,
     ...portfolioPages,

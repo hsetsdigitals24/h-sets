@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { WhatsAppFloat } from "@/components/common/whatsapp-float";
 
 export default function MarketingLayout({
   children,
@@ -17,6 +18,7 @@ export default function MarketingLayout({
         {children}
       </main>
       <Footer />
+      <WhatsAppFloat />
     </>
   );
 }

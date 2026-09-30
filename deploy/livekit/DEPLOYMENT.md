@@ -251,11 +251,12 @@ curl -fsSL https://get.docker.com | sh
 #    The scp path is relative -- running this from your home directory fails
 #    with: stat local "deploy/livekit/docker-compose.yaml": No such file.
 #    Copy all five: setup.sh in step 4 edits them in place, on the VPS.
-cd /path/to/h_sets                       # the repository root
-VPS=root@<vps-ip>
+#    The scp is one long line on purpose -- a wrapped backslash continuation
+#    collapses when pasted and scp then looks for a file named " deploy/...".
+cd /home/victor-olorunda/Documents/WORKSPACE/WORKSPACE/hset/h_sets
+VPS=root@162.35.24.103
 ssh "$VPS" 'mkdir -p /opt/livekit'
-scp deploy/livekit/{docker-compose,caddy,livekit,egress}.yaml \
-    deploy/livekit/setup.sh "$VPS":/opt/livekit/
+scp deploy/livekit/{docker-compose,caddy,livekit,egress}.yaml deploy/livekit/setup.sh "$VPS":/opt/livekit/
 
 # 4. Configure, on the VPS — generates the key pair and fills in all three
 #    names across caddy.yaml, livekit.yaml and egress.yaml.

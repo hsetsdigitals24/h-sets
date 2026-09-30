@@ -12,6 +12,21 @@ export const site = {
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://h-sets.com",
   email: "info@h-sets.com",
   phone: "+234 707 819 8353 / +234 816 369 9882",
+  /**
+   * WhatsApp number in wa.me form (country code, no +, no spaces). For the
+   * Nigerian B2B market this is the highest-converting contact channel — most
+   * leads open WhatsApp before they will fill in a form — so it gets a floating
+   * button on every marketing page (see components/common/whatsapp-float.tsx).
+   */
+  whatsapp: "2347078198353",
+  /**
+   * CAC company registration number, rendered on /about and in the footer.
+   * A visible registration number is a direct trust signal for Nigerian buyers
+   * and for Google's quality raters. Left blank until the real number is set
+   * via NEXT_PUBLIC_CAC_NUMBER — the UI hides the line rather than showing a
+   * placeholder that would be worse than nothing.
+   */
+  cacNumber: process.env.NEXT_PUBLIC_CAC_NUMBER || "",
   // Human-readable one-liner. Structured NAP lives in `location` below; prefer
   // `fullAddress` (derived from it) anywhere the address is shown to users, so
   // the site, the schema and the Google Business Profile cannot drift apart.
@@ -113,6 +128,17 @@ export const mainNav: NavItem[] = [
         links: [
           { label: "AI Automation", href: "/services/ai-automation" },
           { label: "AI Agents", href: "/services/ai-agents" },
+        ],
+      },
+      {
+        // Local landing pages. Surfaced in the nav so they are one click from
+        // every page — an orphaned location cluster gets crawled slowly and
+        // passes almost no internal link equity.
+        heading: "Near you",
+        links: [
+          { label: "Ilorin", href: "/locations/ilorin" },
+          { label: "Kwara State", href: "/locations/kwara" },
+          { label: "Lagos", href: "/locations/lagos" },
         ],
       },
     ],
@@ -243,6 +269,7 @@ export const footerNav: NavColumn[] = [
     heading: "Company",
     links: [
       { label: "About Us", href: "/about" },
+      { label: "Locations", href: "/locations" },
       { label: "Portfolio", href: "/portfolio" },
       { label: "Insights", href: "/insights" },
       { label: "Careers", href: "/careers" },

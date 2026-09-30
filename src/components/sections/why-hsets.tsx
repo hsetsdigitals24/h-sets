@@ -81,7 +81,7 @@ export function WhyHsets() {
               <Image
                 key={i}
                 src={logo.src}
-                alt={logo.name}
+                alt={`${logo.name} — H-SETS client logo`}
                 width={logo.width}
                 height={logo.height}
                 className="h-10 w-auto object-contain opacity-70 transition hover:opacity-100"

@@ -105,6 +105,14 @@ export function Footer() {
         <div className="mt-14 flex flex-col items-center justify-between gap-6 border-t border-white/10 pt-8 sm:flex-row">
           <p className="text-xs text-white/55">
             © {new Date().getFullYear()} {site.legalName}. All rights reserved.
+            {/* Company registration — a direct trust signal for Nigerian buyers.
+                Hidden until NEXT_PUBLIC_CAC_NUMBER carries the real number. */}
+            {site.cacNumber && (
+              <>
+                <br />
+                Registered in Nigeria — CAC Reg. No. {site.cacNumber}.
+              </>
+            )}
           </p>
           <div className="flex items-center gap-2">
             {socialIcons.map(({ icon: Icon, href, label }) => (

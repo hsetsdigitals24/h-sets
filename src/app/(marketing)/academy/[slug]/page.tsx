@@ -57,7 +57,20 @@ export default async function ProgrammeDetailPage({
   return (
     <>
       <BreadcrumbSchema items={crumbs} />
-      <CourseSchema name={programme.name} description={programme.short} />
+      <CourseSchema
+        name={programme.name}
+        description={programme.short}
+        url={`/academy/${programme.slug}`}
+        price={programme.feeFull}
+        durationWeeks={programme.durationWeeks}
+        instances={programme.cohorts
+          .filter((c) => c.status !== "Full")
+          .map((c) => ({
+            startDate: c.startDate,
+            endDate: c.endDate,
+            format: c.format,
+          }))}
+      />
       <FaqSchema faqs={programme.faqs} />
 
       <PageHero

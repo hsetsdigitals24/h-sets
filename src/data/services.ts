@@ -125,6 +125,9 @@ export const services: Service[] = [
       { q: "How long does a website take?", a: "A typical marketing site ships in 3–6 weeks depending on scope and content readiness." },
       { q: "Can my team edit the site?", a: "Yes. We hand over a structured CMS and a short training session so your team stays self-sufficient." },
       { q: "Do you handle hosting?", a: "We deploy to a global edge network with CI/CD and can manage it for you or hand over the keys." },
+      { q: "What does a website cost?", a: "We price per project against fixed deliverables, never per hour. Scope drives the number — a focused marketing site is very different from a site with e-commerce or booking — and you get the price in writing before any work starts." },
+      { q: "Will my site rank on Google?", a: "The foundations are built in: clean semantic structure, schema markup, a valid sitemap, canonical tags, fast mobile performance and location pages where they apply. Ranking for competitive terms then depends on ongoing content and authority work, which we can take on separately." },
+      { q: "What happens if I want to change something after launch?", a: "Small edits you make yourself in the CMS. Larger changes we quote as a small piece of work. There is no retainer you must hold to keep your own site editable." },
     ],
     related: ["ui-ux-design", "seo", "software-development"],
   },
@@ -219,6 +222,9 @@ export const services: Service[] = [
       { q: "Do you build MVPs?", a: "Yes — we specialise in shipping a focused first version fast, then iterating with real users." },
       { q: "What stack do you use?", a: "Primarily TypeScript, Next.js, Node and PostgreSQL, chosen per project for fit and longevity." },
       { q: "Who owns the code?", a: "You do. We hand over full source, documentation and infrastructure access." },
+      { q: "Should we buy an off-the-shelf product instead?", a: "Sometimes, and we will say so. If an existing product covers most of what you need at a fraction of a custom build, buying and configuring it is the right answer. We build custom where the fit genuinely is not there — usually because the process is what makes the business work." },
+      { q: "Who owns the code?", a: "You do, from day one. Repositories, infrastructure accounts and documentation are yours and hand over at the end of the engagement." },
+      { q: "How do you handle changes mid-project?", a: "Delivery runs in short cycles with something reviewable at the end of each, so changes surface early and get priced as they arise rather than accumulating into a dispute at the end." },
     ],
     related: ["mobile-apps", "ai-automation", "it-consulting"],
   },
@@ -227,6 +233,56 @@ export const services: Service[] = [
     metaTitle: "Mobile App Development Company in Nigeria",
     metaDescription:
       "iOS and Android apps built from one codebase by H-SETS — designed for Nigerian networks, devices and payment rails, shipped to both stores.",
+    sections: [
+      {
+        heading: "Most businesses do not need an app — the ones that do, need it badly",
+        body: [
+          "The honest starting point is that a mobile app is the wrong answer more often than it is the right one. If what you have is a marketing problem, a responsive website will reach more people for a fraction of the cost and without asking anyone to install anything. Install friction is real: every step between hearing about you and using you loses a share of the audience, and an app store listing is several steps.",
+          "Apps earn their cost in a narrower set of situations, and they earn it decisively. When usage is habitual rather than occasional — a daily check, a weekly order, a shift log — the icon on the home screen is worth more than any amount of retargeting. When you need the device itself, for camera capture, GPS, biometrics, Bluetooth hardware or offline storage, the browser will not take you all the way. When you need to reach a user who is not currently looking at you, a push notification is the only reliable channel. And when staff use a system all day in the field, a native app is simply faster and less frustrating than a web page over a patchy connection.",
+          "We start every mobile conversation by testing your case against that list, in writing, before quoting anything. Talking a client out of an app they did not need has cost us projects and earned us better ones.",
+        ],
+      },
+      {
+        heading: "One codebase, two stores, no compromise where it counts",
+        body: [
+          "We build cross-platform with React Native, which means a single codebase ships to both iOS and Android instead of funding two separate teams writing the same product twice. For the overwhelming majority of business apps this is not a compromise — the shared code covers the screens, the navigation, the state and the networking, which is most of the app.",
+          "Where the platforms genuinely differ we write native code rather than pretending they do not. Biometric authentication, push notification registration, background location, secure storage and payment sheets all touch platform-specific behaviour, and each gets a proper native implementation behind a shared interface. The result behaves like an app built for that platform, because in the places users can feel, it is.",
+          "The economics follow from that structure. One team, one release process, one set of business logic to test, and features that ship to both platforms in the same sprint rather than one lagging a quarter behind the other. For a Nigerian business funding its first app, that difference frequently decides whether the project happens at all.",
+        ],
+      },
+      {
+        heading: "Designing for the phone your customer actually holds",
+        body: [
+          "The single most common failure in Nigerian mobile apps is that they were designed on a recent iPhone and used on a three-year-old Android with 32 GB of storage and an intermittent connection. A bundle that is casually large gets uninstalled the first time the phone runs out of space. A screen that assumes a live connection shows a spinner in the exact moments it is needed most.",
+          "So we optimise for constraint. Install size is a design target, not an afterthought. Every screen has a defined offline behaviour — cached data, queued writes, an honest message — rather than an infinite loader. Data usage is kept deliberately low, because a customer who notices your app eating their bundle will uninstall it and will not tell you why. And we test on real mid-range Android hardware, not only on simulators, because a simulator will never show you what a cold start feels like on the device your customers own.",
+          "Payments follow the same principle. Paystack and Flutterwave integration covers card, bank transfer and USSD, so a user without a working card is not simply turned away at checkout.",
+        ],
+      },
+      {
+        heading: "Launch is the start, not the finish",
+        body: [
+          "Getting into the stores is procedural work that catches first-time publishers out constantly: developer accounts, signing keys, privacy policies, data-safety declarations, review guidelines, and a rejection cycle that can cost weeks if the submission is careless. We manage the whole submission process and hold the keys in your accounts, not ours — an app whose signing key lives with an agency is an app that agency effectively owns.",
+          "After release you get crash reporting, analytics on the flows that matter and a release process that lets you ship updates without a full store review for anything the platform allows. Most apps earn their return in the second and third releases, once real usage data replaces assumptions, so we scope the first version to be small enough to learn from rather than large enough to be right first time.",
+          "Ongoing, you can retain us for maintenance and feature work or take the codebase in-house. It is documented, conventionally structured and written to be handed over — including to developers trained through the H-SETS Academy.",
+        ],
+      },
+      {
+        heading: "What an app project costs, and where the money actually goes",
+        body: [
+          "The first surprise for most first-time app owners is that the build is not the whole cost. There are two developer accounts to maintain, a backend to host, push notification infrastructure, crash reporting, and — crucially — an ongoing obligation to keep up with the platforms. Apple and Google both ship breaking changes on their own schedule, and an app left untouched for eighteen months will eventually stop being accepted for update, or stop working on the newest devices. Budgeting for the build alone and nothing after it is the single most common way an app project ends up abandoned.",
+          "We quote those running costs explicitly at the start, separated from the build, so you can see the real annual figure before committing. For most business apps it is modest — but it is not zero, and discovering it in month seven is a bad way to find out.",
+          "On the build itself, the way to control cost is scope discipline rather than cheaper delivery. A first release that does one job properly costs a fraction of one that attempts everything, launches sooner, and — more importantly — produces real usage data before the expensive decisions are made. Nearly every feature list we are handed at the start contains items that turn out to matter far less than assumed, and items nobody thought of that turn out to be the reason people open the app. Shipping a focused first version is how you find out which is which without paying to build both.",
+          "So we scope release one deliberately small, instrument it properly, and plan the budget across two or three releases rather than one. That sequencing is not a way of charging more over time; it is a way of spending the same money on the features that turn out to earn it.",
+        ],
+      },
+      {
+        heading: "Who we build for",
+        body: [
+          "The apps we are asked for most often fall into three groups. Customer-facing apps for businesses with repeat custom — ordering, booking, loyalty, account management — where the habit is what justifies the icon. Field and operations apps for staff who work away from a desk, where offline capture, photographs, signatures and location data are the whole point. And fintech-adjacent products where security, biometrics and payment integration set a bar a web app cannot reach.",
+          "Across all three the deciding factor is the same: whether the app will be opened repeatedly by the same person. If the honest answer is that most users will open it once, we will tell you that a well-built mobile web experience is the better investment — and we would rather say it before the quote than after the launch.",
+        ],
+      },
+    ],
     name: "Mobile Apps",
     icon: Smartphone,
     tagline: "iOS & Android, one codebase.",
@@ -256,6 +312,9 @@ export const services: Service[] = [
       { q: "iOS and Android both?", a: "Yes — one React Native codebase serves both platforms with platform-specific polish where it counts." },
       { q: "Can you publish to the stores?", a: "We manage the full submission and review process for both the App Store and Google Play." },
       { q: "Do apps work offline?", a: "Where it makes sense, we build offline-first sync so the app stays useful without a connection." },
+      { q: "Do we actually need an app, or would a website do?", a: "Often a website does. Apps earn their cost when usage is habitual, when you need device features like camera, GPS or biometrics, when push notifications matter, or when staff use it all day in the field. We test your case against that list in writing before quoting." },
+      { q: "iOS and Android — do we pay twice?", a: "No. We build cross-platform with React Native so one codebase ships to both stores, writing native code only where the platforms genuinely differ." },
+      { q: "Who handles App Store and Play Store submission?", a: "We do, end to end — developer accounts, signing, privacy and data-safety declarations, and the review cycle. The accounts and signing keys are created in your name, not ours." },
     ],
     related: ["software-development", "ui-ux-design", "ai-agents"],
   },
@@ -350,6 +409,9 @@ export const services: Service[] = [
       { q: "Where do we start?", a: "With an automation audit — we identify the highest-ROI workflows before building anything." },
       { q: "Will it replace staff?", a: "It removes drudge work so your team can focus on higher-value work. We design human-in-the-loop where judgment matters." },
       { q: "Which tools can you connect?", a: "Most modern SaaS with an API — CRMs, spreadsheets, email, payments, messaging and more." },
+      { q: "How do we know it is worth it?", a: "The automation audit quantifies the hours a workflow currently consumes before anything is built, so the return is estimated against real numbers rather than assumed. If a workflow does not clear the bar, we say so." },
+      { q: "What happens when the automation gets something wrong?", a: "Every workflow has a defined failure path — it stops, flags a human and preserves the record rather than silently proceeding. Anything consequential requires a human confirmation step by design." },
+      { q: "Do we need to replace our existing tools first?", a: "Usually not. Most modern tools have an API, and integrating what you already use is faster and cheaper than replacing it. We only recommend replacing a tool when it genuinely cannot be connected." },
     ],
     related: ["ai-agents", "software-development", "digital-transformation"],
   },
@@ -358,6 +420,57 @@ export const services: Service[] = [
     metaTitle: "AI Agents & Chatbot Development in Nigeria",
     metaDescription:
       "Always-on AI agents from H-SETS that answer customers, qualify leads and handle routine requests across your website, WhatsApp and internal tools.",
+    sections: [
+      {
+        heading: "The problem is not that customers hate bots",
+        body: [
+          "The received wisdom is that customers resent talking to automated systems. That is not quite what the complaints actually say. Go through a month of a typical Nigerian business's support messages and the recurring grievance is not \"I had to speak to a bot\" — it is \"nobody replied for two days\", \"I asked three times\", \"I had to explain it again to a different person\". The failure is absence, not automation.",
+          "A well-built agent fixes exactly that failure. It answers instantly, at 11pm, on a public holiday, to the fortieth person asking the same question about delivery timelines — and it does so accurately, because it is answering from your actual policies rather than improvising. Satisfaction goes up, not down, because the alternative was never a prompt human reply. The alternative was silence.",
+          "The agents that do earn resentment share one trait: they trap people. A loop with no exit, no handover, no way to reach a person when the request stops being routine. That is a design failure and an entirely avoidable one, and it is the first thing we design around.",
+        ],
+      },
+      {
+        heading: "Grounded answers, and a human on the other side of the door",
+        body: [
+          "Our agents are grounded in your content: policies, pricing, product documentation, past support threads and whatever else defines the correct answer. Retrieval happens before generation, so responses are drawn from your material rather than from a model's general impression of how a business like yours might operate. Where the source does not cover a question, the agent says so instead of inventing something plausible — a confident wrong answer about a refund policy costs far more than an admission of uncertainty.",
+          "Every agent has an explicit escalation path. Defined triggers — a complaint, a payment dispute, a request outside scope, repeated failure to resolve, or simply the user asking for a person — hand the conversation to a human with the full transcript attached, so nobody has to start again. The agent's job is to clear the routine eighty percent so your team has time for the twenty percent that needs judgement.",
+          "Boundaries are configured explicitly too. What the agent may commit to, what it may discount, what it must never state, what requires approval. An agent that can promise a delivery date it cannot keep is a liability, and the constraint belongs in the configuration rather than in a hope that the model behaves.",
+        ],
+      },
+      {
+        heading: "Where they run: WhatsApp first",
+        body: [
+          "For most Nigerian businesses the highest-value channel is WhatsApp, by a wide margin. It is where customers already are, where they expect a reply, and where an unanswered message quietly becomes a lost sale. We deploy agents there through the official WhatsApp Business API, alongside your website, email and internal tools, so one agent with one set of knowledge serves every channel rather than three inconsistent versions drifting apart.",
+          "Internally, the same architecture answers staff questions over your own documentation — policies, process, product details, historical decisions. New employees stop interrupting senior colleagues for things that are written down somewhere nobody can find, which is a quieter benefit than customer support but often a larger one.",
+          "Beyond answering, agents can act: create a ticket, check an order, book a slot, update a record, trigger a workflow. Each action is scoped and permissioned deliberately, and anything consequential requires a human confirmation step.",
+        ],
+      },
+      {
+        heading: "Measured, reviewed and improved",
+        body: [
+          "Every conversation is logged and reviewable. You see resolution rate, escalation rate, the questions the agent could not answer, and where users abandoned. That last category is the valuable one: the unanswered questions are a direct list of the gaps in your documentation, and closing them improves the agent and your human team at the same time.",
+          "We start narrow on purpose. One channel, one clearly bounded set of questions, measured for a few weeks against what the agent is replacing. Scope expands once the data says it should. An agent launched everywhere at once, answering everything, is an agent nobody can evaluate and everybody eventually distrusts.",
+          "Costs are transparent: model usage, channel fees and support are quoted separately so you can see what the running cost per conversation actually is, and compare it honestly against the staff time it displaces.",
+        ],
+      },
+      {
+        heading: "Building one: how an engagement actually runs",
+        body: [
+          "The first phase is knowledge, not technology. We gather the material the agent will answer from — policies, pricing, product documentation, delivery terms, opening hours, refund rules — and, almost always, discover that a good share of it exists only in the heads of two or three experienced staff. Writing that down is genuinely useful work in itself: it is the same material a new employee needs, and most businesses have never had a reason to produce it.",
+          "The second phase defines boundaries. What may the agent commit to? What may it never state? What requires a human? What happens when someone is angry, or asking about a payment that has gone wrong, or requesting something outside scope entirely? These are business decisions rather than technical ones, and getting them written down before launch is what separates an agent that helps from one that creates problems the support team then has to clean up.",
+          "The third phase is a narrow pilot. One channel, one bounded set of questions, running alongside your existing process rather than replacing it, measured for a few weeks against how those questions were handled before. We review the transcripts together — particularly the failures, which are the most informative part — and tighten the knowledge and the boundaries before widening scope.",
+          "Only then does it expand: more question types, more channels, and where it makes sense, the ability to take actions rather than only answer. Each expansion is scoped and measured the same way. An agent launched everywhere at once, answering everything, is one nobody can evaluate and everybody eventually stops trusting — and regaining that trust internally is much harder than earning it incrementally in the first place.",
+        ],
+      },
+      {
+        heading: "What it costs to run",
+        body: [
+          "Agent economics have three components and we quote them separately so none of them arrives as a surprise. There is the build — knowledge preparation, configuration, integration and testing. There is the running cost, which is model usage plus any channel fees, and which scales with conversation volume rather than sitting flat. And there is support: reviewing transcripts, closing knowledge gaps and adjusting boundaries as the business changes.",
+          "The comparison that matters is not the absolute figure but the cost per resolved conversation against what that resolution currently costs in staff time. For high-volume, highly repetitive enquiries the gap is usually large and obvious. For low-volume, high-judgement work it frequently is not, and in those cases an agent is the wrong investment — we would rather establish that during scoping than after a build.",
+          "Running costs also fall over time as the knowledge base tightens and fewer conversations need long retrieval or escalation. We report the actual per-conversation figure monthly rather than estimating it once at the start, so the business case stays a live number rather than a proposal slide.",
+        ],
+      },
+    ],
     name: "AI Agents",
     icon: Sparkles,
     tagline: "Always-on AI teammates.",
@@ -387,6 +500,9 @@ export const services: Service[] = [
       { q: "Won't it make things up?", a: "We use retrieval-augmented generation so answers are grounded in your approved content, with escalation when unsure." },
       { q: "Which LLM do you use?", a: "We select the best model per use case — including Claude — balancing accuracy, latency and cost." },
       { q: "Can it take actions?", a: "Yes — agents can book, look up records and trigger workflows, not just answer questions." },
+      { q: "Will customers know they are talking to an AI?", a: "Yes — we label it clearly. Concealing it damages trust the moment anybody notices, and the honest version performs better anyway because expectations are set correctly." },
+      { q: "What stops it from inventing an answer?", a: "Responses are grounded in your own content through retrieval, and the agent is configured to say it does not know rather than improvise. Where the source does not cover a question, it hands over to a person with the transcript attached." },
+      { q: "Can it work on WhatsApp?", a: "Yes, through the official WhatsApp Business API, alongside your website, email and internal tools — one agent with one set of knowledge across every channel." },
     ],
     related: ["ai-automation", "software-development", "mobile-apps"],
   },
@@ -395,6 +511,64 @@ export const services: Service[] = [
     metaTitle: "SEO Services & Agency in Nigeria",
     metaDescription:
       "Rank where your customers are searching. H-SETS delivers technical SEO, local search and content that puts Nigerian businesses on page one — and keeps them there.",
+    sections: [
+      {
+        heading: "Why organic search is the only channel that gets cheaper",
+        body: [
+          "Paid advertising has one structural problem: the day you stop paying, the leads stop the same afternoon. Every enquiry costs what the auction says it costs, and the auction gets more expensive as more competitors enter it. Nothing you spent last year reduces what this year costs.",
+          "Organic search works the opposite way. A page that ranks keeps producing enquiries at no marginal cost, and the authority it earns makes the next page easier to rank. The investment compounds instead of evaporating. For a Nigerian business with a long sales cycle and a cost-per-lead that keeps climbing, that difference is usually the whole argument.",
+          "The trade-off is honest: search is slower to start. Technical fixes show up in weeks, but content authority builds over three to six months. Anyone promising page one in thirty days for a competitive commercial term is describing something that does not happen. We would rather set that expectation at the start than manage a disappointment in month two.",
+        ],
+      },
+      {
+        heading: "The technical foundation almost nobody has",
+        body: [
+          "A great deal of Nigerian SEO spend goes into content that sits on a site Google struggles to crawl, render or trust. Before any content work is worth commissioning, the foundation has to hold: a site that loads quickly on mobile, clean crawlable URLs, a valid sitemap, sensible robots directives, canonical tags that resolve duplicate content, structured data that describes what each page is, and Core Web Vitals inside Google's thresholds.",
+          "Structured data deserves particular attention because so few competitors implement it. Organization and LocalBusiness markup, FAQPage, Service, Article, Course, JobPosting, BreadcrumbList — each is a direct statement to Google about what a page is and how it relates to everything else. Sites with correct, comprehensive schema earn rich results their competitors cannot, and increasingly they are the sites that get retrieved and cited by AI answer engines.",
+          "We start every engagement with a full technical audit and fix what it finds before writing a word of content. Publishing into a broken foundation is the most common way an SEO budget disappears with nothing to show for it.",
+        ],
+      },
+      {
+        heading: "Content built around what buyers actually search",
+        body: [
+          "Topical authority is earned by covering a subject properly, not by publishing frequently. Google's assessment of whether you are a credible source for a topic depends on whether your site answers the full range of questions a person researching that topic asks — including the unglamorous, low-volume ones that convert best.",
+          "So we map the subject rather than chase keywords one at a time: the commercial terms, the comparison queries, the practical how-to questions, the objections people raise before buying, and the definitional content that catches someone early. Then we link them deliberately, so the cluster reinforces itself and a visitor who arrives on any page can find the rest.",
+          "For local businesses the highest-return content is usually geographic. \"Service in city\" terms have real commercial intent and, across most of Nigeria outside Lagos, almost no serious competition. A properly built location page can rank within a couple of months where a national term would take a year.",
+        ],
+      },
+      {
+        heading: "AI search is a second front, and it is already open",
+        body: [
+          "A growing share of commercial research now begins in ChatGPT, Perplexity or Gemini rather than a search box, and those systems retrieve and cite sources differently. They favour content that states things plainly, is well structured, carries clear entity markup and reads as authoritative on a specific subject — and they are far less influenced by the link-building tactics that shaped classic SEO.",
+          "In practice the work overlaps heavily with doing search properly: unambiguous factual statements, comprehensive schema, clean semantics, named authors with verifiable credentials, and content that answers a question completely rather than teasing a call. We build for both at once, because optimising separately for AI citation is largely a repackaging of what good search work already requires.",
+          "We track branded and category citations in the major AI engines alongside conventional rankings, so the reporting reflects where discovery is actually happening rather than only where it used to.",
+        ],
+      },
+      {
+        heading: "Reported honestly, and your accounts stay yours",
+        body: [
+          "Reporting is tied to outcomes: enquiries, calls, form submissions and rankings for the specific commercial terms that produce them. Impressions and average position appear as diagnostics. If something went backwards, the report says so and says why, because a report that is always good news is not a report.",
+          "Search Console, Analytics and the Google Business Profile are created and verified in your name. You can check every number we give you, and if you end the engagement you keep the history rather than starting from zero. We would rather earn the next month than hold the data hostage.",
+        ],
+      },
+      {
+        heading: "What the first ninety days look like",
+        body: [
+          "The first two to three weeks are audit and fix. We crawl the site, check what Google has actually indexed against what should be indexed, and work through the technical list: page speed and Core Web Vitals, crawl errors, redirect chains, duplicate content and missing canonicals, broken internal links, thin or accidentally noindexed pages, and structured data. This is unglamorous and it is where the fastest wins usually sit, because a site frequently has pages that would rank and simply cannot be reached or understood.",
+          "In parallel we do the local work where it applies: claiming and completing the Google Business Profile, reconciling every listing to one exact name-address-phone string, and adding LocalBusiness markup to the site. For a business with a physical location this often produces the first measurable movement, because map-pack visibility responds in weeks rather than months.",
+          "Weeks four to eight are structure and content. We map the topic properly — commercial terms, comparisons, practical questions, objections — and build out the pages that are missing, with internal linking that makes the cluster coherent rather than a set of orphans. Existing pages that are close to ranking get rewritten and expanded first, because improving a page Google already knows is faster than earning trust in a new one.",
+          "From week eight onward it is publication cadence, measurement and iteration: what gained impressions, what gained position without gaining clicks, which pages convert and which attract traffic that never enquires. By day ninety you should have a clear read on which terms are winnable and what the realistic timeline for each is — and, in local markets, usually the first enquiries attributable to organic search.",
+        ],
+      },
+      {
+        heading: "How we work with your team",
+        body: [
+          "SEO is one of the few disciplines where the client's own knowledge is a genuine competitive input. Your sales team knows the objections buyers raise, the questions that come up in every call, and the terms customers use that no keyword tool will surface because nobody has typed them at volume yet. That material is the difference between content that ranks and content that also converts.",
+          "So engagements include a short recurring session with whoever talks to customers — usually under an hour a month. We bring the data on what is being searched and what is ranking; they bring what is actually being asked. The content plan comes out of the overlap.",
+          "Where you have an in-house marketer or writer, we are happy to hand over production entirely and stay on strategy, briefs and technical work. That is usually the cheapest effective arrangement and we will suggest it where it fits, rather than quoting for production you could do better and cheaper yourself.",
+        ],
+      },
+    ],
     name: "SEO",
     icon: Search,
     tagline: "Get found on Google.",
@@ -424,6 +598,9 @@ export const services: Service[] = [
       { q: "How long until results?", a: "Technical wins land in weeks; content authority typically compounds over 3–6 months." },
       { q: "Do you do AI search optimisation?", a: "Yes — we structure content as entities so it can be cited by ChatGPT, Perplexity and Gemini." },
       { q: "Is content included?", a: "We can strategise only, or handle production end-to-end — your call." },
+      { q: "Do you guarantee a number one ranking?", a: "No, and nobody credible does — Google neither sells nor promises positions. We commit to defined deliverables, honest reporting, and a frank assessment of how winnable your target terms are before you spend anything." },
+      { q: "Do we own the accounts?", a: "Yes. Search Console, Analytics and your Google Business Profile are created and verified in your name, so you can audit every number we report and keep the history if you leave." },
+      { q: "Can you help with local search specifically?", a: "It is often the highest-return work we do. Google Business Profile, consistent NAP details, LocalBusiness schema and location pages — in most Nigerian markets outside Lagos, competition for local terms is thin enough to win quickly." },
     ],
     related: ["digital-marketing", "website-development", "it-consulting"],
   },
@@ -432,6 +609,66 @@ export const services: Service[] = [
     metaTitle: "Digital Marketing Agency in Nigeria",
     metaDescription:
       "Performance marketing measured in leads, not likes. H-SETS runs paid, social and email campaigns for Nigerian businesses with reporting you can actually act on.",
+    sections: [
+      {
+        heading: "Reach is not revenue",
+        body: [
+          "The standard agency arrangement in Nigeria is a monthly fee, a stream of posts and a report full of reach, impressions and follower growth. None of those numbers answer the only question that matters: did the money produce customers? Six months in, most business owners genuinely cannot say, and the reason is that nothing in the arrangement was ever connected to an enquiry.",
+          "We invert the order. Before anything runs, we agree what a customer is worth to you, where your enquiries currently come from, and how a lead will be tracked from first click through to signed business. That means the measurement infrastructure goes in first — event tracking, call tracking, WhatsApp click attribution, form submissions and offline conversion import for deals that close in person or over the phone.",
+          "Once that exists, every subsequent decision has an evidence base. A channel that produces impressions and no enquiries gets cut rather than optimised indefinitely, and a channel that works gets more budget. Without it, every decision is a preference dressed as a strategy.",
+        ],
+      },
+      {
+        heading: "WhatsApp is the conversion surface",
+        body: [
+          "For most Nigerian buyers — B2B and consumer alike — the first contact attempt is a WhatsApp message, not a contact form. A funnel that treats WhatsApp as an afterthought is leaking its highest-intent traffic at the last step, and it is one of the most common and most expensive mistakes we see in campaigns we inherit.",
+          "So we build for it deliberately. Click-to-WhatsApp as a first-class campaign objective, entry points on every page with a pre-filled message carrying the page context so the conversation starts with something concrete, and click events tracked as conversions so the reporting can attribute them. Then, on your side, a response process — because an instant click into a chat that sits unanswered for two days is worse than no button at all.",
+          "Where volume justifies it, we automate the first response so nobody waits, with a clean handover to a person the moment the request stops being routine.",
+        ],
+      },
+      {
+        heading: "Paid and organic, sequenced rather than chosen",
+        body: [
+          "Paid and organic are not alternatives, they are different points on the same timeline. Paid buys enquiries now, at a price that never falls. Organic takes months to arrive and then produces enquiries at effectively no marginal cost. A business that runs only paid is renting demand forever; a business that runs only organic has nothing while it waits.",
+          "So we usually sequence them: paid campaigns to produce enquiries and, just as importantly, to generate data about which messages and audiences convert — then search and content work informed by that data, so the organic effort targets what is already proven to sell rather than what we guessed would.",
+          "For local businesses this sequencing is especially effective, because paid social in a market like Ilorin or Kwara is cheap enough to buy real learning quickly, and the local organic terms it points you at are cheap enough to win.",
+        ],
+      },
+      {
+        heading: "Creative made here, for here",
+        body: [
+          "Campaign performance in Nigerian markets is driven by creative more than by targeting, and locally produced creative consistently outperforms stock imagery and imported templates. Audiences recognise the difference immediately — a photograph of an office nobody in the country has ever been in reads as a stock photograph, and it converts like one.",
+          "We produce the work: copy, design, photography and short-form video shot with your team, your premises and your customers. It costs more than a stock library and it is almost always the highest-leverage line in the budget.",
+          "Everything is versioned and tested rather than published once. Several hooks, several formats, a real read on which combination produces enquiries at the lowest cost — then budget consolidated behind what wins.",
+        ],
+      },
+      {
+        heading: "How the engagement runs",
+        body: [
+          "An initial setup engagement covers tracking, account structure, audience build and the first creative. After that we work month to month. We do not ask for long lock-ins — an agency that needs a twelve-month contract to retain a client is telling you what month four looks like.",
+          "Every account is created and verified in your name: ad accounts, pixels, analytics, business profile. Audiences you have paid to build stay yours. Reporting is one document a month, in plain language, covering enquiries generated, what each cost, which channel produced them, and what we are changing next.",
+        ],
+      },
+      {
+        heading: "The channels, and when each is worth funding",
+        body: [
+          "Meta advertising is usually the fastest route to volume in Nigerian consumer and local service markets. Audiences are cheap relative to search, targeting by location and interest is precise enough for a business whose customers are all within driving distance, and creative testing produces usable answers within days. Its weakness is intent: you are interrupting someone rather than meeting a stated need, so it works best where the offer is easy to understand in three seconds.",
+          "Google Search advertising is the opposite trade. You are reaching someone who has already described what they want, so conversion rates are far higher — and so is the cost per click, particularly for competitive commercial terms. It earns its place where the average customer is valuable enough to absorb that cost, and where the volume of people actively searching is large enough to matter.",
+          "LinkedIn is narrow and expensive and occasionally exactly right, when what you sell is bought by a specific job title at a specific size of company. For most Nigerian SMEs it is not, and we will say so rather than adding it to a proposal because it looks thorough.",
+          "Email remains the highest-return channel almost everywhere and is the one most businesses neglect. A list you own, contacted with something genuinely useful rather than a monthly newsletter nobody asked for, costs almost nothing per send and converts better than any paid channel. It only works with something worth opening, which is why it lives alongside the content and resource work rather than separately from it.",
+          "We recommend the mix based on what your buyers actually do, and we are explicit about what we are not recommending and why. A proposal that includes every channel is a proposal written to look comprehensive rather than to work.",
+        ],
+      },
+      {
+        heading: "What we need from you",
+        body: [
+          "The campaigns that work have one thing in common: the client was reachable. Not heavily involved — reachable. Creative needs approval within days rather than weeks, because a test that waits a fortnight for sign-off is a fortnight of budget spent on the old version. Enquiries need answering quickly, because paid traffic is perishable and a lead that waits two days converts at a fraction of one answered in an hour.",
+          "We also need honesty about what happens after the enquiry. If leads are arriving and not closing, the campaign is frequently not the problem — the follow-up is, or the offer is, or the price is. An agency that never raises this keeps billing while the client concludes marketing does not work for them. We would rather have the uncomfortable conversation in month two.",
+          "Practically, that means a named person on your side who can approve creative and see the enquiry data, and a monthly review of an hour. Everything else is ours to run.",
+          "And if the honest answer after a fair test is that paid acquisition is not the right growth lever for your business right now, we will say that too. Some businesses grow faster by fixing their follow-up, their pricing or their referral process than by buying more traffic, and spending a retainer to discover that slowly is the worst outcome for both of us. We would rather lose a month of billing than spend a year producing enquiries you cannot convert.",
+        ],
+      },
+    ],
     name: "Digital Marketing",
     icon: Megaphone,
     tagline: "Demand that converts.",
@@ -461,6 +698,9 @@ export const services: Service[] = [
       { q: "Do you manage ad budgets?", a: "Yes — we plan, run and optimise paid campaigns and report transparently on spend and return." },
       { q: "Can you set up email automation?", a: "We build nurture and lifecycle sequences that move leads toward a purchase automatically." },
       { q: "How do you measure success?", a: "By pipeline and cost-per-lead — not impressions. Every campaign maps to a revenue goal." },
+      { q: "How do you measure success?", a: "Cost per enquiry, and the enquiries themselves — calls, forms and WhatsApp conversations tracked from first click through to closed business, including deals that close offline." },
+      { q: "Do we own the ad accounts and audiences?", a: "Always. Ad accounts, pixels and audiences are created and verified in your name. If you leave, the history and the audiences go with you." },
+      { q: "Is there a minimum contract?", a: "No. After an initial setup engagement we work month to month. An agency that needs a long lock-in to keep clients is telling you what month four looks like." },
     ],
     related: ["seo", "website-development", "ui-ux-design"],
   },
@@ -469,6 +709,58 @@ export const services: Service[] = [
     metaTitle: "UI/UX Design Agency in Nigeria",
     metaDescription:
       "Product and interface design from H-SETS — research, prototypes and design systems that make software feel effortless for the people who use it every day.",
+    sections: [
+      {
+        heading: "Design is where revenue is won or lost, quietly",
+        body: [
+          "Design tends to be discussed as appearance, which is why it is usually the first budget cut and the last thing measured. But the decisions that determine whether a product earns money are design decisions: how many fields stand between a visitor and an enquiry, whether the primary action is obvious on a small screen, whether an error message tells someone how to fix the problem, whether a returning user can find the thing they came for in one step or four.",
+          "Those are not aesthetic questions and their cost is entirely measurable. A checkout that asks for information it does not need loses a predictable share of buyers at every extra field. A dashboard that buries the action staff perform forty times a day costs the business real hours every week. A form that rejects a valid Nigerian phone number because it was validated against a US format loses the enquiry outright and nobody ever finds out.",
+          "We design against those outcomes. Every screen has a defined job and a measurable success action, and anything that does not serve it is a candidate for removal rather than refinement.",
+        ],
+      },
+      {
+        heading: "Research first, even when it is brief",
+        body: [
+          "Good design starts by understanding what people are actually trying to do, which is frequently not what the brief assumes. That does not require a research budget the size of the build. Interviewing five or six real users, watching support tickets for a fortnight, or sitting with the staff who use the current system for an afternoon reliably surfaces more than a month of internal debate.",
+          "The recurring finding is that users are working around something. A spreadsheet kept in parallel because the system will not do one thing. A step done twice because nobody trusts the first. Those workarounds are the map: they show exactly where the current experience fails, and designing them away is usually where the biggest gains sit.",
+          "We write down what we learn and what we are therefore deciding. A design decision with a documented reason can be revisited sensibly later; one made on taste alone gets relitigated every time somebody new sees it.",
+        ],
+      },
+      {
+        heading: "Designed for the device, the connection and the context",
+        body: [
+          "In Nigeria the realistic baseline is a mid-range Android phone on mobile data, often in bright sunlight, often one-handed, sometimes on a connection that drops mid-task. A design that only works on a desktop monitor in an office is a design that works for the people who commissioned it and nobody else.",
+          "That baseline has concrete consequences. Tap targets sized for thumbs. Contrast that survives direct sun rather than merely passing a contrast checker in a dark room. Forms that save progress, because a dropped connection halfway through a long form loses both the data and the customer. Skeleton states and honest loading feedback instead of a spinner with no end. And weight kept down, because the most elegant interface in the world is useless if it has not painted yet.",
+          "Accessibility is part of the same discipline rather than a compliance exercise bolted on at the end. Keyboard navigation, sensible focus order, real labels, semantic structure and WCAG 2.1 AA contrast — all of which also make the interface better for people using it in a hurry on a bad screen.",
+        ],
+      },
+      {
+        heading: "Systems, not screens",
+        body: [
+          "We deliver a design system rather than a folder of mockups: tokens for colour, type, spacing and elevation; documented components with their states; and usage rules explaining when each applies. The reason is durability. A set of individual screens degrades the moment someone has to design the fifteenth one that was never drawn — and someone always does.",
+          "The system is built to be implemented, not admired. Tokens map to the CSS variables and Tailwind configuration the engineers will actually use, components correspond to real component boundaries, and the hand-over includes the states designers habitually skip: loading, empty, error, permission-denied, too-long-text, and the first-run case where the user has no data at all.",
+          "Where we are also building the product, design and engineering run together rather than sequentially, which removes the translation loss that produces a shipped product noticeably worse than its mockups.",
+        ],
+      },
+      {
+        heading: "How a design engagement runs, and what it costs you in time",
+        body: [
+          "Design work fails most often not because the designer was wrong but because the decisions took three weeks each. So we structure engagements around a small number of scheduled decision points with named people attending, rather than an open-ended review process where feedback arrives piecemeal from whoever happens to see a link.",
+          "A typical engagement opens with a discovery week: interviews with real users or staff, a review of your analytics and support tickets, an audit of the current experience, and a written statement of what we are designing for and how we will know it worked. That document is short, and agreeing it is the single highest-leverage hour in the project — most disagreements later turn out to be disagreements about this, discovered late.",
+          "From there we work in cycles: structure and flows first, reviewed as low-fidelity wireframes where the conversation stays about what goes where rather than about colour; then visual design against agreed direction; then the system, components and states. Each cycle ends with a review session and a written record of what was decided and why. Clients consistently tell us the decision record is the part they did not expect to value and then refer back to for years.",
+          "Your time commitment is real but bounded: a few hours in discovery, then roughly an hour per review cycle from the people who can actually decide. The most expensive projects we have run are the ones where the decision-maker delegated reviews and then reversed them in week nine. We would rather have three of the right people for an hour than nine of the wrong ones for three.",
+        ],
+      },
+      {
+        heading: "Design that survives contact with engineering",
+        body: [
+          "A depressing amount of design work never reaches users in the form it was drawn. Mockups get handed over, engineers hit cases the designs did not cover, decisions get made under deadline pressure, and the shipped product is a degraded copy of the file everyone approved. The design was not wrong; the hand-over was.",
+          "We reduce that gap structurally. Designs are built on tokens that map directly to the CSS variables and Tailwind configuration the engineers will use, so spacing and colour are not reinterpreted. Components correspond to real component boundaries rather than visual groupings. And the states that get skipped in mockups — loading, empty, error, permission-denied, very long text, no data on first run — are specified, because those are precisely the cases where an engineer under deadline pressure has to improvise.",
+          "Where we are also building the product, design and engineering run in the same team and the same cycle, which removes the hand-over entirely. Where another team is implementing, we stay available through the build for the questions the documentation did not anticipate — and there are always some.",
+          "Finally, we design with the assumption that the product will keep changing. Screens get added, features get cut, someone joins in a year and has to extend the work without being able to ask us anything. A documented system with stated reasoning survives that; a beautiful set of screens with no rules behind them does not, and the difference shows up about eighteen months after launch when nobody can remember why anything is the way it is.",
+        ],
+      },
+    ],
     name: "UI/UX Design",
     icon: PenTool,
     tagline: "Design people love to use.",
@@ -498,6 +790,9 @@ export const services: Service[] = [
       { q: "Do you do design only?", a: "Yes — and we can also build it. Our designers and engineers work side by side." },
       { q: "Will you build a design system?", a: "For larger products we deliver a reusable component library to keep future work fast and consistent." },
       { q: "Do you test with users?", a: "Usability testing is part of our process so decisions are based on evidence, not opinion." },
+      { q: "What do we actually receive at the end?", a: "A design system, not a folder of pictures: tokens for colour, type and spacing, documented components with their states, and usage rules — plus the states that usually get skipped, including loading, empty, error and first-run." },
+      { q: "Can you work with our existing brand?", a: "Yes. Where a brand exists we design within it and extend it where it has gaps. Where it does not, or where it is actively hurting the product, we will say so and quote that work separately." },
+      { q: "Do you handle accessibility?", a: "Yes — WCAG 2.1 AA as a baseline: keyboard navigation, focus order, real labels, semantic structure and contrast that survives direct sunlight, not just a checker in a dark room." },
     ],
     related: ["website-development", "mobile-apps", "software-development"],
   },
@@ -506,6 +801,58 @@ export const services: Service[] = [
     metaTitle: "IT Consulting Services in Nigeria",
     metaDescription:
       "Independent technology advice for Nigerian businesses. H-SETS helps you choose systems, plan migrations and spend your technology budget where it returns the most.",
+    sections: [
+      {
+        heading: "The cost of the decisions nobody wrote down",
+        body: [
+          "Most of the expensive technology problems we are called in to fix did not start as bad code. They started as a reasonable decision made quickly, by someone who had to choose that week, without anybody recording why. Two years later the reason is forgotten, the circumstances have changed, and the business is paying for a choice nobody can defend or safely reverse.",
+          "The symptoms are familiar. Four systems that each hold a slightly different version of the customer list. A licence renewal for software three people use. A vendor who is the only person who knows how something works. A platform chosen because a competitor used it. None of these are dramatic failures; together they are a substantial, permanent tax on everything the business tries to do.",
+          "Consulting is the work of stopping that accumulation: making the current state explicit, deciding deliberately what to fix, and writing down the reasoning so the next person inherits a decision rather than a mystery.",
+        ],
+      },
+      {
+        heading: "What an engagement actually produces",
+        body: [
+          "We start with an assessment: what systems you run, what they cost, who depends on them, where the data lives, which integrations exist, where the single points of failure are, and what your team can realistically support. This is done by talking to the people who use the systems, not only the people who bought them — the gap between those two accounts is usually where the real problems are.",
+          "The output is a written document you own: current state, risks ranked by the damage they would do, a prioritised plan with effort and cost against each item, and a clear statement of what to do now, what to schedule and what to leave alone deliberately. That last category matters. A consultant who recommends replacing everything is usually quoting for the replacement.",
+          "Where a decision is genuinely close, we say so and set out the trade-off rather than manufacturing certainty. Build or buy, migrate or maintain, hire or outsource — these are business decisions with technical inputs, and the person accountable for the outcome should be making them with the real picture in front of them.",
+        ],
+      },
+      {
+        heading: "Independent advice, and what that costs us",
+        body: [
+          "We take no vendor commissions or referral fees. If the right answer is an off-the-shelf product at a fraction of what a custom build would cost, that is the recommendation, and it means we do not get the build. We have made that recommendation often enough to know it is commercially expensive and reputationally worth it.",
+          "It also means our advice can be checked. Every recommendation comes with its reasoning and the alternatives we rejected, so you can take the document to another party for a second opinion. Advice that only makes sense if you trust the adviser is not advice, it is a sales process.",
+          "Where we are the right party to implement, we quote that separately and explicitly, so the consulting fee is never a foot in the door for a build you were steered toward.",
+        ],
+      },
+      {
+        heading: "Security, continuity and the questions nobody asks until it is too late",
+        body: [
+          "Two questions expose more risk than any audit checklist: what happens if your main system goes down on a Monday morning, and what happens if the one person who understands it leaves. In most growing Nigerian businesses the honest answers are uncomfortable — no tested backup, no documentation, no second person, and no plan beyond hoping.",
+          "We work through the unglamorous fundamentals: backups that are actually restorable and have been restored in a test, access control so departures do not leave live credentials behind, documentation of the systems that matter, an incident plan somebody has read, and a realistic view of which data would hurt you most if it leaked. None of it is exciting and all of it is cheaper than the alternative.",
+          "Where compliance matters — data protection obligations, sector regulation, client security requirements in tender processes — we map what applies to you specifically rather than handing over a generic framework, and sequence the work so the items that block a contract get done first.",
+        ],
+      },
+      {
+        heading: "Choosing what to build, what to buy and what to leave alone",
+        body: [
+          "The build-or-buy question is where the most money gets wasted in either direction. Businesses build things that exist off the shelf for a fraction of the cost, because a developer was enthusiastic. They also buy platforms that do eighty percent of what they need and then spend years working around the twenty percent, because buying felt safer.",
+          "The test we apply is whether the process in question is what makes your business distinctive. Payroll is not — buy it. Accounting is not — buy it. The particular way you schedule field teams, grade a consignment, or price a job against six variables competitors handle by instinct frequently is, and that is where custom software returns its cost. Building your differentiator and buying your commodities is a rule that survives most specific circumstances.",
+          "The third option, doing nothing, is genuinely underrated and almost never recommended by people paid to implement. A system that is unfashionable, ugly and working is not a problem. Replacing it carries migration risk, retraining cost and the near-certainty of discovering undocumented behaviour that mattered. We flag systems like that explicitly as leave-alone, with the reasoning, so nobody re-opens the question every year.",
+          "Where we do recommend change, the plan is sequenced by dependency and by risk rather than by enthusiasm: what must be true before the next thing can work, what would hurt most if it failed tomorrow, and what can wait without compounding. You get that as a document with effort and cost against each item, which means you can also take it to someone else to implement. That is deliberate — advice you cannot get a second opinion on is not worth much.",
+        ],
+      },
+      {
+        heading: "How engagements are structured",
+        body: [
+          "Most consulting engagements start with a fixed-scope assessment: a defined number of days, a defined set of interviews and reviews, and a written report at the end. Fixed scope matters here more than elsewhere, because open-ended consulting has an obvious incentive to keep finding things. You should know what you are spending before you start and own something useful when it finishes.",
+          "After the report, the options are yours. Take it in-house and execute. Take it to a third party for implementation. Retain us for a defined piece of the work. Or do nothing for now, with a clear record of what you decided to defer and why, which is a legitimate outcome and a far better position than the ambient anxiety most businesses carry about their systems.",
+          "Where longer involvement makes sense we work as a fractional technology lead — a standing arrangement of a day or two a month for businesses that need senior technical judgement in decisions but cannot justify a full-time CTO. That covers vendor selection, architecture review, hiring input and sanity-checking proposals before they are signed, which is frequently where the largest savings sit.",
+          "Throughout, everything we produce is written for you to keep and to share. No recommendation depends on trusting us, no document is structured so that acting on it requires hiring us, and the reasoning behind every call is stated plainly enough that a competent third party could disagree with it on the merits. That is the standard we would want applied to advice we were paying for, and it is the one we hold ourselves to.",
+        ],
+      },
+    ],
     name: "IT Consulting",
     icon: Lightbulb,
     tagline: "Clarity for your tech decisions.",
@@ -535,6 +882,9 @@ export const services: Service[] = [
       { q: "Is this a one-off or ongoing?", a: "Both — from a single architecture review to fractional CTO-style ongoing support." },
       { q: "Are you vendor-neutral?", a: "Yes. We recommend what's right for you, not what earns us a referral fee." },
       { q: "Can you help us hire?", a: "We can define roles, review candidates and set up the processes your team needs to succeed." },
+      { q: "Do you take commissions from vendors?", a: "No. We take no referral fees, which is why we can recommend an off-the-shelf product at a fraction of a custom build even though it means we do not get the build." },
+      { q: "What do we get at the end of an assessment?", a: "A written document you own: current state, risks ranked by impact, a prioritised plan with effort and cost against each item, and an explicit list of what to leave alone deliberately." },
+      { q: "Can you help if we already have an in-house IT team?", a: "Frequently that is the best setup. We bring an outside view and specific expertise, your team brings context we would take months to acquire, and the plan is something they can execute and own." },
     ],
     related: ["digital-transformation", "software-development", "seo"],
   },
@@ -543,6 +893,57 @@ export const services: Service[] = [
     metaTitle: "Digital Transformation Consulting in Nigeria",
     metaDescription:
       "H-SETS modernises how Nigerian businesses run end to end — process, systems, data and team capability — in stages that keep the business trading throughout.",
+    sections: [
+      {
+        heading: "Transformation is a sequencing problem, not a technology problem",
+        body: [
+          "By the time a business starts using the phrase, the problem is rarely that nobody knows what to fix. It is that everything looks urgent at once — the records are a mess, the reporting is late, the website is embarrassing, the staff are drowning in manual work, and three departments each have a system the others cannot see. Facing all of that simultaneously, most organisations either freeze or start with whichever item the loudest person named.",
+          "That is why so many transformation programmes fail without anybody doing bad work. The order is wrong. Automating a broken process makes it break faster. Building reporting on data nobody trusts produces confident wrong decisions. Rolling out a new system to staff who were not consulted produces a parallel spreadsheet within a month.",
+          "The value we add is sequencing: establishing what has to be true before the next thing can work, then doing those in order, with each step delivering something usable rather than banking everything on a distant finish.",
+        ],
+      },
+      {
+        heading: "Start with the process, not the platform",
+        body: [
+          "We begin by mapping how work actually flows — not the documented version, the real one. Who touches what, where information is re-entered, where things wait, where the exceptions are handled by somebody remembering. That mapping is done with the people doing the work, because the undocumented steps only exist in their heads and those steps are usually the reason the last system failed.",
+          "The map almost always shows that the biggest costs are not where leadership assumed. Duplicate data entry between two systems. A reconciliation that takes two days a month because one field is free text. An approval that waits because the approver is only reachable by phone. These are cheap to fix and nobody had quantified them.",
+          "Only then do we talk about technology, and often the first recommendation is to fix a process rather than to buy anything. A business that automates its current mess ends up with an expensive, faster mess.",
+        ],
+      },
+      {
+        heading: "Build the data foundation before the ambitions",
+        body: [
+          "Almost every ambition a business has for AI, analytics or automation rests on having data that is complete, current and trusted. That foundation is usually missing, and the gap is not exotic: customers recorded three different ways, a product list that disagrees with the invoices, and no single system that can answer how many orders were placed last week without somebody assembling it by hand.",
+          "So the early phases are unglamorous and non-negotiable. One authoritative record for customers, products, staff and transactions. Systems that talk to each other instead of being reconciled by a person. Reporting that comes from the source rather than from a monthly export nobody can audit. It is the least exciting part of any transformation and the part that determines whether the exciting parts are possible.",
+          "With that in place, the things that looked far off become straightforward. Automation has reliable inputs. Dashboards can be trusted enough to act on. AI has something real to retrieve from. Businesses that skipped this step are the ones whose AI pilot produced impressive demonstrations and no operational change.",
+        ],
+      },
+      {
+        heading: "Adoption is the actual deliverable",
+        body: [
+          "A system nobody uses is worse than the spreadsheet it replaced, because now the business pays for both. Adoption is won long before launch, by involving the people who will use the system while it is being designed, and by being visibly willing to change the design when they say something will not work in practice.",
+          "We plan roll-out to suit the operation rather than the project plan: one team or one branch first, real use for a few weeks, fixes, then expansion. Training happens with the actual people who will do the work, on the real system, not in an abstract session weeks before go-live. And the first difficult fortnight after launch has someone available, because that is when a system is either adopted or quietly abandoned.",
+          "Success is measured in operational terms agreed at the start — hours recovered, errors reduced, cycle time cut, a report that arrives on the second of the month instead of the fifteenth. Not in features delivered.",
+        ],
+      },
+      {
+        heading: "What you keep at the end",
+        body: [
+          "Every engagement is scoped so the business is not left dependent on us. You own the code, the infrastructure accounts, the documentation and the decision record explaining why things are as they are. Your team is trained on the systems, and where you want to build internal capability we will train and hire into it — including from H-SETS Academy graduates.",
+          "Transformation is not a project with an end date so much as a capability a business either has or does not. Our aim is to leave you with the second kind of outcome: a team that can keep going without us, and a standing invitation to come back for the next thing because you want to, not because you have to.",
+        ],
+      },
+      {
+        heading: "What it costs, and how to tell whether it is working",
+        body: [
+          "Transformation budgets go wrong in a predictable way: the software is costed and nothing else is. In practice the technology is frequently the minority of the total. The rest is process work, data cleaning, migration, training, the productivity dip during roll-out, and the internal time of the people who have to be involved for any of it to stick. A plan that has not budgeted for those is a plan that will overrun, and the overrun will be blamed on the technology.",
+          "We cost them explicitly, including your team's time, because that is the line that most often gets discovered rather than planned. It also changes decisions: once internal time is visible as a cost, the argument for doing fewer things properly rather than many things partially makes itself.",
+          "Measurement should be agreed before anything starts and stated in operational terms — hours recovered per week, error rate, cycle time, how long month-end close takes, how quickly a customer enquiry gets an answer. Not features delivered, not milestones hit, and not user satisfaction surveys taken the week after launch when everyone is being polite.",
+          "We baseline those numbers first, which is frequently the first time a business has measured them at all, and report against the baseline at each phase. It makes the programme honest in both directions: where a phase has not delivered what it should, the numbers say so early enough to change course, and where it has, there is evidence for the next investment rather than an assertion. A transformation that cannot show its effect in operational numbers is one nobody will fund a second phase of, and usually should not.",
+          "None of this requires a large organisation to be worth doing. A twenty-person business with clean records, systems that talk to each other and a reporting line it trusts runs measurably better than a two-hundred-person one without those things. The scale of the programme should match the scale of the business — what does not change is the order the work has to happen in, and that order is where most of the value of an outside partner actually lies.",
+        ],
+      },
+    ],
     name: "Digital Transformation",
     icon: Rocket,
     tagline: "Modernise end to end.",
@@ -572,6 +973,9 @@ export const services: Service[] = [
       { q: "Where do we begin?", a: "With a digital transformation assessment that benchmarks your maturity and surfaces the highest-impact moves." },
       { q: "Is it disruptive?", a: "We roll out in phases so the business keeps running and value lands early — no risky big-bang switch." },
       { q: "Do you train our team?", a: "Change management and training are core to every engagement so adoption sticks." },
+      { q: "How long does a transformation take?", a: "It is a sequence, not a single project. The first phase usually delivers something usable within weeks; the foundational data work runs over months. We scope each phase so it stands on its own rather than banking everything on a distant finish." },
+      { q: "What if our staff resist the new system?", a: "That is the main risk, and it is addressed by involving them in the design and being visibly willing to change it when they say something will not work. Roll-out runs team by team with real use before expansion, and someone is available through the first difficult fortnight." },
+      { q: "Do we need to replace everything at once?", a: "Almost never, and doing so is a common way these programmes fail. We keep what works, integrate rather than rip out where that is cheaper, and replace only what genuinely cannot be made to work." },
     ],
     related: ["it-consulting", "ai-automation", "software-development"],
   },

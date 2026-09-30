@@ -12,6 +12,7 @@ import { CtaStrip } from "@/components/common/cta-strip";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/cards/service-card";
 import { BreadcrumbSchema, FaqSchema, ServiceSchema } from "@/lib/seo";
+import { serviceLocations } from "@/data/service-locations";
 
 export const revalidate = 3600; // ISR: rebuilt hourly; admin edits trigger instant on-demand revalidatePath
 
@@ -51,12 +52,16 @@ export default async function ServiceDetailPage({
     { name: service.name, href: `/services/${service.slug}` },
   ];
 
+  // Hand-authored local variants of this service, if any.
+  const localPages = serviceLocations.filter((sl) => sl.service === service.slug);
+
   return (
     <>
       <BreadcrumbSchema items={crumbs} />
       <ServiceSchema
         name={service.name}
         description={service.metaDescription ?? service.short}
+        url={`/services/${service.slug}`}
       />
       <FaqSchema faqs={service.faqs} />
 
@@ -172,6 +177,37 @@ export default async function ServiceDetailPage({
           ))}
         </RevealGroup>
       </Section>
+
+      {/* Local variants. Linking down to them from the parent service page is
+          what gets the local cluster crawled and passes it internal equity. */}
+      {localPages.length > 0 && (
+        <Section className="bg-secondary/40">
+          <SectionHeading
+            eyebrow="Near you"
+            title={`${service.name} in your city`}
+            description="Local pages with pricing context, timelines and answers specific to that market."
+          />
+          <RevealGroup stagger={0.08} className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {localPages.map((sl) => (
+              <RevealItem key={sl.city}>
+                <Link
+                  href={`/services/${sl.service}/${sl.city}`}
+                  className="group block h-full rounded-2xl border border-border bg-card p-6 shadow-soft transition-all hover:-translate-y-1 hover:border-primary/40"
+                >
+                  <h3 className="text-lg font-semibold group-hover:text-primary">
+                    {sl.serviceLabel} in {sl.cityLabel}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{sl.intro}</p>
+                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                    View {sl.cityLabel} page
+                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+              </RevealItem>
+            ))}
+          </RevealGroup>
+        </Section>
+      )}
 
       <FaqSection faqs={service.faqs} />
 

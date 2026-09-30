@@ -38,7 +38,9 @@ export function JobBoard({ jobs }: { jobs: Job[] }) {
         {filtered.map((job) => (
           <div
             key={job.id}
-            className="group flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-soft transition-all hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between"
+            // Anchor target for the JobPosting schema `url` on /careers.
+            id={job.id}
+            className="group flex flex-col gap-4 scroll-mt-28 rounded-2xl border border-border bg-card p-6 shadow-soft transition-all hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">

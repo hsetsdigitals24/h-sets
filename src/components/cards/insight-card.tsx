@@ -15,7 +15,7 @@ export function InsightCard({ insight }: { insight: Insight }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={insight.coverImage}
-            alt={insight.title}
+            alt={`Cover image for the article “${insight.title}”`}
             loading="lazy"
             className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
           />

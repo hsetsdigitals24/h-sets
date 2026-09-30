@@ -104,6 +104,62 @@ export function LocalBusinessSchema() {
   );
 }
 
+/**
+ * Location-page business node. The office page (`hasAddress`) repeats the full
+ * postal address and geo point so the page itself is local-pack eligible; pages
+ * for cities we merely serve deliberately omit both and carry only `areaServed`.
+ * Claiming a street address in a city with no staffed office is a schema
+ * violation and a trust problem the moment anyone checks it.
+ */
+export function LocationBusinessSchema({
+  city,
+  region,
+  path,
+  description,
+  hasAddress,
+}: {
+  city: string;
+  region: string;
+  path: string;
+  description: string;
+  hasAddress: boolean;
+}) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": hasAddress ? "ProfessionalService" : "Organization",
+        "@id": `${abs(path)}#business`,
+        name: `${site.legalName} — ${city}`,
+        url: abs(path),
+        image: abs(site.logo),
+        telephone: site.phone,
+        email: site.email,
+        description,
+        ...(hasAddress
+          ? {
+              priceRange: site.priceRange,
+              address: postalAddress,
+              geo: {
+                "@type": "GeoCoordinates",
+                latitude: location.latitude,
+                longitude: location.longitude,
+              },
+              openingHours: location.openingHours,
+              hasMap: location.gbpUrl,
+            }
+          : {}),
+        areaServed: [
+          { "@type": "City", name: city },
+          { "@type": "AdministrativeArea", name: region },
+        ],
+        parentOrganization: { "@id": ORG_ID },
+        sameAs,
+      }}
+    />
+  );
+}
+
 export function WebsiteSchema() {
   return (
     <JsonLd
@@ -209,9 +265,21 @@ export function ServiceSchema({
 export function CourseSchema({
   name,
   description,
+  url,
+  price,
+  priceCurrency = "NGN",
+  durationWeeks,
+  instances,
 }: {
   name: string;
   description: string;
+  url?: string;
+  /** Full programme fee. Google requires an offer before a Course is rich-result eligible. */
+  price?: number;
+  priceCurrency?: string;
+  durationWeeks?: number;
+  /** Upcoming cohorts, surfaced as CourseInstance nodes. */
+  instances?: { startDate: string; endDate: string; format: string }[];
 }) {
   return (
     <JsonLd
@@ -220,11 +288,39 @@ export function CourseSchema({
         "@type": "Course",
         name,
         description,
+        ...(url ? { url: abs(url) } : {}),
         provider: {
           "@type": "EducationalOrganization",
           name: `${site.name} Academy`,
+          url: `${site.url}/academy`,
           sameAs: site.url,
         },
+        ...(price !== undefined
+          ? {
+              offers: {
+                "@type": "Offer",
+                price: String(price),
+                priceCurrency,
+                category: "Paid",
+                availability: "https://schema.org/InStock",
+                ...(url ? { url: abs(url) } : {}),
+              },
+            }
+          : {}),
+        ...(instances?.length
+          ? {
+              hasCourseInstance: instances.map((c) => ({
+                "@type": "CourseInstance",
+                courseMode: "Blended",
+                startDate: c.startDate,
+                endDate: c.endDate,
+                ...(durationWeeks
+                  ? { courseWorkload: `P${durationWeeks}W` }
+                  : {}),
+                name: `${name} — ${c.format} cohort`,
+              })),
+            }
+          : {}),
       }}
     />
   );
@@ -235,15 +331,25 @@ export function ArticleSchema({
   description,
   author,
   date,
+  dateModified,
   image,
   url,
+  authorUrl,
+  authorSameAs,
+  section,
 }: {
   title: string;
   description: string;
   author: string;
   date: string;
+  /** Falls back to `date` — Google treats a missing dateModified as stale. */
+  dateModified?: string;
   image?: string;
   url?: string;
+  /** Author's profile page (our /about anchor), so the byline resolves to an entity. */
+  authorUrl?: string;
+  authorSameAs?: string[];
+  section?: string;
 }) {
   return (
     <JsonLd
@@ -252,10 +358,20 @@ export function ArticleSchema({
         "@type": "Article",
         headline: title,
         description,
-        ...(image ? { image: abs(image) } : {}),
-        ...(url ? { mainEntityOfPage: abs(url) } : {}),
-        author: { "@type": "Person", name: author },
+        // Always emit an image: Article is not rich-result eligible without one,
+        // and the /og route renders a branded card for posts with no cover.
+        image: abs(image ?? `/og?title=${encodeURIComponent(title)}`),
+        ...(url ? { mainEntityOfPage: { "@type": "WebPage", "@id": abs(url) } } : {}),
+        ...(section ? { articleSection: section } : {}),
+        author: {
+          "@type": "Person",
+          name: author,
+          ...(authorUrl ? { url: abs(authorUrl) } : {}),
+          ...(authorSameAs?.length ? { sameAs: authorSameAs } : {}),
+          worksFor: { "@id": ORG_ID },
+        },
         datePublished: date,
+        dateModified: dateModified ?? date,
         publisher: { "@id": ORG_ID },
       }}
     />
@@ -346,21 +462,31 @@ export function PersonSchema({
   );
 }
 
-/** Job board listing. */
+/**
+ * Job board listing. The board carries partner vacancies as well as our own, so
+ * `hiringOrganization` must name the company that is actually hiring — claiming
+ * H-SETS hires for every listing would be a false structured-data statement.
+ */
 export function JobPostingSchema({
   title,
   description,
   datePosted,
   validThrough,
   employmentType,
+  hiringOrganization,
   location: jobLocation,
+  url,
+  remote = false,
 }: {
   title: string;
   description: string;
   datePosted: string;
   validThrough?: string;
   employmentType?: string;
+  hiringOrganization?: string;
   location?: string;
+  url?: string;
+  remote?: boolean;
 }) {
   return (
     <JsonLd
@@ -372,7 +498,13 @@ export function JobPostingSchema({
         datePosted,
         ...(validThrough ? { validThrough } : {}),
         ...(employmentType ? { employmentType } : {}),
-        hiringOrganization: { "@id": ORG_ID },
+        ...(url ? { url: abs(url) } : {}),
+        hiringOrganization: hiringOrganization
+          ? { "@type": "Organization", name: hiringOrganization }
+          : { "@id": ORG_ID },
+        ...(remote
+          ? { jobLocationType: "TELECOMMUTE", applicantLocationRequirements: { "@type": "Country", name: "Nigeria" } }
+          : {}),
         jobLocation: {
           "@type": "Place",
           address: {

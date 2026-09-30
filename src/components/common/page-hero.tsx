@@ -32,7 +32,7 @@ export function PageHero({
       <div className="pointer-events-none absolute inset-0">
         <Image
           src="/hero/slide-2.png"
-          alt="H-SETS Academy learners at work"
+          alt=""
           fill
           sizes="100vw"
           priority

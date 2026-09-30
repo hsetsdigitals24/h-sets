@@ -6,7 +6,9 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/common/reveal";
 import { AnimatedCounter } from "@/components/common/animated-counter";
 import { CtaStrip } from "@/components/common/cta-strip";
 import { aboutStats, values, team, milestones } from "@/data/company";
-import { BreadcrumbSchema } from "@/lib/seo";
+import { site, fullAddress } from "@/lib/site";
+import { TeamMemberCard } from "@/components/cards/team-member-card";
+import { BreadcrumbSchema, PersonSchema } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "About Us",
@@ -24,6 +26,20 @@ export default function AboutPage() {
           { name: "About", href: "/about" },
         ]}
       />
+      {/* One Person node per team member. This is how Google establishes that
+          real, named people stand behind the brand — a direct EEAT signal, and
+          the reason each card carries a stable #slug anchor to point at. */}
+      {team.map((m) => (
+        <PersonSchema
+          key={m.slug}
+          name={m.name}
+          jobTitle={m.role}
+          description={m.bio}
+          url={`/about#${m.slug}`}
+          {...(m.photo ? { image: m.photo } : {})}
+          {...(m.linkedin ? { sameAs: [m.linkedin] } : {})}
+        />
+      ))}
       <PageHero
         eyebrow="About H-SETS"
         title={<>Building Nigeria&apos;s <span className="text-gradient">technology future</span></>}
@@ -141,18 +157,33 @@ export default function AboutPage() {
         <SectionHeading eyebrow="Our people" title="Meet the team" description="A senior team that's shipped across fintech, health and enterprise." />
         <RevealGroup stagger={0.06} className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {team.map((m) => (
-            <RevealItem key={m.name}>
-              <div className="group h-full rounded-2xl border border-border bg-card p-6 text-center shadow-soft transition-all hover:-translate-y-1">
-                <span className="mx-auto grid size-16 place-items-center rounded-full bg-brand-gradient text-xl font-bold text-white">
-                  {m.initials}
-                </span>
-                <h3 className="mt-4 font-semibold">{m.name}</h3>
-                <p className="text-sm text-primary">{m.role}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{m.bio}</p>
-              </div>
+            <RevealItem key={m.slug} className="h-full">
+              <TeamMemberCard member={m} />
             </RevealItem>
           ))}
         </RevealGroup>
+      </Section>
+
+      {/* Company registration. A visible CAC number is a direct trust signal
+          for Nigerian buyers and for Google's quality evaluation. Rendered only
+          when NEXT_PUBLIC_CAC_NUMBER is set — a placeholder would be worse
+          than the omission. */}
+      <Section className="!pt-0">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-border bg-secondary/40 p-6 text-center">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-primary">
+            Company details
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{site.legalName}</span> is a
+            technology company registered and operating in Nigeria.
+            {site.cacNumber ? (
+              <> Registered in Nigeria — CAC Reg. No. {site.cacNumber}.</>
+            ) : null}
+          </p>
+          <address className="mt-2 text-sm not-italic text-muted-foreground">
+            {fullAddress}
+          </address>
+        </div>
       </Section>
 
       <CtaStrip />

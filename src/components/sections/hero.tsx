@@ -24,7 +24,7 @@ import { stats } from "@/data/company";
 const slides = [
   {
     src: "/hero/slide-1.png",
-    alt: "H-SETS team building software",
+    alt: "H-SETS engineers building custom software at the company office in Ilorin, Nigeria",
     // Slide 1 is the H1 the crawler sees (only the active slide is mounted, and
     // SSR renders index 0), so it has to carry the category + geography the old
     // "Technology that grows your business" headline was missing entirely.
@@ -35,7 +35,7 @@ const slides = [
   },
   {
     src: "/hero/slide-2.jpeg",
-    alt: "H-SETS Academy learners at work",
+    alt: "H-SETS Academy students learning software development in Ilorin, Kwara State",
     headline: ["Tech skills that", "launch careers", "in Nigeria"],
     gradientFrom: 2,
     subheadline:

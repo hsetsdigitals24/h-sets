@@ -6,7 +6,8 @@ import { Section, SectionHeading } from "@/components/common/section";
 import { Reveal } from "@/components/common/reveal";
 import { ContactForm } from "@/components/forms/contact-form";
 import { ConsultationForm } from "@/components/forms/consultation-form";
-import { site, fullAddress } from "@/lib/site";
+import Link from "next/link";
+import { site, fullAddress, location } from "@/lib/site";
 import { BreadcrumbSchema } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
@@ -19,7 +20,14 @@ export const metadata: Metadata = buildMetadata({
 const details = [
   { icon: Mail, label: "Email", value: site.email, href: `mailto:${site.email}` },
   { icon: Phone, label: "Phone", value: site.phone, href: `tel:${site.phone}` },
-  { icon: MapPin, label: "Location", value: fullAddress },
+  {
+    icon: MapPin,
+    label: "Office",
+    value: fullAddress,
+    // Opens the Google Business Profile — the same listing the schema and the
+    // footer NAP point at, so a visitor can confirm the address independently.
+    href: location.gbpUrl,
+  },
   { icon: Clock, label: "Hours", value: "Mon–Fri, 9am–6pm WAT" },
 ];
 
@@ -95,6 +103,62 @@ export default function ContactPage() {
             <ConsultationForm />
           </div>
         </Reveal>
+      </Section>
+
+      {/* Visit us — full NAP plus a map, so the address on this page, the
+          LocalBusiness schema and the Google Business Profile all agree. */}
+      <Section>
+        <SectionHeading
+          eyebrow="Visit us"
+          title="Our office in Ilorin"
+          description="Walk-ins are welcome — call ahead so the right person is free to see you."
+        />
+        <div className="mt-12 grid items-start gap-8 lg:grid-cols-5">
+          <Reveal className="lg:col-span-2">
+            <address className="not-italic">
+              <p className="font-semibold">{site.legalName}</p>
+              <p className="mt-2 leading-relaxed text-muted-foreground">{fullAddress}</p>
+              <p className="mt-4 text-sm text-muted-foreground">
+                <a href={`tel:${site.phone.replace(/\s+/g, "").split("/")[0]}`} className="hover:text-primary">
+                  {site.phone}
+                </a>
+                <br />
+                <a href={`mailto:${site.email}`} className="hover:text-primary">
+                  {site.email}
+                </a>
+              </p>
+            </address>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Monday–Friday, 9:00–17:00 WAT
+            </p>
+            <div className="mt-6 flex flex-wrap gap-4 text-sm font-medium">
+              <a
+                href={location.gbpUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Open in Google Maps
+              </a>
+              <Link href="/locations/ilorin" className="text-primary hover:underline">
+                What we do in Ilorin
+              </Link>
+            </div>
+          </Reveal>
+          <Reveal direction="left" className="lg:col-span-3">
+            <div className="overflow-hidden rounded-3xl border border-border shadow-soft">
+              <iframe
+                title="Map showing the H-SETS office at Kulende Estate, Sango, Ilorin, Kwara State"
+                src={`https://www.google.com/maps?q=${location.latitude},${location.longitude}&z=15&output=embed`}
+                width="100%"
+                height="420"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="block border-0"
+              />
+            </div>
+          </Reveal>
+        </div>
       </Section>
     </>
   );

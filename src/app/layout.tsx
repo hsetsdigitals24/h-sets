@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { OrganizationSchema, WebsiteSchema, LocalBusinessSchema } from "@/lib/seo";
 import { site } from "@/lib/site";
+import { Analytics } from "@/components/common/analytics";
 import "./globals.css";
 
 const inter = Inter({
@@ -58,6 +59,7 @@ export default function RootLayout({
         <LocalBusinessSchema />
         <AuthSessionProvider>{children}</AuthSessionProvider>
         <Toaster position="top-center" richColors closeButton />
+        <Analytics />
       </body>
     </html>
   );

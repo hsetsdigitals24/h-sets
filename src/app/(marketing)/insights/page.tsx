@@ -146,7 +146,7 @@ export default async function InsightsPage({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={featured.coverImage}
-                  alt={featured.title}
+                  alt={`Cover image for the article “${featured.title}”`}
                   className="absolute inset-0 size-full object-cover"
                 />
               )}

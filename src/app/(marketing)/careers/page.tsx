@@ -8,7 +8,7 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/common/reveal";
 import { JobBoard } from "@/components/sections/job-board";
 import { CtaStrip } from "@/components/common/cta-strip";
 import { Button } from "@/components/ui/button";
-import { BreadcrumbSchema } from "@/lib/seo";
+import { BreadcrumbSchema, JobPostingSchema } from "@/lib/seo";
 import { getJobs } from "@/lib/content";
 
 export const metadata: Metadata = buildMetadata({
@@ -30,6 +30,22 @@ export default async function CareersPage() {
   const jobs = await getJobs();
   return (
     <>
+      {/* One JobPosting node per live listing — the board is the page Google
+          indexes for these roles, so the markup belongs here. */}
+      {jobs.map((job) => (
+        <JobPostingSchema
+          key={job.id}
+          title={job.title}
+          description={job.summary}
+          datePosted={job.posted}
+          validThrough={job.deadline}
+          employmentType={job.type === "Internship" ? "INTERN" : "FULL_TIME"}
+          hiringOrganization={job.company}
+          location={job.location}
+          url={`/careers#${job.id}`}
+          remote={job.mode === "Remote"}
+        />
+      ))}
       <BreadcrumbSchema
         items={[
           { name: "Home", href: "/" },
