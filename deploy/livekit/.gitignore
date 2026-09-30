@@ -4,5 +4,3 @@
 
 # Filled-in configs and template backups hold the API secret.
 *.orig
-
-DEPLOYMENT.md

@@ -25,6 +25,17 @@ apps:
   # every TLS handshake on 443 fails with "internal error" — while port 80 keeps
   # answering 200, which makes the box look healthy.
   tls:
+    # WHICH names to get certificates for. This key is what actually triggers
+    # certificate management; without it Caddy requests nothing, every TLS
+    # handshake on 443 fails with "internal error", and port 80 keeps answering
+    # 200 so the box still looks healthy. An http server would infer this list
+    # from its site addresses — layer4 routes cannot, so it must be explicit.
+    certificates:
+      automate:
+        - "CHANGE_ME_meet.h-sets.com"
+        - "CHANGE_ME_turn.h-sets.com"
+    # HOW to get them. A policy alone manages nothing; it only configures the
+    # issuance for the subjects listed above.
     automation:
       policies:
         - subjects:

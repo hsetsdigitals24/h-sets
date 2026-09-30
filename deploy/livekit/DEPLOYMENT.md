@@ -76,9 +76,18 @@ Stock Caddy can only route HTTP.
 
 ### Could TURN just use a different port?
 
-Yes, and it also listens on 3478/UDP and 5349/TCP directly — those are open and
-used when the network permits. But §4 explains why the 443 path must exist, and
-once TURN is on 443 alongside signalling, the second hostname is forced.
+Partly. TURN also listens on **3478/UDP**, which is open and is the fast relay
+path whenever the network permits it.
+
+Its **5349/TCP** listener is *not* public and must not be. Because
+`livekit.yaml` sets `external_tls: true`, LiveKit expects Caddy to have already
+terminated TLS, so 5349 speaks **plaintext** TURN — reachable only over
+loopback, from Caddy. Opening it in the firewall would expose an unencrypted
+relay on a port clients assume is TLS.
+
+So the only TLS-protected TURN path is the one on 443, and §4 explains why that
+path must exist. Once TURN is on 443 alongside signalling, the second hostname
+is forced.
 
 ---
 
@@ -238,19 +247,26 @@ dig +short meet.h-sets.com turn.h-sets.com
 # 2. On the VPS
 curl -fsSL https://get.docker.com | sh
 
-# 3. Copy configs, FROM THE REPOSITORY ROOT on your workstation.
+# 3. Copy the templates up, FROM THE REPOSITORY ROOT on your workstation.
 #    The scp path is relative -- running this from your home directory fails
 #    with: stat local "deploy/livekit/docker-compose.yaml": No such file.
-cd ~/Documents/WORKSPACE/WORKSPACE/hset/h_sets
-ssh root@162.35.24.103 'mkdir -p /opt/livekit'
-scp deploy/livekit/{docker-compose.yaml,livekit.yaml,egress.yaml,caddy.yaml,setup.sh} root@162.35.24.103:/opt/livekit/
-ssh root@162.35.24.103 'chmod +x /opt/livekit/setup.sh'   # scp drops the exec bit
+#    Copy all five: setup.sh in step 4 edits them in place, on the VPS.
+cd /path/to/h_sets                       # the repository root
+VPS=root@<vps-ip>
+ssh "$VPS" 'mkdir -p /opt/livekit'
+scp deploy/livekit/{docker-compose,caddy,livekit,egress}.yaml \
+    deploy/livekit/setup.sh "$VPS":/opt/livekit/
 
-# 4. Configure — generates keys, fills in all three names
+# 4. Configure, on the VPS — generates the key pair and fills in all three
+#    names across caddy.yaml, livekit.yaml and egress.yaml.
+ssh "$VPS"
 cd /opt/livekit
+chmod +x setup.sh
 ./setup.sh meet.h-sets.com turn.h-sets.com https://h-sets.com
 
-# 5. Firewall (and the same in your provider's cloud firewall panel)
+# 5. Firewall (and the same in your provider's cloud firewall panel).
+#    Allow SSH FIRST: `ufw enable` on a VPS with no SSH rule locks you out.
+ufw allow OpenSSH
 ufw allow 80,443,7881/tcp
 ufw allow 3478/udp
 ufw allow 50000:60000/udp
@@ -259,6 +275,11 @@ ufw enable
 # 6. Boot
 docker compose up -d && docker compose logs -f
 ```
+
+TURN's 5349 is deliberately absent from those rules — see §3. If you later edit
+`caddy.yaml` by hand on the VPS, apply it with
+`docker compose restart caddy && docker compose logs --tail=60 caddy`; a bad
+`layer4` block makes Caddy exit rather than start with the old config.
 
 Then set the three values `setup.sh` prints in Vercel, Production **and**
 Preview, and redeploy:
