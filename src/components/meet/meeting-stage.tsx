@@ -22,6 +22,7 @@ import {
   type MessageFormatter,
 } from "@livekit/components-react";
 import { AvatarParticipantTile } from "@/components/meet/participant-tile";
+import { BackgroundCallSupport } from "@/components/meet/background-call";
 import { CallTimer } from "@/components/meet/call-timer";
 import { ModerationProvider } from "@/components/meet/moderation";
 import {
@@ -44,11 +45,19 @@ import {
  * profile picture when their camera is off. Everything else — pinning a screen
  * share, the carousel of other participants, chat — behaves exactly as the
  * prefab does, plus an emoji reaction button the prefab has no equivalent for.
+ *
+ * `title` labels the call in the phone's media controls, and `onConnectionStale`
+ * is called when a backgrounded page returns to a connection that hasn't
+ * recovered, so the room can rejoin (see `BackgroundCallSupport`).
  */
 export function MeetingStage({
   chatMessageFormatter,
+  title,
+  onConnectionStale,
 }: {
   chatMessageFormatter?: MessageFormatter;
+  title?: string;
+  onConnectionStale?: () => void;
 }) {
   const [widgetState, setWidgetState] = React.useState<WidgetState>({
     showChat: false,
@@ -160,6 +169,7 @@ export function MeetingStage({
               </div>
             )}
             <CallTimer />
+            <BackgroundCallSupport title={title} onStale={onConnectionStale} />
             <RaisedHandsAnnouncer />
             <ReactionOverlay reactions={reactions} />
             {/* The stage above is sized as `100% - --lk-control-bar-height`, so

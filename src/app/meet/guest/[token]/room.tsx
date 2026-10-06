@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Loader2, VideoOff } from "lucide-react";
 import {
@@ -12,12 +12,9 @@ import { MeetingStage } from "@/components/meet/meeting-stage";
 import { Button } from "@/components/ui/button";
 import { site } from "@/lib/site";
 import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
-import { fetchMeetingToken, joinErrorMessage, type MeetingConnection } from "@/lib/meeting-token";
+import { joinErrorMessage } from "@/lib/meeting-token";
+import { useMeetingConnection } from "@/components/meet/use-meeting-connection";
 import { MeetingPreJoin, type JoinChoices } from "@/components/meet/prejoin";
-
-// The invite label is only present on the guest-token response, and the shared
-// fetcher types it as optional; nothing here reads it today.
-type TokenResponse = MeetingConnection;
 
 /**
  * Login-free video room for an invited external guest. Identical UX to the staff
@@ -39,43 +36,22 @@ export function GuestRoom({
   title: string;
   promptName?: boolean;
 }) {
-  const [conn, setConn] = useState<TokenResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
   // Mic/camera choices from the pre-join screen; null until the joiner submits
   // it, which gates the token fetch below. For a shareable link the same screen
   // also collects a display name — personal invites already know who the guest
   // is.
   const [choices, setChoices] = useState<JoinChoices | null>(null);
-  // Bumped to force a fresh token fetch + LiveKitRoom remount after a transient
-  // drop (e.g. the tab was backgrounded and the connection froze).
-  const [attempt, setAttempt] = useState(0);
-  const [reconnecting, setReconnecting] = useState(false);
 
-  useEffect(() => {
-    // Wait for the pre-join step before minting a token.
-    if (!choices) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const qs = new URLSearchParams({ token });
-        if (choices.name) qs.set("name", choices.name);
-        const data = await fetchMeetingToken(
-          `/api/livekit/guest-token?${qs.toString()}`,
-          "Could not join the meeting."
-        );
-        if (!cancelled) {
-          setConn(data);
-          setReconnecting(false);
-        }
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to join.");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [token, attempt, choices]);
+  // Wait for the pre-join step before minting a token.
+  const tokenUrl = choices
+    ? `/api/livekit/guest-token?${new URLSearchParams({
+        token,
+        ...(choices.name ? { name: choices.name } : {}),
+      }).toString()}`
+    : null;
+  const { conn, error, setError, reconnecting, rejoin, onConnected } =
+    useMeetingConnection(tokenUrl, "Could not join the meeting.");
 
   if (error) {
     return (
@@ -146,14 +122,17 @@ export function GuestRoom({
             window.location.href = site.url;
           } else {
             // Transient drop — stay in the meeting and reconnect in place.
-            setConn(null);
-            setReconnecting(true);
-            setAttempt((n) => n + 1);
+            rejoin();
           }
         }}
+        onConnected={onConnected}
         style={{ height: "100%" }}
       >
-        <MeetingStage chatMessageFormatter={formatChatMessageLinks} />
+        <MeetingStage
+          chatMessageFormatter={formatChatMessageLinks}
+          title={title}
+          onConnectionStale={rejoin}
+        />
       </LiveKitRoom>
     </div>
   );

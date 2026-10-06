@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Loader2, VideoOff } from "lucide-react";
 import {
@@ -13,10 +13,9 @@ import { Button } from "@/components/ui/button";
 import { RecordButton } from "@/components/lms/record-button";
 import { InviteGuestButton } from "@/components/meet/invite-guest-button";
 import { shouldExitOnDisconnect } from "@/lib/meeting-disconnect";
-import { fetchMeetingToken, joinErrorMessage } from "@/lib/meeting-token";
+import { joinErrorMessage } from "@/lib/meeting-token";
+import { useMeetingConnection } from "@/components/meet/use-meeting-connection";
 import { MeetingPreJoin, type JoinChoices } from "@/components/meet/prejoin";
-
-type TokenResponse = { token: string; url: string; room: string; identity: string };
 
 /**
  * Client-side LiveKit room for a company-wide standup. Mirrors the project room
@@ -34,40 +33,18 @@ export function CompanyRoom({
   title: string;
   canRecord?: boolean;
 }) {
-  const [conn, setConn] = useState<TokenResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
-  // Bumped to force a fresh token fetch + LiveKitRoom remount after a transient
-  // drop (e.g. the tab was backgrounded and the connection froze).
-  const [attempt, setAttempt] = useState(0);
-  const [reconnecting, setReconnecting] = useState(false);
   // Mic/camera choices from the pre-join screen; null until the user joins,
   // which gates the token fetch below.
   const [choices, setChoices] = useState<JoinChoices | null>(null);
 
   const homeHref = "/admin/standups";
 
-  useEffect(() => {
-    if (!choices) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await fetchMeetingToken(
-          `/api/livekit/token?company=${encodeURIComponent(slug)}`,
-          "Could not join the standup."
-        );
-        if (!cancelled) {
-          setConn(data);
-          setReconnecting(false);
-        }
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to join.");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [slug, attempt, choices]);
+  const { conn, error, setError, reconnecting, rejoin, onConnected } =
+    useMeetingConnection(
+      choices ? `/api/livekit/token?company=${encodeURIComponent(slug)}` : null,
+      "Could not join the standup."
+    );
 
   if (error) {
     return (
@@ -134,14 +111,17 @@ export function CompanyRoom({
             window.location.href = homeHref;
           } else {
             // Transient drop — stay in the standup and reconnect in place.
-            setConn(null);
-            setReconnecting(true);
-            setAttempt((n) => n + 1);
+            rejoin();
           }
         }}
+        onConnected={onConnected}
         style={{ height: "100%" }}
       >
-        <MeetingStage chatMessageFormatter={formatChatMessageLinks} />
+        <MeetingStage
+          chatMessageFormatter={formatChatMessageLinks}
+          title={title}
+          onConnectionStale={rejoin}
+        />
       </LiveKitRoom>
       <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex flex-wrap justify-center gap-2 px-20 sm:px-4 [&>*]:pointer-events-auto">
         {canRecord && <RecordButton company={slug} />}
